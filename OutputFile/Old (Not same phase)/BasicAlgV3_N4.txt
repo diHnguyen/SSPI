@@ -1,0 +1,9 @@
+N4; Ins 1; β 0.253; Time 24.04149317741394; LB 9.484375; α_sol 10.0; x_sol [4]; Cells 2; Iter 4; W 0.7421875; Cuts 1
+N4; Ins 1; β 0.253; Time 23.718081951141357; LB 9.484375; α_sol 10.0; x_sol [4]; Cells 2; Iter 4; W 0.7421875; Cuts 1
+N4; Ins 1; β 0.253; Time 23.967388153076172; LB 9.484375; α_sol 10.0; x_sol [4]; Cells 2; Iter 4; W 0.7421875; Cuts 1
+N4; Ins 1; β 0.253; Time 23.90279722213745; LB 9.484375; α_sol 10.0; x_sol [4]; Cells 2; Iter 4; W 0.7421875; Cuts 1
+N4; Ins 1; β 0.253; Time 24.07288098335266; LB 9.484375; α_sol 10.0; x_sol [4]; Cells 2; Iter 4; W 0.7421875; Cuts 2
+N4; Ins 1; β 0.253; Time 24.945489168167114; LB 9.484375; α_sol 10.0; x_sol [4]; Cells 2; Iter 4; W 0.7421875; Cuts 2
+N4; Ins 1; β 0.253; Time 41.80774784088135; LB 0; α_sol 0; x_sol Int64[]; Cells 2; Iter 3; W 0; Cuts 0
+N4; Ins 1; β 0.253; Time 41.64967489242554; MP_obj 11.0; x_now [2]; Cells 2; Iter 2
+N4; Ins 1; β 0.253; Time 41.914551973342896; MP_obj 10.0; x_now [4]; Cells 3; Iter 3
