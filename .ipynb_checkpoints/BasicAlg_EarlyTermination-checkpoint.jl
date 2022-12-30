@@ -147,6 +147,7 @@ while terminate_cond == false
             #     println(iter, " : ", length(K_bar),"/", newCell, " - ", time()-start)
             # end
             println("x = ", findall(x_now.>0))
+            println("LB_x = ", sum(p[i]*df_cell.h[i] for i=1:newCell))
         end
         
         # if termination_status(m) != MOI.OPTIMAL || MP_obj <= LB
@@ -191,11 +192,11 @@ while terminate_cond == false
             if length(x_loc) == 0
                 x_count = x_count + 1
                 x_constr[x_count] = @constraint(m, sum(x[i] for i in findall(x_now.==1)) <= b-1)
-                println(constr[x_count])
+                # println(x_constr[x_count])
             else
                 x_count = x_loc[1]
-                set_normalized_rhs(constr[x_count], b-1)
-                println(constr[x_count])
+                set_normalized_rhs(x_constr[x_count], b-1)
+                # println(x_constr[x_count])
             end
             optimize!(m) 
             MP_test = JuMP.objective_value.(m)
@@ -210,9 +211,9 @@ while terminate_cond == false
                 K_bar = []
                 MP_obj, x_now, z_now = MP_test, x_test, z_test
             else
-                println(constr[x_count])
-                set_normalized_rhs(constr[x_count], b)
-                println(constr[x_count])
+                # println(x_constr[x_count])
+                set_normalized_rhs(x_constr[x_count], b)
+                # println(x_constr[x_count])
             end
             x_consec = 1
         end
@@ -386,9 +387,10 @@ while terminate_cond == false
 end
 println("con_num " , con_num)
 # println("constr ", constr[1:con_num])
-println("z_now ", z_now[1:newCell])
+# println("z_now ", z_now[1:newCell])
 total_time = time() - start
-
+println("LB = ", sum(df_cell.h[i]*p[i] for i = 1:newCell))
+println("p sum = ", sum(p[i] for i = 1:newCell))
 println("BasicAlg_ET_"*dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 
 timesFile = open("./OutputFile/BasicAlg_ET_"*dataSet*".txt", "a")
