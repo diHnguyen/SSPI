@@ -29,7 +29,7 @@ to = TimerOutput()
 numNodes = string(ARGS[1])
 dataSet = "N"*string(numNodes)
 Ins = string(ARGS[2])
-myFile = "./TestInstances/"*dataSet*"_"*Ins*".jl"
+myFile = "./TestInstances/"*dataSet*"/"*dataSet*"_"*Ins*".jl"
 include(myFile)
 include("functionGbound.jl")
 include("functionHbound.jl")
@@ -138,7 +138,7 @@ while terminate_cond == false
             x_now = JuMP.value.(x)
             # α_now = JuMP.value.(α)
             z_now = JuMP.value.(z)
-            println("\nIter : ", iter," ; MP_obj = ", MP_obj, " ; ", newCell, " time ", time()-start)
+            println("\nIter : ", iter," ; MP_obj = ", MP_obj, " ; time ", time()-start,"; ", length(K_bar),"/", newCell)
             # println("length K_bar ", length(K_bar))
             # if newCell > 500
             #     println(iter, " : ", length(K_bar),"/", newCell, " - ", time()-start)
@@ -356,4 +356,4 @@ timesFile = open("./OutputFile/BasicAlg_C_"*dataSet*".txt", "a")
 println(timesFile, dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 close(timesFile)
 println(LB_w + β)
-println("\007")
+# println("\007")

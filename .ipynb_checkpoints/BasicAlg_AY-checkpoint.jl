@@ -29,7 +29,7 @@ to = TimerOutput()
 numNodes = string(ARGS[1])
 dataSet = "N"*string(numNodes)
 Ins = string(ARGS[2])
-myFile = "./TestInstances/"*dataSet*"_"*Ins*".jl"
+myFile = "./TestInstances/"*dataSet*"/"*dataSet*"_"*Ins*".jl"
 include(myFile)
 include("functionGbound.jl")
 include("functionHbound.jl")
@@ -317,6 +317,8 @@ while terminate_cond == false
                         end
                     end #END OF for k in K_k
                     # println("Done partitioning")
+                    # println("newCell ", newCell)
+                    # println("df_cell ", nrow(df_cell))
                     p = df_cell.PROB #[!,:PROB]
                     @objective(m, Max, sum(p[i]*z[i] for i = 1:length(p)))
                     # setdiff!(K_k,K_removed)

@@ -29,7 +29,7 @@ to = TimerOutput()
 numNodes = string(ARGS[1])
 dataSet = "N"*string(numNodes)
 Ins = string(ARGS[2])
-myFile = "./TestInstances/"*dataSet*"/"*dataSet*"_"*Ins*".jl"
+myFile = "./TestInstances/"*dataSet*"_"*Ins*".jl"
 include(myFile)
 include("functionGbound.jl")
 include("functionHbound.jl")
@@ -138,7 +138,7 @@ while terminate_cond == false
             x_now = JuMP.value.(x)
             # α_now = JuMP.value.(α)
             z_now = JuMP.value.(z)
-            println("\nIter : ", iter," ; MP_obj = ", MP_obj, " ; time ", time()-start,"; ", length(K_bar),"/", newCell)
+            println("\nIter : ", iter," ; MP_obj = ", MP_obj, " ; ", newCell, " time ", time()-start)
             # println("length K_bar ", length(K_bar))
             # if newCell > 500
             #     println(iter, " : ", length(K_bar),"/", newCell, " - ", time()-start)
@@ -189,134 +189,120 @@ while terminate_cond == false
                 #     agressivePartition = false
                 # end
                 
-                local partitionCounter
-                agressivePartition = false
-                # println("agressivePartition? ", agressivePartition)
-                if agressivePartition == true
-                    partitionCounter = 2
-                else
-                    partitionCounter = 1
-                end
-                myCounter = 0
-            
-                while myCounter < partitionCounter
-                    myCounter = myCounter + 1
                     # println(myCounter, ". K_bar = ", K_bar)
-                    for k in K_bar
-                        c_L = df_cell[k,:LB]
-                        c_U = df_cell[k,:UB]
-                        M = c_U - c_L
-                        c = (c_U + c_L)/2
-                        c_g_L = c_L + d.*x_now
-                        yK = df_cell[k,:Y]
-                        phi_yK_L = sum(c_g_L[i]*yK[i] for i = 1:Len)
-                        phi_yK_U = phi_yK_L + sum(M[i]*yK[i] for i = 1:Len)
-                        if phi_yK_L < nu_L
-                            nu_L = phi_yK_L
-                        end
-                        if phi_yK_U > nu_U
-                            nu_U = phi_yK_U
-                        end
-
-                        #Solving for g(\hat{x}, c^{L,k})
-                        yL, gL, SPL = gx_bound(c, c_g_L, edge)
-                        df_cell[k,:Y_Lk] = yL
-                        df_cell[k,:gL] = gL
-
-                        #Verify against OC2
-                        # if α_now <= gL 
-                        #     push!(K_removed,k)
-                        # else
-                            local y_h
-                            y_h, hx = hx_bound(c_L, c_U, d, x_now)
-                            p_k = df_cell[k,:PROB]
-                            df_cell[k,:h] = hx
-                            gx = df_cell[k,:g] 
-                            
-                            # println("Cell ", k, ". gx = ", gx, "; hx = ", hx)
-                            #Verify against OC3
-                            if gx - hx <= delta2
-                                push!(K_removed,k)
-                            else
-                                # println("Partitioning cell ", k)
-
-    #                             println("Before calling Partition")
-
-                                newCell = newCell + 1 #nrow(df_cell)+1
-
-                                Δ, arc_split, yL, yU, gL, gU, SP_L, SP_U = Partition(x_now, newCell, k, p_k, c_L, c_U, M, df_cell[k,:Y])
-
-                                #Updating constraints in MP:
-
-                                #Query rows from df_constraints that satisfy:
-                                #(a) CELL column = k, and
-                                #(b) Y column uses path that has arc # =  arc_split 
-                                df_temp_k = df_constraints |> 
-                                @filter(_.CELL == k)|> DataFrame
-                                add_yL = true #Turns false if path yL is in cell k's existing constraints
-                                add_yU = true #Turns false if path yU is in cell k's existing constraints
-                                existingPath = false
-
-                                #LOOP THRU ALL ROWS IN DF ASSOCIATED WITH k
-                                #Update RHS of affected constraints in k
-                                #Copy each constraint in k to |K|+1
-
-                                for dfRow in eachrow(df_temp_k) #constr_of_k 
-                                    Y_k = dfRow.Y
-                                    if Y_k == yL #Found yL in the current P-set
-                                        add_yL = false
-                                    end
-                                    if Y_k == yU #Found yU in the current P-set
-                                        add_yU = false
-                                    end
-
-                                    newCell_RHS = dfRow.SP
-
-                                    #ONLY UPDATE RHS IF ARC SPLIT IS ON THAT PATH  
-                                    if Y_k[arc_split] == 1
-                                        conRef = dfRow.NUM
-                                        newCell_RHS = newCell_RHS + Δ #gap #FIND NEW RHS OF NEWCELL
-                                        dfRow.SP = dfRow.SP - Δ
-
-                                        df_constraints[conRef,:SP] = dfRow.SP
-                                        set_normalized_rhs(constr[conRef], dfRow.SP)
-                                    end
-
-                                    #COPY PATH Y_k FROM k to NEWCELL = |K|+1
-                                    con_num = con_num + 1 
-                                    constr[con_num] = @constraint(m, z[newCell] <= 
-                                                sum(d[i]*x[i]*Y_k[i] for i = 1:Len) + newCell_RHS)
-                                    push!(df_constraints, (con_num,newCell, Y_k, newCell_RHS)) #ADD DF INFORMATION OF CELL |K|+1
-                                end
-
-                                if add_yL == true #yL is a new path not in P^k
-
-                                    con_num = con_num + 1
-                                    constr[con_num] = @constraint(m, z[k] <= 
-                                                sum(d[i]*x[i]*yL[i] for i = 1:Len) + SP_L )
-                                    push!(df_constraints, (con_num,k, yL, SP_L))
-                                end
-                                if add_yU == true #yU is a new path not in P^{|K|+1}
-                                    con_num = con_num + 1
-                                    constr[con_num] = @constraint(m, z[newCell] <= 
-                                                sum(d[i]*x[i]*yU[i] for i = 1:Len) + SP_U )
-                                    push!(df_constraints, (con_num, newCell, yU, SP_U))
-                                end
-                            end
-                        # end
-                    end #END OF for k = 1:myLength
-                    # println("Done partitioning")
-                    p = df_cell.PROB #[!,:PROB]
-                    @objective(m, Max, sum(p[i]*z[i] for i = 1:length(p)))
-                    setdiff!(K_bar,K_removed)
-                    K_bar = vcat(K_bar, K_newly_added)
-                    # println("K_bar = ", K_bar)
-                    K_newly_added = []
-                    K_removed = []
-                    if length(K_bar) == 0
-                        myCounter = partitionCounter
-                        terminate_cond = true
+                for k in K_bar
+                    c_L = df_cell[k,:LB]
+                    c_U = df_cell[k,:UB]
+                    M = c_U - c_L
+                    c = (c_U + c_L)/2
+                    c_g_L = c_L + d.*x_now
+                    yK = df_cell[k,:Y]
+                    phi_yK_L = sum(c_g_L[i]*yK[i] for i = 1:Len)
+                    phi_yK_U = phi_yK_L + sum(M[i]*yK[i] for i = 1:Len)
+                    if phi_yK_L < nu_L
+                        nu_L = phi_yK_L
                     end
+                    if phi_yK_U > nu_U
+                        nu_U = phi_yK_U
+                    end
+
+                    #Solving for g(\hat{x}, c^{L,k})
+                    yL, gL, SPL = gx_bound(c, c_g_L, edge)
+                    df_cell[k,:Y_Lk] = yL
+                    df_cell[k,:gL] = gL
+
+                    #Verify against OC2
+                    # if α_now <= gL 
+                    #     push!(K_removed,k)
+                    # else
+                        local y_h
+                        y_h, hx = hx_bound(c_L, c_U, d, x_now)
+                        p_k = df_cell[k,:PROB]
+                        df_cell[k,:h] = hx
+                        gx = df_cell[k,:g] 
+
+                        # println("Cell ", k, ". gx = ", gx, "; hx = ", hx)
+                        #Verify against OC3
+                        if gx - hx <= delta2
+                            push!(K_removed,k)
+                        else
+                            # println("Partitioning cell ", k)
+
+#                             println("Before calling Partition")
+
+                            newCell = newCell + 1 #nrow(df_cell)+1
+
+                            Δ, arc_split, yL, yU, gL, gU, SP_L, SP_U = Partition(x_now, newCell, k, p_k, c_L, c_U, M, df_cell[k,:Y])
+
+                            #Updating constraints in MP:
+
+                            #Query rows from df_constraints that satisfy:
+                            #(a) CELL column = k, and
+                            #(b) Y column uses path that has arc # =  arc_split 
+                            df_temp_k = df_constraints |> 
+                            @filter(_.CELL == k)|> DataFrame
+                            add_yL = true #Turns false if path yL is in cell k's existing constraints
+                            add_yU = true #Turns false if path yU is in cell k's existing constraints
+                            existingPath = false
+
+                            #LOOP THRU ALL ROWS IN DF ASSOCIATED WITH k
+                            #Update RHS of affected constraints in k
+                            #Copy each constraint in k to |K|+1
+
+                            for dfRow in eachrow(df_temp_k) #constr_of_k 
+                                Y_k = dfRow.Y
+                                if Y_k == yL #Found yL in the current P-set
+                                    add_yL = false
+                                end
+                                if Y_k == yU #Found yU in the current P-set
+                                    add_yU = false
+                                end
+
+                                newCell_RHS = dfRow.SP
+
+                                #ONLY UPDATE RHS IF ARC SPLIT IS ON THAT PATH  
+                                if Y_k[arc_split] == 1
+                                    conRef = dfRow.NUM
+                                    newCell_RHS = newCell_RHS + Δ #gap #FIND NEW RHS OF NEWCELL
+                                    dfRow.SP = dfRow.SP - Δ
+
+                                    df_constraints[conRef,:SP] = dfRow.SP
+                                    set_normalized_rhs(constr[conRef], dfRow.SP)
+                                end
+
+                                #COPY PATH Y_k FROM k to NEWCELL = |K|+1
+                                con_num = con_num + 1 
+                                constr[con_num] = @constraint(m, z[newCell] <= 
+                                            sum(d[i]*x[i]*Y_k[i] for i = 1:Len) + newCell_RHS)
+                                push!(df_constraints, (con_num,newCell, Y_k, newCell_RHS)) #ADD DF INFORMATION OF CELL |K|+1
+                            end
+
+                            if add_yL == true #yL is a new path not in P^k
+
+                                con_num = con_num + 1
+                                constr[con_num] = @constraint(m, z[k] <= 
+                                            sum(d[i]*x[i]*yL[i] for i = 1:Len) + SP_L )
+                                push!(df_constraints, (con_num,k, yL, SP_L))
+                            end
+                            if add_yU == true #yU is a new path not in P^{|K|+1}
+                                con_num = con_num + 1
+                                constr[con_num] = @constraint(m, z[newCell] <= 
+                                            sum(d[i]*x[i]*yU[i] for i = 1:Len) + SP_U )
+                                push!(df_constraints, (con_num, newCell, yU, SP_U))
+                            end
+                        end
+                    # end
+                end #END OF for k = 1:myLength
+                # println("Done partitioning")
+                p = df_cell.PROB #[!,:PROB]
+                @objective(m, Max, sum(p[i]*z[i] for i = 1:length(p)))
+                setdiff!(K_bar,K_removed)
+                K_bar = vcat(K_bar, K_newly_added)
+                # println("K_bar = ", K_bar)
+                K_newly_added = []
+                K_removed = []
+                if length(K_bar) == 0
+                    terminate_cond = true
                 end
             end #If O1Flag == true
         # end #If Feasible
@@ -356,4 +342,4 @@ timesFile = open("./OutputFile/BasicAlg_C_"*dataSet*".txt", "a")
 println(timesFile, dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 close(timesFile)
 println(LB_w + β)
-# println("\007")
+println("\007")

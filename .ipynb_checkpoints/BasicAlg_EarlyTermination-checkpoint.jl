@@ -34,9 +34,8 @@ include(myFile)
 include("functionGbound.jl")
 include("functionHbound.jl")
 include("functionPartition_BasicAlg.jl")
-# include("functionConvolution.jl")
-# include("functionFindCVaR_V3.jl")
-include("functionGetCellInfo.jl")
+include("functionConvolution.jl")
+include("functionFindCVaR_V3.jl")
 
 
 println("Ins ", dataSet,"_", Ins, ": ", β, " Running...", myRun)
@@ -70,6 +69,7 @@ for i in all_nodes
 end
 
 #MAIN PROGRAM:
+df_xCuts = DataFrame(NUM = Int[], X = Array[])
 df_constraints = DataFrame(NUM = Int[], CELL = Int[], Y = Array[], SP = Float64[])
 df_cell = DataFrame(CELL = Int[], Y = Array[], Y_Lk = Array[], g = Float64[], h = Float64[], gL = Float64[], LB = Array[], UB = Array[], PROB = Float64[])
 
@@ -92,9 +92,9 @@ m = Model(() -> Gurobi.Optimizer(gurobi_env)) # If we want to add # in Gurobi, t
 # @ConstrRef constr[1:200000]
 
 # constr = Array{JuMP.JuMPArray{JuMP.ConstraintRef,1,Tuple{Array{Int64,1}}}}()
-
+x_constr = Array{JuMP.ConstraintRef}(undef, cRefNum)
 constr = Array{JuMP.ConstraintRef}(undef, cRefNum)
-@constraint(m, sum(x[i] for i=1:Len) == b) 
+x_constr[1] = @constraint(m, sum(x[i] for i=1:Len) == b) 
 constr[1] = @constraint(m, z[1] <= SP_init + sum(yy[i]*x[i]*d[i] for i=1:Len) )
 @objective(m, Max, sum(p[i]*z[i] for i = 1:length(p)) )#w - sum(s[k] for k=1:length(s))/length(s) )
 global x_sol = []
@@ -109,6 +109,8 @@ global newCell = 1
 global total_time = 0.0
 global iter = 0
 # global K = Int64[1]
+global x_consec = 1
+global x_count = 1
 global K_bar = Int64[1]
 global LB = 0
 global LB_w = 0 
@@ -122,7 +124,7 @@ global nu_L = 1e6
 global numConv = 0 
 while terminate_cond == false 
     global α, β, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell , nu_U, nu_L, LB_w, numConv, p
-    global x_sol, z_sol, α_sol, last_x, x_now,α_now,z_now, terminate_cond
+    global x_sol, z_sol, α_sol, last_x, x_now,α_now,z_now, terminate_cond, x_consec, x_count
     global start
     while isempty(K_bar) == false #length(K_bar) > K
         iter = iter + 1
@@ -132,16 +134,18 @@ while terminate_cond == false
 #         println(m)
 #         println("", df_cell)
 #         K = vcat(K, K_newly_added)
+        
+
         if termination_status(m) == MOI.OPTIMAL
             MP_obj = JuMP.objective_value.(m)
             x_now = JuMP.value.(x)
             # α_now = JuMP.value.(α)
             z_now = JuMP.value.(z)
-            println("\nIter : ", iter," ; MP_obj = ", MP_obj)
-            #println("length K_bar ", length(K_bar))
-            if newCell > 500
-                println(iter, " : ", length(K_bar),"/", newCell, " - ", time()-start)
-            end
+            println("\nIter : ", iter," ; MP_obj = ", MP_obj, " ; time ", time()-start,"; ", length(K_bar),"/", newCell)
+            # println("length K_bar ", length(K_bar))
+            # if newCell > 500
+            #     println(iter, " : ", length(K_bar),"/", newCell, " - ", time()-start)
+            # end
             println("x = ", findall(x_now.>0))
         end
         
@@ -151,6 +155,7 @@ while terminate_cond == false
         # else
         O1Flag = true
         if last_x != x_now
+            x_consec = 1
             # nu_U = 0
             # nu_L = 1e6
             K_bar = collect(1:newCell)
@@ -175,63 +180,103 @@ while terminate_cond == false
                     # end
                 end
             end
+        else
+            x_consec = x_consec + 1
+        end
+        ##############HERE LASTTTTT#################
+        if x_consec >= 3
+            println("Check optimality")
+            x_loc = findall(x->x == x_now, df_xCuts.X)
+            
+            if length(x_loc) == 0
+                x_count = x_count + 1
+                x_constr[x_count] = @constraint(m, sum(x[i] for i in findall(x_now.==1)) <= b-1)
+                println(constr[x_count])
+            else
+                x_count = x_loc[1]
+                set_normalized_rhs(constr[x_count], b-1)
+                println(constr[x_count])
+            end
+            optimize!(m) 
+            MP_test = JuMP.objective_value.(m)
+            x_test = JuMP.value.(x)
+            z_test = JuMP.value.(z)
+            LB_now = sum(p[i]*df_cell.h[i] for i=1:newCell)
+            println("MP_test = ", MP_test, "; LB = ", LB_now, "; x = ", findall(x_test.>0))
+            # println(df_cell.h)
+            if MP_test <= LB_now
+                O1Flag = false
+                terminate_cond = true
+                K_bar = []
+                MP_obj, x_now, z_now = MP_test, x_test, z_test
+            else
+                println(constr[x_count])
+                set_normalized_rhs(constr[x_count], b)
+                println(constr[x_count])
+            end
+            x_consec = 1
         end
             
-        if O1Flag == true 
-            #Verify against OC2
-            # println("K_bar = ", K_bar)
-            
-            # for k_1 in K_bar
-                # myCounter = 0
-                # partitionCounter = 1
-                # K_k = [k_1]
+            if O1Flag == true 
+                #Verify against OC2
+#                 println("K_bar = ", K_bar)
+                #####Regular partition#####
+                # a = rand()
+                # if a < 0.5
+                #     agressivePartition = true
+                # else
+                #     agressivePartition = false
+                # end
                 
-                continuePartition = true
-                firstLoop = true
-                parentYs = df_cell[:, :Y]
-                parentCellref = zeros(Int, newCell) #collect(1:newCell)
-                for k in K_bar 
-                    parentCellref[k] = k
+                local partitionCounter
+                agressivePartition = false
+                # println("agressivePartition? ", agressivePartition)
+                if agressivePartition == true
+                    partitionCounter = 2
+                else
+                    partitionCounter = 1
                 end
-                # y_parent_k1 = df_cell[k_1, :Y]
-                # println(k_1, "y_parent_k1 ", findall(y_parent_k1.>0.1))
-                while length(findall(parentCellref .>0)) > 0#continuePartition == true #myCounter < partitionCounter
-                    # continuePartition = false #set to true when encountering a child cell w same Y as parent's
-                    # myCounter = myCounter + 1
+                myCounter = 0
+            
+                while myCounter < partitionCounter
+                    myCounter = myCounter + 1
                     # println(myCounter, ". K_bar = ", K_bar)
-                    # println("K_k = ", K_k)
-                    # println("K_bar = ", K_bar)
-                    # println("parentCellref = ", parentCellref)
                     for k in K_bar
-                        if parentCellref[k] > 0
-                            c_L, c_U, M, c, c_g_L, yK = getCellInfo(k, x_now)
-    #                         if firstLoop == true
+                        c_L = df_cell[k,:LB]
+                        c_U = df_cell[k,:UB]
+                        M = c_U - c_L
+                        c = (c_U + c_L)/2
+                        c_g_L = c_L + d.*x_now
+                        yK = df_cell[k,:Y]
+                        phi_yK_L = sum(c_g_L[i]*yK[i] for i = 1:Len)
+                        phi_yK_U = phi_yK_L + sum(M[i]*yK[i] for i = 1:Len)
+                        if phi_yK_L < nu_L
+                            nu_L = phi_yK_L
+                        end
+                        if phi_yK_U > nu_U
+                            nu_U = phi_yK_U
+                        end
 
-    #                             firstLoop = false
-    #                         end
+                        #Solving for g(\hat{x}, c^{L,k})
+                        yL, gL, SPL = gx_bound(c, c_g_L, edge)
+                        df_cell[k,:Y_Lk] = yL
+                        df_cell[k,:gL] = gL
 
-                            #Solving for g(\hat{x}, c^{L,k})
-                            yL, gL, SPL = gx_bound(c, c_g_L, edge)
-                            df_cell[k,:Y_Lk] = yL
-                            df_cell[k,:gL] = gL
-
-                            #Verify against OC2
-                            # if α_now <= gL 
-                            #     push!(K_removed,k)
-                            # else
+                        #Verify against OC2
+                        # if α_now <= gL 
+                        #     push!(K_removed,k)
+                        # else
                             local y_h
                             y_h, hx = hx_bound(c_L, c_U, d, x_now)
                             p_k = df_cell[k,:PROB]
                             df_cell[k,:h] = hx
                             gx = df_cell[k,:g] 
-
+                            
                             # println("Cell ", k, ". gx = ", gx, "; hx = ", hx)
                             #Verify against OC3
                             if gx - hx <= delta2
                                 push!(K_removed,k)
-                                parentCellref[k] = 0
                             else
-
                                 # println("Partitioning cell ", k)
 
     #                             println("Before calling Partition")
@@ -239,24 +284,7 @@ while terminate_cond == false
                                 newCell = newCell + 1 #nrow(df_cell)+1
 
                                 Δ, arc_split, yL, yU, gL, gU, SP_L, SP_U = Partition(x_now, newCell, k, p_k, c_L, c_U, M, df_cell[k,:Y])
-                                push!(parentCellref, parentCellref[k])
 
-                                # println("\t",k,". yL ", findall(yL.>0.1))
-                                # println("\t",k,". yU ", findall(yU.>0.1))
-
-                                y_parent_k1 = parentYs[parentCellref[k]]
-                                if y_parent_k1 != yL || y_parent_k1 != yU
-                                   continuePartition = false 
-                                    replace!(parentCellref, parentCellref[k] =>0)
-                                    # if yL != y_parent_k1
-                                    #     parentCellref[k] = 0
-                                    # end
-                                    # if yU != y_parent_k1
-                                    #     parentCellref[newCell] = 0
-                                    # end
-                                end
-
-                                # println("continuePartition ", continuePartition)
                                 #Updating constraints in MP:
 
                                 #Query rows from df_constraints that satisfy:
@@ -271,7 +299,7 @@ while terminate_cond == false
                                 #LOOP THRU ALL ROWS IN DF ASSOCIATED WITH k
                                 #Update RHS of affected constraints in k
                                 #Copy each constraint in k to |K|+1
-                                # println("1")
+
                                 for dfRow in eachrow(df_temp_k) #constr_of_k 
                                     Y_k = dfRow.Y
                                     if Y_k == yL #Found yL in the current P-set
@@ -314,29 +342,22 @@ while terminate_cond == false
                                     push!(df_constraints, (con_num, newCell, yU, SP_U))
                                 end
                             end
-                        end
-                    end #END OF for k in K_k
+                        # end
+                    end #END OF for k = 1:myLength
                     # println("Done partitioning")
-                    # println("newCell ", newCell)
-                    # println("df_cell ", nrow(df_cell))
                     p = df_cell.PROB #[!,:PROB]
                     @objective(m, Max, sum(p[i]*z[i] for i = 1:length(p)))
-                    # setdiff!(K_k,K_removed)
-                    # K_k = unique(vcat(K_k, K_newly_added))
-                    
                     setdiff!(K_bar,K_removed)
                     K_bar = vcat(K_bar, K_newly_added)
                     # println("K_bar = ", K_bar)
                     K_newly_added = []
                     K_removed = []
                     if length(K_bar) == 0
-                        # myCounter = partitionCounter
-                        continuePartition = false
+                        myCounter = partitionCounter
                         terminate_cond = true
                     end
                 end
-            # end
-        end #If O1Flag == true
+            end #If O1Flag == true
         # end #If Feasible
     end #While K_partition is non-empty
 #    println("Convolve x_now = ", findall(x_now.>0))
@@ -361,14 +382,17 @@ while terminate_cond == false
 # #         println("α_sol = ", α_sol)
 # #         println("z_sol = ", z_sol)
 #     end
+    # println("con_num = ", con_num)
 end
-
+println("con_num " , con_num)
+# println("constr ", constr[1:con_num])
+println("z_now ", z_now[1:newCell])
 total_time = time() - start
 
-println("BasicAlg_A_"*dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
+println("BasicAlg_ET_"*dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 
-timesFile = open("./OutputFile/BasicAlg_A_"*dataSet*".txt", "a")
+timesFile = open("./OutputFile/BasicAlg_ET_"*dataSet*".txt", "a")
 println(timesFile, dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 close(timesFile)
-println(LB_w + β)
-println("\007")
+# println(LB_w + β)
+# println("\007")
