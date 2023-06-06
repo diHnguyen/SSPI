@@ -1,0 +1,2 @@
+N4; Ins 1; β 0.253; Time 42.48513603210449; MP_obj 10.0; x_now [4]; Cells 2; Iter 3
+N4; Ins 1; β 0.253; Time 42.47697997093201; MP_obj 10.0; x_now [4]; Cells 2; Iter 3

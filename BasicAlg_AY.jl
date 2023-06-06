@@ -120,14 +120,18 @@ global terminate_cond = false
 global nu_U = 0
 global nu_L = 1e6
 global numConv = 0 
+global MP_total = 0
 while terminate_cond == false 
     global α, β, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell , nu_U, nu_L, LB_w, numConv, p
     global x_sol, z_sol, α_sol, last_x, x_now,α_now,z_now, terminate_cond
-    global start
+    global start, MP_total
     while isempty(K_bar) == false #length(K_bar) > K
         iter = iter + 1
-        
+        MP_begin = time()
         optimize!(m) 
+        # MP_duration = time() - MP_begin
+        MP_total = MP_total + time() - MP_begin
+        println(iter, ". MP_total = ", MP_total)
        # println("\nIter : ", iter," ; LB = ", LB)
 #         println(m)
 #         println("", df_cell)
@@ -365,10 +369,9 @@ end
 
 total_time = time() - start
 
-println("BasicAlg_A_"*dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
+println("BasicAlg_A_"*dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter,"; MP_total ", MP_total)#, "; W ", LB_w, "; Cuts ", numConv)
 
 timesFile = open("./OutputFile/BasicAlg_A_"*dataSet*".txt", "a")
-println(timesFile, dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
+println(timesFile, dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter,"; MP_total ", MP_total)#, "; W ", LB_w, "; Cuts ", numConv)
 close(timesFile)
-println(LB_w + β)
-println("\007")
+
