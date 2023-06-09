@@ -6,13 +6,11 @@ function getCellInfo(k, x_now, c_or_cL)
     
     if c_or_cL == "c_g"
         c_with_x = c + d.*x_now
-        yK = []
     elseif c_or_cL == "c_g_L"
         # c_g_L 
         c_with_x= c_L + d.*x_now
-        yK = df_cell[k,:Y]
     end
-    
+    yK = df_cell[k,:Y]
     
     return c_L, c_U, M, c, c_with_x, yK
 end

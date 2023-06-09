@@ -132,3 +132,333 @@ Coefficient statistics:
   Objective range  [1e+00, 1e+00]
   Bounds range     [1e+06, 1e+06]
   RHS range        [7e+00, 5e+02]
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:32:07 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:32:09 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+Set parameter LazyConstraints to value 1
+Gurobi Optimizer version 10.0.0 build v10.0.0rc2 (mac64[arm])
+
+CPU model: Apple M2 Pro
+Thread count: 10 physical cores, 10 logical processors, using up to 10 threads
+
+Optimize a model with 2 rows, 253 columns and 258 nonzeros
+Model fingerprint: 0x9aa8d0b5
+Variable types: 1 continuous, 252 integer (252 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 2e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+06, 1e+06]
+  RHS range        [7e+00, 5e+02]
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:32:45 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:32:46 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+Set parameter LazyConstraints to value 1
+Gurobi Optimizer version 10.0.0 build v10.0.0rc2 (mac64[arm])
+
+CPU model: Apple M2 Pro
+Thread count: 10 physical cores, 10 logical processors, using up to 10 threads
+
+Optimize a model with 2 rows, 253 columns and 258 nonzeros
+Model fingerprint: 0x9aa8d0b5
+Variable types: 1 continuous, 252 integer (252 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 2e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+06, 1e+06]
+  RHS range        [7e+00, 5e+02]
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:33:46 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:33:47 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+Set parameter LazyConstraints to value 1
+Gurobi Optimizer version 10.0.0 build v10.0.0rc2 (mac64[arm])
+
+CPU model: Apple M2 Pro
+Thread count: 10 physical cores, 10 logical processors, using up to 10 threads
+
+Optimize a model with 2 rows, 253 columns and 258 nonzeros
+Model fingerprint: 0x9aa8d0b5
+Variable types: 1 continuous, 252 integer (252 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 2e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+06, 1e+06]
+  RHS range        [7e+00, 5e+02]
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:35:16 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:35:17 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+Set parameter LazyConstraints to value 1
+Gurobi Optimizer version 10.0.0 build v10.0.0rc2 (mac64[arm])
+
+CPU model: Apple M2 Pro
+Thread count: 10 physical cores, 10 logical processors, using up to 10 threads
+
+Optimize a model with 2 rows, 253 columns and 258 nonzeros
+Model fingerprint: 0x9aa8d0b5
+Variable types: 1 continuous, 252 integer (252 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 2e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+06, 1e+06]
+  RHS range        [7e+00, 5e+02]
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:36:06 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:36:07 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+Set parameter LazyConstraints to value 1
+Gurobi Optimizer version 10.0.0 build v10.0.0rc2 (mac64[arm])
+
+CPU model: Apple M2 Pro
+Thread count: 10 physical cores, 10 logical processors, using up to 10 threads
+
+Optimize a model with 2 rows, 253 columns and 258 nonzeros
+Model fingerprint: 0x9aa8d0b5
+Variable types: 1 continuous, 252 integer (252 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 2e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+06, 1e+06]
+  RHS range        [7e+00, 5e+02]
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:40:22 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:40:24 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+Set parameter LazyConstraints to value 1
+Gurobi Optimizer version 10.0.0 build v10.0.0rc2 (mac64[arm])
+
+CPU model: Apple M2 Pro
+Thread count: 10 physical cores, 10 logical processors, using up to 10 threads
+
+Optimize a model with 2 rows, 253 columns and 258 nonzeros
+Model fingerprint: 0x9aa8d0b5
+Variable types: 1 continuous, 252 integer (252 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 2e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+06, 1e+06]
+  RHS range        [7e+00, 5e+02]
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:40:54 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:40:55 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+Set parameter LazyConstraints to value 1
+Gurobi Optimizer version 10.0.0 build v10.0.0rc2 (mac64[arm])
+
+CPU model: Apple M2 Pro
+Thread count: 10 physical cores, 10 logical processors, using up to 10 threads
+
+Optimize a model with 2 rows, 253 columns and 258 nonzeros
+Model fingerprint: 0x9aa8d0b5
+Variable types: 1 continuous, 252 integer (252 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 2e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+06, 1e+06]
+  RHS range        [7e+00, 5e+02]
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:41:20 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:41:21 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+Set parameter LazyConstraints to value 1
+Gurobi Optimizer version 10.0.0 build v10.0.0rc2 (mac64[arm])
+
+CPU model: Apple M2 Pro
+Thread count: 10 physical cores, 10 logical processors, using up to 10 threads
+
+Optimize a model with 2 rows, 253 columns and 258 nonzeros
+Model fingerprint: 0x9aa8d0b5
+Variable types: 1 continuous, 252 integer (252 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 2e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+06, 1e+06]
+  RHS range        [7e+00, 5e+02]
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:42:08 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:42:09 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+Set parameter LazyConstraints to value 1
+Gurobi Optimizer version 10.0.0 build v10.0.0rc2 (mac64[arm])
+
+CPU model: Apple M2 Pro
+Thread count: 10 physical cores, 10 logical processors, using up to 10 threads
+
+Optimize a model with 2 rows, 253 columns and 258 nonzeros
+Model fingerprint: 0x9aa8d0b5
+Variable types: 1 continuous, 252 integer (252 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 2e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+06, 1e+06]
+  RHS range        [7e+00, 5e+02]
+Found heuristic solution: objective 481.0000000
+Presolve time: 0.00s
+Presolved: 2 rows, 253 columns, 258 nonzeros
+Variable types: 1 continuous, 252 integer (252 binary)
+
+Root relaxation: objective 5.380000e+02, 6 iterations, 0.00 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0  538.00000    0    -  481.00000  538.00000  11.9%     -    1s
+     0     0  514.71429    0    2  481.00000  514.71429  7.01%     -    1s
+H    0     0                     485.0000000  514.71429  6.13%     -    1s
+H    0     0                     494.0000000  514.71429  4.19%     -    1s
+     0     0  510.00000    0    -  494.00000  510.00000  3.24%     -    1s
+     0     0  508.85256    0    4  494.00000  508.85256  3.01%     -    1s
+H    0     0                     495.8750000  508.85256  2.62%     -    1s
+     0     0  500.52997    0    4  495.87500  500.52997  0.94%     -    2s
+     0     0  500.37134    0    5  495.87500  500.37134  0.91%     -    2s
+H    0     0                     498.1736145  500.37134  0.44%     -    3s
+H    0     0                     498.3347168  500.37134  0.41%     -    3s
+     0     0  500.31910    0    6  498.33472  500.31910  0.40%     -    3s
+     0     0  500.30897    0    5  498.33472  500.30897  0.40%     -    3s
+     0     0  500.10936    0    7  498.33472  500.10936  0.36%     -    3s
+     0     0  500.06801    0    7  498.33472  500.06801  0.35%     -    3s
+     0     0  499.96602    0    8  498.33472  499.96602  0.33%     -    3s
+     0     0  499.96067    0    8  498.33472  499.96067  0.33%     -    3s
+     0     0  499.93972    0    9  498.33472  499.93972  0.32%     -    3s
+     0     0  499.93972    0    9  498.33472  499.93972  0.32%     -    3s
+     0     2  499.50272    0    9  498.33472  499.50272  0.23%     -    3s
+
+Cutting planes:
+  MIR: 14
+  Lazy constraints: 33
+
+Explored 101 nodes (471 simplex iterations) in 3.91 seconds (0.15 work units)
+Thread count was 10 (of 10 available processors)
+
+Solution count 6: 498.335 498.174 495.875 ... 481
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 4.983347167969e+02, best bound 4.983347167969e+02, gap 0.0000%
+
+User-callback calls 554, time in user-callback 3.75 sec
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:50:30 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:50:32 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+Set parameter LazyConstraints to value 1
+Gurobi Optimizer version 10.0.0 build v10.0.0rc2 (mac64[arm])
+
+CPU model: Apple M2 Pro
+Thread count: 10 physical cores, 10 logical processors, using up to 10 threads
+
+Optimize a model with 2 rows, 253 columns and 258 nonzeros
+Model fingerprint: 0x9aa8d0b5
+Variable types: 1 continuous, 252 integer (252 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 2e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+06, 1e+06]
+  RHS range        [7e+00, 5e+02]
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:51:01 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+
+Gurobi 10.0.0 (mac64[arm]) logging started Fri Jun  9 16:51:02 2023
+
+Set parameter LogFile to value "./OutputFile/LOG_BasicAlg_CombCuts_N50.txt"
+Set parameter LazyConstraints to value 1
+Gurobi Optimizer version 10.0.0 build v10.0.0rc2 (mac64[arm])
+
+CPU model: Apple M2 Pro
+Thread count: 10 physical cores, 10 logical processors, using up to 10 threads
+
+Optimize a model with 2 rows, 253 columns and 258 nonzeros
+Model fingerprint: 0x9aa8d0b5
+Variable types: 1 continuous, 252 integer (252 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 2e+01]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+06, 1e+06]
+  RHS range        [7e+00, 5e+02]
+Found heuristic solution: objective 481.0000000
+Presolve time: 0.00s
+Presolved: 2 rows, 253 columns, 258 nonzeros
+Variable types: 1 continuous, 252 integer (252 binary)
+
+Root relaxation: objective 5.380000e+02, 6 iterations, 0.00 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0  538.00000    0    -  481.00000  538.00000  11.9%     -    1s
+     0     0  514.71429    0    2  481.00000  514.71429  7.01%     -    1s
+H    0     0                     485.0000000  514.71429  6.13%     -    1s
+H    0     0                     494.0000000  514.71429  4.19%     -    2s
+     0     0  510.00000    0    -  494.00000  510.00000  3.24%     -    2s
+     0     0  508.85256    0    4  494.00000  508.85256  3.01%     -    2s
+H    0     0                     495.8750000  508.85256  2.62%     -    2s
+     0     0  500.52997    0    4  495.87500  500.52997  0.94%     -    2s
+     0     0  500.37134    0    5  495.87500  500.37134  0.91%     -    2s
+H    0     0                     498.1736145  500.37134  0.44%     -    3s
+H    0     0                     498.3347168  500.37134  0.41%     -    4s
+     0     0  500.31910    0    6  498.33472  500.31910  0.40%     -    4s
+     0     0  500.30897    0    5  498.33472  500.30897  0.40%     -    4s
+     0     0  500.10936    0    7  498.33472  500.10936  0.36%     -    4s
+     0     0  500.06801    0    7  498.33472  500.06801  0.35%     -    4s
+     0     0  499.96602    0    8  498.33472  499.96602  0.33%     -    4s
+     0     0  499.96067    0    8  498.33472  499.96067  0.33%     -    4s
+     0     0  499.93972    0    9  498.33472  499.93972  0.32%     -    4s
+     0     0  499.93972    0    9  498.33472  499.93972  0.32%     -    4s
+     0     2  499.50272    0    9  498.33472  499.50272  0.23%     -    4s
+
+Cutting planes:
+  MIR: 14
+  Lazy constraints: 33
+
+Explored 101 nodes (471 simplex iterations) in 4.05 seconds (0.15 work units)
+Thread count was 10 (of 10 available processors)
+
+Solution count 6: 498.335 498.174 495.875 ... 481
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 4.983347167969e+02, best bound 4.983347167969e+02, gap 0.0000%
+
+User-callback calls 555, time in user-callback 3.89 sec

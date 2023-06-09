@@ -171,14 +171,7 @@ while terminate_cond == false
                         c = (c_U + c_L)/2
                         c_g_L = c_L + d.*x_now
                         yK = df_cell[k,:Y]
-                        phi_yK_L = sum(c_g_L[i]*yK[i] for i = 1:Len)
-                        phi_yK_U = phi_yK_L + sum(M[i]*yK[i] for i = 1:Len)
-                        if phi_yK_L < nu_L
-                            nu_L = phi_yK_L
-                        end
-                        if phi_yK_U > nu_U
-                            nu_U = phi_yK_U
-                        end
+                     
 
                         #Solving for g(\hat{x}, c^{L,k})
                         yL, gL, SPL = gx_bound(c, c_g_L, edge)

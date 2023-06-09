@@ -88,19 +88,20 @@ global K_newly_added = []
 global K_removed = []
 global start = time()
 global terminate_cond = false
-global nu_U = 0
-global nu_L = 1e6
-global numConv = 0 
 # while terminate_cond == false && iter <5
 lazy_called = true
 cb_calls = Cint[]
 data = Any[]
 # start_time = 0.0
 function my_callback_function(cb_data)#, cb_where::Cint)
-    push!(cb_calls, cb_where)
+    # push!(cb_calls, cb_where)
     lazy_called = true
     
     status = callback_node_status(cb_data, m)
+    # x_val = callback_value(cb_data, x)
+    # y_val = callback_value(cb_data, y)
+    # println("Called from (x, y) = ($x_val, $y_val)")
+    
     # if cb_where == GRB_CB_MIPNODE
     #     objbst = Ref{Cdouble}()
     #     GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBST, objbst)
@@ -110,8 +111,8 @@ function my_callback_function(cb_data)#, cb_where::Cint)
     #     println("Best Bound ", objbnd[])
     #     push!(data, (time() - start, objbst[], objbnd[]))
     # end
-    # println("cb_data ", cb_data)
-    if cb_where != MOI.CALLBACK_NODE_STATUS_INTEGER #GRB_CB_MIPSOL #&& cb_where != GRB_CB_MIPNODE #status != MOI.CALLBACK_NODE_STATUS_INTEGER
+    # # println("cb_data ", cb_data)
+    if status != MOI.CALLBACK_NODE_STATUS_INTEGER #GRB_CB_MIPSOL #&& cb_where != GRB_CB_MIPNODE #status != MOI.CALLBACK_NODE_STATUS_INTEGER
     #     println(" - Solution is integer feasible!")
         return
     end
@@ -135,12 +136,16 @@ function my_callback_function(cb_data)#, cb_where::Cint)
     println("-----------------------")
     println("Iter ", iter )
     println("-----------------------")
-    Gurobi.load_callback_variable_primal(cb_data, cb_where)
-    x_now = callback_value.(Ref(cb_data), x)
+    
+    # Gurobi.load_callback_variable_primal(cb_data, cb_where)
+    x_now = callback_value.(Ref(cb_data), x) #Julia v1.9
+    # x_now = callback_value.(Ref(cb_data), x)
     # println("0")
-    z_now = callback_value.(Ref(cb_data), z)
+    z_now = callback_value.(Ref(cb_data), z) #Julia v1.9
+    # z_now = callback_value.(Ref(cb_data), z)
     # println("1")
-    MP_obj = callback_value.(Ref(cb_data), z)
+    MP_obj = callback_value.(Ref(cb_data), z) #Julia v1.9
+    # MP_obj = callback_value.(Ref(cb_data), z)
     # println("Called from (x, y) = ($x_now, $z_now)")
     println("z_now ", z_now, " # cells ", newCell)
     
@@ -185,7 +190,7 @@ function my_callback_function(cb_data)#, cb_where::Cint)
         println(status)
     # if status == MOI.CALLBACK_NODE_STATUS_INTEGER
     # if isempty(K_bar) == false
-    if cb_where == GRB_CB_MIPSOL
+    if status == MOI.CALLBACK_NODE_STATUS_INTEGER #GRB_CB_MIPSOL
         # objbst = Ref{Cdouble}()
         # GRBcbget(cb_data, cb_where, GRB_CB_MIP_OBJBST, objbst)
         # objbnd = Ref{Cdouble}()
@@ -225,11 +230,7 @@ function my_callback_function(cb_data)#, cb_where::Cint)
             coef_x = zeros(Len)
             constant_SP = 0
             for k = 1:newCell  # # in K_bar
-                c_L = df_cell[k,:LB]#[row] 
-                c_U = df_cell[k,:UB]#[row] 
-                c = (c_U + c_L)/2
-                M = c_U - c_L
-                c_g = c + d.*x_now
+                c_L, c_U, M, c, c_g = getCellInfo(k, x_now, "c_g")
                 # if last_x != x_now
                 # if k in K_bar 
                 #Check this -- if x_last == x_now then we don't check OC1
@@ -237,8 +238,6 @@ function my_callback_function(cb_data)#, cb_where::Cint)
                 Y_k, gx, SP = gx_bound(c, c_g, edge)
                 df_cell[k,:g] = gx
                 df_cell[k,:Y] = Y_k
-                # end
-                # end
                 Y_k = df_cell[k,:Y]
                 coef_x = coef_x .+ p[k]*(Y_k.*d)
                 constant_SP = constant_SP +  p[k]*sum(c[i]*Y_k[i] for i = 1:Len)
@@ -272,14 +271,7 @@ function my_callback_function(cb_data)#, cb_where::Cint)
             #     agressivePartition = false
             # end
 
-            local partitionCounter
-            # agressivePartition = false
-            # # println("agressivePartition? ", agressivePartition)
-            # if agressivePartition == true
-            #     partitionCounter = 2
-            # else
-                partitionCounter = 1
-            # end
+            local partitionCounter = 1
             myCounter = 0
 
             while myCounter < partitionCounter
@@ -293,7 +285,7 @@ function my_callback_function(cb_data)#, cb_where::Cint)
                     # c = (c_U + c_L)/2
                     # c_g_L = c_L + d.*x_now
                     # yK = df_cell[k,:Y]
-                    c_L, c_U, M, c, c_g_L, yK = getCellInfo(k, x_now)
+                    c_L, c_U, M, c, c_g_L, yK = getCellInfo(k, x_now, "c_g_L")
 
                     #Solving for g(\hat{x}, c^{L,k})
                     yL, gL, SPL = gx_bound(c, c_g_L, edge)
@@ -327,10 +319,11 @@ function my_callback_function(cb_data)#, cb_where::Cint)
                 coef_x = zeros(Len)
                 constant_SP = 0
                 for k = 1:newCell
-                    c_L = df_cell[k,:LB]#[row] 
-                    c_U = df_cell[k,:UB]#[row] 
-                    c = (c_U + c_L)/2
-                    Y_k = df_cell[k,:Y]
+                    # c_L = df_cell[k,:LB]#[row] 
+                    # c_U = df_cell[k,:UB]#[row] 
+                    # c = (c_U + c_L)/2
+                    # Y_k = df_cell[k,:Y]
+                    c_L, c_U, M, c, c_g, Y_k = getCellInfo(k, x_now, "c_g")
                     # println(c[Y_k.==1])
 
                     coef_x = coef_x .+ p[k]*(Y_k.*d)
@@ -382,10 +375,10 @@ println("con_num " , con_num)
 # println("z_now ", z_now[1:newCell])
 total_time = time() - start
 
-println("BasicAlg_CombCuts_"*dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
+println("BasicAlg_CombCuts_"*dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 
 timesFile = open("./OutputFile/BasicAlg_CombCuts_"*dataSet*".txt", "a")
-println(timesFile, dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
+println(timesFile, dataSet, "; Ins ", Ins,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 close(timesFile)
-println(LB_w + β)
+
 # println("\007")
