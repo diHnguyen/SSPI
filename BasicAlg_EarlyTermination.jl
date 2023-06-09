@@ -11,6 +11,7 @@
 
 #Ready for upload
 include("functionLoadSharedFiles.jl")
+include("functionPartition_BasicAlg.jl")
 # #Setting constraint for start node
 # outgoing = findall(edge[:,1].== origin)
 
@@ -282,39 +283,14 @@ while terminate_cond == false
             end #If O1Flag == true
         # end #If Feasible
     end #While K_partition is non-empty
-#    println("Convolve x_now = ", findall(x_now.>0))
-#     if terminate_cond == false
-#         numConv = numConv+1
-#         #Convolution
-# #         println("Begin Convolution")
-#         df_cellPoly = convolveEachCell()
-#         #FindCVaR
-#         CVaR, weight = FindCVaR(α_now, nu_L, nu_U, df_cellPoly)
-#         K_bar = collect(1:nrow(df_cell))
-#         @constraint(m, sum(x_now[i]*x[i] for i = 1:Len) <= b-1)
-#         #println("ADD X-CONSTRAINT TO MP: ", t_con, "\n")
-# #        println("CVaR = ", CVaR)
-#         if LB < CVaR
-#             LB_w = weight
-#             LB = CVaR
-#             x_sol, α_sol, z_sol = x_now, α_now, z_now
-#         end
-# #         println("wth Incumbent solution:")
-# #         println("x = ", findall(x_sol.==1))
-# #         println("α_sol = ", α_sol)
-# #         println("z_sol = ", z_sol)
-#     end
-    # println("con_num = ", con_num)
 end
 println("con_num " , con_num)
 # println("constr ", constr[1:con_num])
 println("z_now ", z_now[1:newCell])
 total_time = time() - start
 
-println("BasicAlg_ET_"*dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
+println("BasicAlg_ET_"*dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 
 timesFile = open("./OutputFile/BasicAlg_ET_"*dataSet*".txt", "a")
-println(timesFile, dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
+println(timesFile, dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 close(timesFile)
-# println(LB_w + β)
-# println("\007")

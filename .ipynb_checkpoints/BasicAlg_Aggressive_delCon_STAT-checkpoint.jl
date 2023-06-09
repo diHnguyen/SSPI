@@ -10,49 +10,8 @@
 # Pkg.add("Polynomials")
 
 #Ready for upload
-using JuMP 
-using Gurobi
-using LightGraphs
-using DataFrames, Query
-using CSV
-using TimerOutputs
-using Dates
-using Polynomials
-
-myRun = Dates.format(now(), "HH:MM:SS")
-global gurobi_env = Gurobi.Env()
-global edge, cL_orig, cU_orig, Len, c_orig, yy, SP_init, p,g,h, origin, destination, last_node, all_nodes, M_orig, delta1, delta2, b, last_node, outgoing
-global β # = rand(1:999)/1000
-# gurobi_env.setParam("LogToConsole", 0)
-
-to = TimerOutput()
-numNodes = string(ARGS[1])
-dataSet = "N"*string(numNodes)
-Ins = string(ARGS[2])
-myFile = "./TestInstances/"*dataSet*"_"*Ins*".jl"
-include(myFile)
-include("functionGbound.jl")
-include("functionHbound.jl")
+include("functionLoadSharedFiles.jl")
 include("functionPartition_BasicAlg.jl")
-include("functionConvolution.jl")
-include("functionGetCellInfo.jl")
-
-println("delta2 = ", delta2)
-println("Ins ", dataSet,"_", Ins, ": ", β, " Running...", myRun)
-global epsilon = 1e-4
-# global delta3 = 1.0
-# setparams!(gurobi_env, Heuristics=0.0, Cuts = 0, OutputFlag = 0)
-Gurobi.GRBsetintparam(gurobi_env, "OutputFlag", 0)
-
-# If we want to add # in Gurobi, then we have to turn of Gurobi's own Cuts 
-h1 = Model(() -> Gurobi.Optimizer(gurobi_env))
-# h1.setParam("OutputFlag", 0)
-# set_optimizer_attribute(h1, "OutputFlag", 0)
-
-@variable(h1, 1 >= y_h[1:Len]>=0)
-#@variable(h, q[1:Len]>=0)
-
-
 #Setting constraint for start node
 outgoing = findall(edge[:,1].== origin)
 

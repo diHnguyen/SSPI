@@ -10,63 +10,22 @@
 # Pkg.add("Polynomials")
 
 #Ready for upload
-using JuMP 
-using Gurobi
-using LightGraphs
-using DataFrames, Query
-using CSV
-using TimerOutputs
-using Dates
-using Polynomials
-
-myRun = Dates.format(now(), "HH:MM:SS")
-global gurobi_env = Gurobi.Env()
-global edge, cL_orig, cU_orig, Len, c_orig, yy, SP_init, p,g,h, origin, destination, last_node, all_nodes, M_orig, delta1, delta2, b, last_node, outgoing
-global β # = rand(1:999)/1000
-# gurobi_env.setParam("LogToConsole", 0)
-
-to = TimerOutput()
-numNodes = string(ARGS[1])
-dataSet = "N"*string(numNodes)
-Ins = string(ARGS[2])
-myFile = "./TestInstances/"*dataSet*"_"*Ins*".jl"
-include(myFile)
-include("functionGbound.jl")
-include("functionHbound.jl")
+include("functionLoadSharedFiles.jl")
 include("functionPartition_BasicAlg.jl")
-include("functionConvolution.jl")
-include("functionGetCellInfo.jl")
+# #Setting constraint for start node
+# outgoing = findall(edge[:,1].== origin)
 
 
-println("Ins ", dataSet,"_", Ins, ": ", β, " Running...", myRun)
-global epsilon = 1e-4
-# global delta3 = 1.0
-# setparams!(gurobi_env, Heuristics=0.0, Cuts = 0, OutputFlag = 0)
-Gurobi.GRBsetintparam(gurobi_env, "OutputFlag", 0)
-
-# If we want to add # in Gurobi, then we have to turn of Gurobi's own Cuts 
-h1 = Model(() -> Gurobi.Optimizer(gurobi_env))
-# h1.setParam("OutputFlag", 0)
-# set_optimizer_attribute(h1, "OutputFlag", 0)
-
-@variable(h1, 1 >= y_h[1:Len]>=0)
-#@variable(h, q[1:Len]>=0)
-
-
-#Setting constraint for start node
-outgoing = findall(edge[:,1].== origin)
-
-
-#Setting constraints for remaining none-sink/start nodes
-@constraint(h1, sum(y_h[k] for k in outgoing) == 1)
-for i in all_nodes
-    global outgoing
-    if i != destination && i != origin
-        incoming = findall(edge[:,2].== i)
-        outgoing = findall(edge[:,1].== i)
-        @constraint(h1, sum(-y_h[k] for k in outgoing) + sum(y_h[k] for k in incoming) == 0)
-    end
-end
+# #Setting constraints for remaining none-sink/start nodes
+# @constraint(h1, sum(y_h[k] for k in outgoing) == 1)
+# for i in all_nodes
+#     global outgoing
+#     if i != destination && i != origin
+#         incoming = findall(edge[:,2].== i)
+#         outgoing = findall(edge[:,1].== i)
+#         @constraint(h1, sum(-y_h[k] for k in outgoing) + sum(y_h[k] for k in incoming) == 0)
+#     end
+# end
 
 #MAIN PROGRAM:
 df_constraints = DataFrame(NUM = Int[], CELL = Int[], Y = Array[], SP = Float64[], STAT= Int[])
@@ -96,41 +55,14 @@ constr = Array{JuMP.ConstraintRef}(undef, cRefNum)
 @constraint(m, sum(x[i] for i=1:Len) == b) 
 constr[1] = @constraint(m, z[1] <= SP_init + sum(yy[i]*x[i]*d[i] for i=1:Len) )
 @objective(m, Max, sum(p[i]*z[i] for i = 1:length(p)) )#w - sum(s[k] for k=1:length(s))/length(s) )
-global x_sol = []
-global α_sol = 0
-global z_sol = []
-global x_now = []
-global α_now = 0
-global z_now = []
-global last_x = zeros(Len)
-global con_num = 1
-global newCell = 1
-global total_time = 0.0
-global iter = 0
-# global K = Int64[1]
-global K_bar = Int64[1]
-global LB = 0
-global LB_w = 0 
-global MP_obj = 1e6
-global K_newly_added = []
-global K_removed = []
-global start = time()
-global terminate_cond = false
-global nu_U = 0
-global nu_L = 1e6
-global numConv = 0 
-global myCounter = 0
-# global partitionCounter = 1
-global K_k = []
-global k_1 = 0
+include("functionSetGlobalVar_MP.jl")
 global consec_x = 1
 while terminate_cond == false 
-    global α, β, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell , nu_U, nu_L, LB_w, numConv, p, myCounter, K_k, k_1, consec_x
-    global x_sol, z_sol, α_sol, last_x, x_now,α_now,z_now, terminate_cond
+    global α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell , LB_w, p, consec_x
+    global x_sol, z_sol, α_sol, last_x, x_now, α_now,z_now, terminate_cond
     global start
     while isempty(K_bar) == false #length(K_bar) > K
         iter = iter + 1
-        
         
        # println("\nIter : ", iter," ; LB = ", LB)
 #         println(m)
@@ -191,36 +123,25 @@ while terminate_cond == false
         # else
         O1Flag = true
         if last_x != x_now
-            # nu_U = 0
-            # nu_L = 1e6
             consec_x = 1
             K_bar = collect(1:newCell)
             last_x = x_now
             for k in K_bar #_partition  
-                c_L = df_cell[k,:LB]#[row] 
-                c_U = df_cell[k,:UB]#[row] 
-                c = (c_U + c_L)/2
-                M = c_U - c_L
-                c_g = c + d.*x_now
+                c_L, c_U, M, c, c_g = getCellInfo(k, x_now, "c_g")
                 y, gx, SP = gx_bound(c, c_g, edge)
                 df_cell[k,:g] = gx
                 df_cell[k,:Y] = y
-
                 if z_now[k] - gx > delta1
-
                     con_num = con_num + 1 
                     push!(df_constraints, (con_num, k, y, SP, 1))
-                    constr[con_num] = @constraint(m, z[k] <= sum(d[i]*y[i]*x[i] for i = 1:Len) + SP)
-                    # if α_now - (z_now[k] + gx) > delta1   
+                    constr[con_num] = @constraint(m, z[k] <= sum(d[i]*y[i]*x[i] for i = 1:Len) + SP) 
                     O1Flag = false
-                    # end
                 end
             end
         else 
             consec_x = consec_x + 1
         end
         
-
         if O1Flag == true 
             #Verify against OC2
 #                 println("K_bar = ", K_bar)

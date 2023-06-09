@@ -11,7 +11,7 @@
 
 #Ready for upload
 include("functionLoadSharedFiles.jl")
-
+include("functionPartition_BasicAlg.jl")
 # #Setting constraint for start node
 # outgoing = findall(edge[:,1].== origin)
 
