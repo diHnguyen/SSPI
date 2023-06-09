@@ -10,64 +10,23 @@
 # Pkg.add("Polynomials")
 
 #Ready for upload
-using JuMP 
-using Gurobi
-using LightGraphs
-using DataFrames, Query
-using CSV
-using TimerOutputs
-using Dates
-using Polynomials
-
-myRun = Dates.format(now(), "HH:MM:SS")
-global gurobi_env = Gurobi.Env()
-global edge, cL_orig, cU_orig, Len, c_orig, yy, SP_init, p,g,h, origin, destination, last_node, all_nodes, M_orig, delta1, delta2, b, last_node, outgoing
-global β # = rand(1:999)/1000
-# gurobi_env.setParam("LogToConsole", 0)
-
-to = TimerOutput()
-numNodes = string(ARGS[1])
-dataSet = "N"*string(numNodes)
-Ins = string(ARGS[2])
-myFile = "./TestInstances/"*dataSet*"/"*dataSet*"_"*Ins*".jl"
-include(myFile)
-include("functionGbound.jl")
-include("functionHbound.jl")
+include("functionLoadSharedFiles.jl")
 include("functionPartition_BasicAlg.jl")
-include("functionGetCellInfo.jl")
-# include("functionConvolution.jl")
-# include("functionFindCVaR_V3.jl")
+
+# #Setting constraint for start node
+# outgoing = findall(edge[:,1].== origin)
 
 
-println("Ins ", dataSet,"_", Ins, ": ", β, " Running...", myRun)
-global epsilon = 1e-4
-# global delta3 = 1.0
-# setparams!(gurobi_env, Heuristics=0.0, Cuts = 0, OutputFlag = 0)
-Gurobi.GRBsetintparam(gurobi_env, "OutputFlag", 0)
-
-# If we want to add # in Gurobi, then we have to turn of Gurobi's own Cuts 
-h1 = Model(() -> Gurobi.Optimizer(gurobi_env))
-# h1.setParam("OutputFlag", 0)
-# set_optimizer_attribute(h1, "OutputFlag", 0)
-
-@variable(h1, 1 >= y_h[1:Len]>=0)
-#@variable(h, q[1:Len]>=0)
-
-
-#Setting constraint for start node
-outgoing = findall(edge[:,1].== origin)
-
-
-#Setting constraints for remaining none-sink/start nodes
-@constraint(h1, sum(y_h[k] for k in outgoing) == 1)
-for i in all_nodes
-    global outgoing
-    if i != destination && i != origin
-        incoming = findall(edge[:,2].== i)
-        outgoing = findall(edge[:,1].== i)
-        @constraint(h1, sum(-y_h[k] for k in outgoing) + sum(y_h[k] for k in incoming) == 0)
-    end
-end
+# #Setting constraints for remaining none-sink/start nodes
+# @constraint(h1, sum(y_h[k] for k in outgoing) == 1)
+# for i in all_nodes
+#     global outgoing
+#     if i != destination && i != origin
+#         incoming = findall(edge[:,2].== i)
+#         outgoing = findall(edge[:,1].== i)
+#         @constraint(h1, sum(-y_h[k] for k in outgoing) + sum(y_h[k] for k in incoming) == 0)
+#     end
+# end
 
 #MAIN PROGRAM:
 # df_constraints = DataFrame(NUM = Int[], CELL = Int[], Y = Array[], SP = Float64[])
@@ -79,7 +38,7 @@ MP_obj = 0.0
 push!(df_cell, (1, yy,yy, SP_init, 0, 0, cL_orig, cU_orig, 1))
 # push!(df_constraints, (1, 1,yy,SP_init))
 ##println(f,"MASTER PROBLEM==========================================================================================")
-
+println("Here 1")
 zNum = 200000
 cRefNum = 2000000
 gurobi_env_m = Gurobi.Env()
@@ -87,10 +46,13 @@ gurobi_env_m = Gurobi.Env()
 # Gurobi.GRBsetintparam(gurobi_env_m, "LogToConsole", 0)
 # Gurobi.GRBsetintparam(gurobi_env_m, "LogFile", "my_log_file.txt")
 m = Model(() -> Gurobi.Optimizer(gurobi_env_m)) # If we want to add # in Gurobi, then we have to turn of 
+println("Here 2")
 set_optimizer_attribute(m, "OutputFlag", 1)    #Gurobi's own Cuts 
+println("Here3")
 set_optimizer_attribute(m, "LogToConsole", 0)
+println("Here4")
 set_optimizer_attribute(m, "LogFile", "./OutputFile/LOG_BasicAlg_CombCuts_"*dataSet*".txt")
-
+println("Here5")
 # println("1")
 @variable(m, x[1:Len], Bin)
 # @variable(m, α)
@@ -126,30 +88,31 @@ global K_newly_added = []
 global K_removed = []
 global start = time()
 global terminate_cond = false
-global nu_U = 0
-global nu_L = 1e6
-global numConv = 0 
 # while terminate_cond == false && iter <5
 lazy_called = true
 cb_calls = Cint[]
 data = Any[]
 # start_time = 0.0
-function my_callback_function(cb_data, cb_where::Cint)
-    push!(cb_calls, cb_where)
+function my_callback_function(cb_data)#, cb_where::Cint)
+    # push!(cb_calls, cb_where)
     lazy_called = true
     
     status = callback_node_status(cb_data, m)
-    if cb_where == GRB_CB_MIPNODE
-        objbst = Ref{Cdouble}()
-        GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBST, objbst)
-        objbnd = Ref{Cdouble}()
-        GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBND, objbnd)    
-        println("Best Obj ", objbst[])
-        println("Best Bound ", objbnd[])
-        push!(data, (time() - start, objbst[], objbnd[]))
-    end
-    # println("cb_data ", cb_data)
-    if cb_where != GRB_CB_MIPSOL #&& cb_where != GRB_CB_MIPNODE #status != MOI.CALLBACK_NODE_STATUS_INTEGER
+    # x_val = callback_value(cb_data, x)
+    # y_val = callback_value(cb_data, y)
+    # println("Called from (x, y) = ($x_val, $y_val)")
+    
+    # if cb_where == GRB_CB_MIPNODE
+    #     objbst = Ref{Cdouble}()
+    #     GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBST, objbst)
+    #     objbnd = Ref{Cdouble}()
+    #     GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBND, objbnd)    
+    #     println("Best Obj ", objbst[])
+    #     println("Best Bound ", objbnd[])
+    #     push!(data, (time() - start, objbst[], objbnd[]))
+    # end
+    # # println("cb_data ", cb_data)
+    if status != MOI.CALLBACK_NODE_STATUS_INTEGER #GRB_CB_MIPSOL #&& cb_where != GRB_CB_MIPNODE #status != MOI.CALLBACK_NODE_STATUS_INTEGER
     #     println(" - Solution is integer feasible!")
         return
     end
@@ -173,12 +136,16 @@ function my_callback_function(cb_data, cb_where::Cint)
     println("-----------------------")
     println("Iter ", iter )
     println("-----------------------")
-    Gurobi.load_callback_variable_primal(cb_data, cb_where)
-    x_now = callback_value.(Ref(cb_data), x)
+    
+    # Gurobi.load_callback_variable_primal(cb_data, cb_where)
+    x_now = callback_value.(Ref(cb_data), x) #Julia v1.9
+    # x_now = callback_value.(Ref(cb_data), x)
     # println("0")
-    z_now = callback_value.(Ref(cb_data), z)
+    z_now = callback_value.(Ref(cb_data), z) #Julia v1.9
+    # z_now = callback_value.(Ref(cb_data), z)
     # println("1")
-    MP_obj = callback_value.(Ref(cb_data), z)
+    MP_obj = callback_value.(Ref(cb_data), z) #Julia v1.9
+    # MP_obj = callback_value.(Ref(cb_data), z)
     # println("Called from (x, y) = ($x_now, $z_now)")
     println("z_now ", z_now, " # cells ", newCell)
     
@@ -223,7 +190,7 @@ function my_callback_function(cb_data, cb_where::Cint)
         println(status)
     # if status == MOI.CALLBACK_NODE_STATUS_INTEGER
     # if isempty(K_bar) == false
-    if cb_where == GRB_CB_MIPSOL
+    if status == MOI.CALLBACK_NODE_STATUS_INTEGER #GRB_CB_MIPSOL
         # objbst = Ref{Cdouble}()
         # GRBcbget(cb_data, cb_where, GRB_CB_MIP_OBJBST, objbst)
         # objbnd = Ref{Cdouble}()
@@ -263,11 +230,7 @@ function my_callback_function(cb_data, cb_where::Cint)
             coef_x = zeros(Len)
             constant_SP = 0
             for k = 1:newCell  # # in K_bar
-                c_L = df_cell[k,:LB]#[row] 
-                c_U = df_cell[k,:UB]#[row] 
-                c = (c_U + c_L)/2
-                M = c_U - c_L
-                c_g = c + d.*x_now
+                c_L, c_U, M, c, c_g = getCellInfo(k, x_now, "c_g")
                 # if last_x != x_now
                 # if k in K_bar 
                 #Check this -- if x_last == x_now then we don't check OC1
@@ -275,8 +238,6 @@ function my_callback_function(cb_data, cb_where::Cint)
                 Y_k, gx, SP = gx_bound(c, c_g, edge)
                 df_cell[k,:g] = gx
                 df_cell[k,:Y] = Y_k
-                # end
-                # end
                 Y_k = df_cell[k,:Y]
                 coef_x = coef_x .+ p[k]*(Y_k.*d)
                 constant_SP = constant_SP +  p[k]*sum(c[i]*Y_k[i] for i = 1:Len)
@@ -310,14 +271,7 @@ function my_callback_function(cb_data, cb_where::Cint)
             #     agressivePartition = false
             # end
 
-            local partitionCounter
-            # agressivePartition = false
-            # # println("agressivePartition? ", agressivePartition)
-            # if agressivePartition == true
-            #     partitionCounter = 2
-            # else
-                partitionCounter = 1
-            # end
+            local partitionCounter = 1
             myCounter = 0
 
             while myCounter < partitionCounter
@@ -331,7 +285,7 @@ function my_callback_function(cb_data, cb_where::Cint)
                     # c = (c_U + c_L)/2
                     # c_g_L = c_L + d.*x_now
                     # yK = df_cell[k,:Y]
-                    c_L, c_U, M, c, c_g_L, yK = getCellInfo(k, x_now)
+                    c_L, c_U, M, c, c_g_L, yK = getCellInfo(k, x_now, "c_g_L")
 
                     #Solving for g(\hat{x}, c^{L,k})
                     yL, gL, SPL = gx_bound(c, c_g_L, edge)
@@ -365,10 +319,11 @@ function my_callback_function(cb_data, cb_where::Cint)
                 coef_x = zeros(Len)
                 constant_SP = 0
                 for k = 1:newCell
-                    c_L = df_cell[k,:LB]#[row] 
-                    c_U = df_cell[k,:UB]#[row] 
-                    c = (c_U + c_L)/2
-                    Y_k = df_cell[k,:Y]
+                    # c_L = df_cell[k,:LB]#[row] 
+                    # c_U = df_cell[k,:UB]#[row] 
+                    # c = (c_U + c_L)/2
+                    # Y_k = df_cell[k,:Y]
+                    c_L, c_U, M, c, c_g, Y_k = getCellInfo(k, x_now, "c_g")
                     # println(c[Y_k.==1])
 
                     coef_x = coef_x .+ p[k]*(Y_k.*d)
@@ -408,9 +363,11 @@ function my_callback_function(cb_data, cb_where::Cint)
     end
 end
 # end
-MOI.set(m, MOI.RawParameter("LazyConstraints"), 1)
+println("Here 6")
+# MOI.set(m, MOI.RawParameter("LazyConstraints"), 1)
 
-MOI.set(m, Gurobi.CallbackFunction(), my_callback_function)
+set_attribute(m, MOI.LazyConstraintCallback(), my_callback_function) #For Julia v1.9
+# MOI.set(m, Gurobi.CallbackFunction(), my_callback_function)
 # MOI.set(m, MOI.LazyConstraintCallback(), my_callback_function)
 optimize!(m) 
 println("con_num " , con_num)
@@ -418,10 +375,10 @@ println("con_num " , con_num)
 # println("z_now ", z_now[1:newCell])
 total_time = time() - start
 
-println("BasicAlg_CombCuts_"*dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
+println("BasicAlg_CombCuts_"*dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 
 timesFile = open("./OutputFile/BasicAlg_CombCuts_"*dataSet*".txt", "a")
-println(timesFile, dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
+println(timesFile, dataSet, "; Ins ", Ins,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 close(timesFile)
-println(LB_w + β)
+
 # println("\007")
