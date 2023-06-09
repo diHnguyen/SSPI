@@ -10,63 +10,22 @@
 # Pkg.add("Polynomials")
 
 #Ready for upload
-using JuMP 
-using Gurobi
-using LightGraphs
-using DataFrames, Query
-using CSV
-using TimerOutputs
-using Dates
-using Polynomials
+include("functionLoadSharedFiles.jl")
 
-myRun = Dates.format(now(), "HH:MM:SS")
-global gurobi_env = Gurobi.Env()
-global edge, cL_orig, cU_orig, Len, c_orig, yy, SP_init, p,g,h, origin, destination, last_node, all_nodes, M_orig, delta1, delta2, b, last_node, outgoing
-global β # = rand(1:999)/1000
-# gurobi_env.setParam("LogToConsole", 0)
-
-to = TimerOutput()
-numNodes = string(ARGS[1])
-dataSet = "N"*string(numNodes)
-Ins = string(ARGS[2])
-myFile = "./TestInstances/"*dataSet*"_"*Ins*".jl"
-include(myFile)
-include("functionGbound.jl")
-include("functionHbound.jl")
-include("functionPartition_BasicAlg.jl")
-include("functionConvolution.jl")
-include("functionGetCellInfo.jl")
-
-println("delta2 = ", delta2)
-println("Ins ", dataSet,"_", Ins, ": ", β, " Running...", myRun)
-global epsilon = 1e-4
-# global delta3 = 1.0
-# setparams!(gurobi_env, Heuristics=0.0, Cuts = 0, OutputFlag = 0)
-Gurobi.GRBsetintparam(gurobi_env, "OutputFlag", 0)
-
-# If we want to add # in Gurobi, then we have to turn of Gurobi's own Cuts 
-h1 = Model(() -> Gurobi.Optimizer(gurobi_env))
-# h1.setParam("OutputFlag", 0)
-# set_optimizer_attribute(h1, "OutputFlag", 0)
-
-@variable(h1, 1 >= y_h[1:Len]>=0)
-#@variable(h, q[1:Len]>=0)
+# #Setting constraint for start node
+# outgoing = findall(edge[:,1].== origin)
 
 
-#Setting constraint for start node
-outgoing = findall(edge[:,1].== origin)
-
-
-#Setting constraints for remaining none-sink/start nodes
-@constraint(h1, sum(y_h[k] for k in outgoing) == 1)
-for i in all_nodes
-    global outgoing
-    if i != destination && i != origin
-        incoming = findall(edge[:,2].== i)
-        outgoing = findall(edge[:,1].== i)
-        @constraint(h1, sum(-y_h[k] for k in outgoing) + sum(y_h[k] for k in incoming) == 0)
-    end
-end
+# #Setting constraints for remaining none-sink/start nodes
+# @constraint(h1, sum(y_h[k] for k in outgoing) == 1)
+# for i in all_nodes
+#     global outgoing
+#     if i != destination && i != origin
+#         incoming = findall(edge[:,2].== i)
+#         outgoing = findall(edge[:,1].== i)
+#         @constraint(h1, sum(-y_h[k] for k in outgoing) + sum(y_h[k] for k in incoming) == 0)
+#     end
+# end
 
 #MAIN PROGRAM:
 df_constraints = DataFrame(NUM = Int[], CELL = Int[], Y = Array[], SP = Float64[], STAT= Int[])
@@ -96,33 +55,7 @@ constr = Array{JuMP.ConstraintRef}(undef, cRefNum)
 @constraint(m, sum(x[i] for i=1:Len) == b) 
 constr[1] = @constraint(m, z[1] <= SP_init + sum(yy[i]*x[i]*d[i] for i=1:Len) )
 @objective(m, Max, sum(p[i]*z[i] for i = 1:length(p)) )#w - sum(s[k] for k=1:length(s))/length(s) )
-global x_sol = []
-global α_sol = 0
-global z_sol = []
-global x_now = []
-global α_now = 0
-global z_now = []
-global last_x = zeros(Len)
-global con_num = 1
-global newCell = 1
-global total_time = 0.0
-global iter = 0
-# global K = Int64[1]
-global K_bar = Int64[1]
-global LB = 0
-global LB_w = 0 
-global MP_obj = 1e6
-global K_newly_added = []
-global K_removed = []
-global start = time()
-global terminate_cond = false
-global nu_U = 0
-global nu_L = 1e6
-global numConv = 0 
-global myCounter = 0
-# global partitionCounter = 1
-global K_k = []
-global k_1 = 0
+include("functionSetGlobalVar_MP.jl")
 global consec_x = 1
 while terminate_cond == false 
     global α, β, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell , nu_U, nu_L, LB_w, numConv, p, myCounter, K_k, k_1, consec_x
@@ -449,10 +382,10 @@ println("con_num " , con_num)
 println("z_now ", z_now[1:newCell])
 total_time = time() - start
 
-println("BasicAlg_ADelCon_"*dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
+println("BasicAlg_ADelCon_"*dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 
 timesFile = open("./OutputFile/BasicAlg_ADelCon_"*dataSet*".txt", "a")
-println(timesFile, dataSet, "; Ins ", Ins, "; β ",β,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
+println(timesFile, dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 close(timesFile)
 # println(LB_w + β)
 # println("\007")
