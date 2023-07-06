@@ -1,67 +1,3 @@
-# using Pkg
-# Pkg.add("JuMP")
-# Pkg.add("Gurobi")
-# Pkg.add("LightGraphs")
-# Pkg.add("DataFrames")
-# Pkg.add("Query")
-# Pkg.add("CSV")
-# Pkg.add("TimerOutputs")
-# Pkg.add("Dates")
-# Pkg.add("Polynomials")
-
-#Ready for upload
-global A1 = 0 # 1=Select arc having the largest uncertainty , 0=Select arc using Lemma2
-global A2 = 0 # 1=Partition once per cell , 0=Partition multiple per cell
-global A3 = 1 # 1=Split at mean base cost , 0=Split using SA if possible
-global A4 = 1 # 1=Frequent solve MP
-global A5 = 1 # 1=Regular opt model
-
-include("functionLoadSharedFiles.jl")
-include("functionPartition_BasicAlg.jl")
-# #Setting constraint for start node
-# outgoing = findall(edge[:,1].== origin)
-
-
-# #Setting constraints for remaining none-sink/start nodes
-# @constraint(h1, sum(y_h[k] for k in outgoing) == 1)
-# for i in all_nodes
-#     global outgoing
-#     if i != destination && i != origin
-#         incoming = findall(edge[:,2].== i)
-#         outgoing = findall(edge[:,1].== i)
-#         @constraint(h1, sum(-y_h[k] for k in outgoing) + sum(y_h[k] for k in incoming) == 0)
-#     end
-# end
-
-#MAIN PROGRAM:
-df_constraints = DataFrame(NUM = Int[], CELL = Int[], Y = Array[], SP = Float64[], STAT= Int[])
-df_cell = DataFrame(CELL = Int[], Y = Array[], Y_Lk = Array[], g = Float64[], h = Float64[], gL = Float64[], LB = Array[], UB = Array[], PROB = Float64[])
-
-
-
-
-push!(df_cell, (1, yy,yy, SP_init, 0, 0, cL_orig, cU_orig, 1))
-push!(df_constraints, (1, 1,yy,SP_init,1))
-##println(f,"MASTER PROBLEM==========================================================================================")
-MP_obj = 0.0
-zNum = 200000
-cRefNum = 2000000
-m = Model(() -> Gurobi.Optimizer(gurobi_env)) # If we want to add # in Gurobi, then we have to turn of 
-# set_optimizer_attribute(m, "OutputFlag", 0)    #Gurobi's own Cuts 
-# println("1")
-@variable(m, x[1:Len], Bin)
-# @variable(m, α)
-@variable(m, 1e6 >= z[1:zNum] >= 0)
-# @constraintref constr[1:200000]
-# @ConstrRef constr[1:200000]
-
-# constr = Array{JuMP.JuMPArray{JuMP.ConstraintRef,1,Tuple{Array{Int64,1}}}}()
-
-constr = Array{JuMP.ConstraintRef}(undef, cRefNum)
-@constraint(m, sum(x[i] for i=1:Len) == b) 
-constr[1] = @constraint(m, z[1] <= SP_init + sum(yy[i]*x[i]*d[i] for i=1:Len) )
-@objective(m, Max, sum(p[i]*z[i] for i = 1:length(p)) )#w - sum(s[k] for k=1:length(s))/length(s) )
-include("functionSetGlobalVar_MP.jl")
 while terminate_cond == false 
     global α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell , LB_w, p
     global x_sol, z_sol, α_sol, last_x, x_now, α_now,z_now, terminate_cond
@@ -102,12 +38,12 @@ while terminate_cond == false
             last_x = x_now
             for k in K_bar #_partition  
                 c_L, c_U, M, c, c_g = getCellInfo(k, x_now, "c_g")
-                y, gx, SP = gx_bound(c, c_g, edge)
+                y, gx, SP = gx_bound(c, c_g, edge) #áy, gx, SP, T, pred, label, path
                 df_cell[k,:g] = gx
                 df_cell[k,:Y] = y
                 if z_now[k] - gx > delta1
                     con_num = con_num + 1 
-                    push!(df_constraints, (con_num, k, y, SP, 1))
+                    push!(df_constraints, (con_num, k, y, SP))
                     constr[con_num] = @constraint(m, z[k] <= sum(d[i]*y[i]*x[i] for i = 1:Len) + SP) 
                     O1Flag = false
                 end
@@ -142,7 +78,7 @@ while terminate_cond == false
                         # global partitionCounter, myCounter
                         c_L, c_U, M, c, c_g_L, yK = getCellInfo(k, x_now, "c_g_L")
                         #Solving for g(\hat{x}, c^{L,k})
-                        yL, gL, SPL = gx_bound(c, c_g_L, edge)
+                        yL, gL, SPL = gx_bound(c, c_g_L, edge) #y, gx, SP, T, pred, label, path
                         df_cell[k,:Y_Lk] = yL
                         df_cell[k,:gL] = gL
 
@@ -169,7 +105,7 @@ while terminate_cond == false
                             newCell = newCell + 1 #nrow(df_cell)+1
                             # println("\tInner Cell ", k, " (-->", newCell,") . gx = ", gx, "; hx = ", hx)
                             # println("\t --   Cell ", k," becomes: ", k, ", ", newCell) 
-                            Δ, arc_split, yL, yU, gL, gU, SP_L, SP_U = Partition(x_now, newCell, k, p_k, c_L, c_U, M, df_cell[k,:Y])
+                            ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U = Partition(x_now, newCell, k, p_k, c_L, c_U, M, df_cell[k,:Y])
                             # if myCounter > 1
                             # println("\t...childCells y: ", y_parent_k1 != yL, " ",y_parent_k1 != yU)
                             if y_parent_k1 != yL || y_parent_k1 != yU
@@ -205,14 +141,14 @@ while terminate_cond == false
                                 #ONLY UPDATE RHS IF ARC SPLIT IS ON THAT PATH  
                                 if Y_k[arc_split] == 1
                                     conRef = dfRow.NUM
-                                    newCell_RHS = newCell_RHS + Δ #gap #FIND NEW RHS OF NEWCELL
-                                    dfRow.SP = dfRow.SP - Δ
+                                    newCell_RHS = newCell_RHS + ΔU #gap #FIND NEW RHS OF NEWCELL
+                                    dfRow.SP = dfRow.SP - ΔL
 
                                     df_constraints[conRef,:SP] = dfRow.SP
                                     set_normalized_rhs(constr[conRef], dfRow.SP)
-                                    if dfRow.STAT == 0
-                                        dfRow.STAT = 1
-                                    end
+                                    # if dfRow.STAT == 0
+                                    #     dfRow.STAT = 1
+                                    # end
                                 end
                             end
                             
@@ -225,13 +161,13 @@ while terminate_cond == false
                                 con_num = con_num + 1
                                 constr[con_num] = @constraint(m, z[k] <= 
                                             sum(d[i]*x[i]*yL[i] for i = 1:Len) + SP_L )
-                                push!(df_constraints, (con_num,k, yL, SP_L, 1))
+                                push!(df_constraints, (con_num,k, yL, SP_L))
                             end
                             # if add_yU == true #yU is a new path not in P^{|K|+1}
                             con_num = con_num + 1
                             constr[con_num] = @constraint(m, z[newCell] <= 
                                         sum(d[i]*x[i]*yU[i] for i = 1:Len) + SP_U )
-                            push!(df_constraints, (con_num, newCell, yU, SP_U,1))
+                            push!(df_constraints, (con_num, newCell, yU, SP_U))
                             # end
                             #COPY PATH yK (parent Y) FROM k to NEWCELL = |K|+1
                             if yK != yU
@@ -239,7 +175,7 @@ while terminate_cond == false
                                 SPk = sum(c[i]*yK[i] for i = 1:Len)
                                 constr[con_num] = @constraint(m, z[newCell] <= 
                                             sum(d[i]*x[i]*yK[i] for i = 1:Len) + SPk)
-                                push!(df_constraints, (con_num,newCell, yK, SPk, 1)) #ADD DF INFORMATION OF CELL |K|+1
+                                push!(df_constraints, (con_num,newCell, yK, SPk)) #ADD DF INFORMATION OF CELL |K|+1
                             end
                         end
                         # println("K_newly_added = ",K_newly_added)
@@ -265,6 +201,7 @@ while terminate_cond == false
             
             # println("Done partitioning")
             p = df_cell.PROB #[!,:PROB]
+            # println("p = ", p)
             @objective(m, Max, sum(p[i]*z[i] for i = 1:length(p)))
             
             setdiff!(K_bar,K_removed)
@@ -308,16 +245,3 @@ while terminate_cond == false
 # #         println("z_sol = ", z_sol)
 #     end
 end
-
-println("con_num " , con_num)
-# println("constr ", constr[1:con_num])
-println("z_now ", z_now[1:newCell])
-total_time = time() - start
-
-println("BasicAlg_APset_"*dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
-
-timesFile = open("./OutputFile/BasicAlg_APset_"*dataSet*".txt", "a")
-println(timesFile, dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
-close(timesFile)
-# println(LB_w + β)
-# println("\007")

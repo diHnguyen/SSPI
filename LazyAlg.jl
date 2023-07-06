@@ -10,8 +10,12 @@
 # Pkg.add("Polynomials")
 
 #Ready for upload
+global A1 = 0 # 1=Select arc having the largest uncertainty , 0=Select arc using Lemma2
+global A2 = 1 # 1=Partition once per cell , 0=Partition multiple per cell
+global A3 = 1# 1=Split at mean base cost , 0=Split using SA if possible
+global A4 = 1 # 1=Frequent solve MP
+global A5 = 0 # 1=Regular opt model
 include("functionLoadSharedFiles.jl")
-include("functionPartition_BasicAlg.jl")
 
 # #Setting constraint for start node
 # outgoing = findall(edge[:,1].== origin)
@@ -30,15 +34,17 @@ include("functionPartition_BasicAlg.jl")
 
 #MAIN PROGRAM:
 # df_constraints = DataFrame(NUM = Int[], CELL = Int[], Y = Array[], SP = Float64[])
-df_cell = DataFrame(CELL = Int[], Y = Array[], Y_Lk = Array[], g = Float64[], h = Float64[], gL = Float64[], LB = Array[], UB = Array[], PROB = Float64[])
+df_cell = DataFrame(CELL = Int[], Y = Array[], Y_Lk = Array[], g = Float64[], h = Float64[], gL = Float64[], LB = Array[], UB = Array[], PROB = Float64[], PI = Array[])
 
 
-MP_obj = 0.0
 
-push!(df_cell, (1, yy,yy, SP_init, 0, 0, cL_orig, cU_orig, 1))
+c = (cU_orig + cL_orig)/2  
+yy, SP_init, SP_init, T, pred, label, path = gx_bound(c, c, edge) #y, gx, SP, T, pred, label, path
+print("label ", label)
+push!(df_cell, (1, yy,yy, SP_init, 0, 0, cL_orig, cU_orig, 1,label))
 # push!(df_constraints, (1, 1,yy,SP_init))
 ##println(f,"MASTER PROBLEM==========================================================================================")
-println("Here 1")
+MP_obj = 0.0
 zNum = 200000
 cRefNum = 2000000
 gurobi_env_m = Gurobi.Env()
@@ -46,13 +52,13 @@ gurobi_env_m = Gurobi.Env()
 # Gurobi.GRBsetintparam(gurobi_env_m, "LogToConsole", 0)
 # Gurobi.GRBsetintparam(gurobi_env_m, "LogFile", "my_log_file.txt")
 m = Model(() -> Gurobi.Optimizer(gurobi_env_m)) # If we want to add # in Gurobi, then we have to turn of 
-println("Here 2")
+# println("Here 2")
 set_optimizer_attribute(m, "OutputFlag", 1)    #Gurobi's own Cuts 
-println("Here3")
+# println("Here3")
 set_optimizer_attribute(m, "LogToConsole", 0)
-println("Here4")
-set_optimizer_attribute(m, "LogFile", "./OutputFile/LOG_BasicAlg_CombCuts_"*dataSet*".txt")
-println("Here5")
+# println("Here4")
+# set_optimizer_attribute(m, "LogFile", "./OutputFile/LOG_BasicAlg_CombCuts_"*dataSet*".txt")
+# println("Here5")
 # println("1")
 @variable(m, x[1:Len], Bin)
 # @variable(m, α)
@@ -68,26 +74,27 @@ constr[1] = @constraint(m, z <= SP_init + sum(yy[i]*x[i]*d[i] for i=1:Len) )
 
 @objective(m, Max, z)
 # @objective(m, Max, sum(p[i]*z[i] for i = 1:length(p)) )#w - sum(s[k] for k=1:length(s))/length(s) )
-global x_sol = []
-global α_sol = 0
-global z_sol = []
-global x_now = []
-global α_now = 0
-global z_now = []
-global last_x = zeros(Len)
-global con_num = 1
-global newCell = 1
-global total_time = 0.0
-global iter = 0
-# global K = Int64[1]
-global K_bar = Int64[1]
-global LB = 0
-global LB_w = 0 
-global MP_obj = 1e6
-global K_newly_added = []
-global K_removed = []
-global start = time()
-global terminate_cond = false
+include("functionSetGlobalVar_MP.jl")
+# global x_sol = []
+# global α_sol = 0
+# global z_sol = []
+# global x_now = []
+# global α_now = 0
+# global z_now = []
+# global last_x = zeros(Len)
+# global con_num = 1
+# global newCell = 1
+# global total_time = 0.0
+# global iter = 0
+# # global K = Int64[1]
+# global K_bar = Int64[1]
+# global LB = 0
+# global LB_w = 0 
+# global MP_obj = 1e6
+# global K_newly_added = []
+# global K_removed = []
+# global start = time()
+# global terminate_cond = false
 # while terminate_cond == false && iter <5
 lazy_called = true
 cb_calls = Cint[]
@@ -147,8 +154,8 @@ function my_callback_function(cb_data)#, cb_where::Cint)
     MP_obj = callback_value.(Ref(cb_data), z) #Julia v1.9
     # MP_obj = callback_value.(Ref(cb_data), z)
     # println("Called from (x, y) = ($x_now, $z_now)")
-    println("z_now ", z_now, " # cells ", newCell)
-    
+    # println("z_now ", z_now, " # cells ", newCell)
+    println("\nIter : ", iter," ; MP_obj = ", MP_obj, " ; time ", time()-start,"; ", length(K_bar),"/", newCell)
     # if status == MOI.CALLBACK_NODE_STATUS_FRACTIONAL
     #     println(" - Solution is integer infeasible!")
     # elseif status == MOI.CALLBACK_NODE_STATUS_INTEGER
@@ -238,7 +245,7 @@ function my_callback_function(cb_data)#, cb_where::Cint)
                 Y_k, gx, SP = gx_bound(c, c_g, edge)
                 df_cell[k,:g] = gx
                 df_cell[k,:Y] = Y_k
-                Y_k = df_cell[k,:Y]
+                # Y_k = df_cell[k,:Y]
                 coef_x = coef_x .+ p[k]*(Y_k.*d)
                 constant_SP = constant_SP +  p[k]*sum(c[i]*Y_k[i] for i = 1:Len)
                 # println("coef_x = ", coef_x)
@@ -275,7 +282,7 @@ function my_callback_function(cb_data)#, cb_where::Cint)
             myCounter = 0
 
             while myCounter < partitionCounter
-                println("Partition")
+                # println("Partition")
                 myCounter = myCounter + 1
                 # println(myCounter, ". K_bar = ", K_bar)
                 for k in K_bar
@@ -363,7 +370,7 @@ function my_callback_function(cb_data)#, cb_where::Cint)
     end
 end
 # end
-println("Here 6")
+# println("Here 6")
 # MOI.set(m, MOI.RawParameter("LazyConstraints"), 1)
 
 set_attribute(m, MOI.LazyConstraintCallback(), my_callback_function) #For Julia v1.9
@@ -375,10 +382,15 @@ println("con_num " , con_num)
 # println("z_now ", z_now[1:newCell])
 total_time = time() - start
 
-println("BasicAlg_CombCuts_"*dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
+set = string(A1)*string(A2)*string(A3)*string(A4)*string(A5)
+println("Alg_"*set*"_"*dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
+h_val = df_cell.h
+p_val = df_cell.PROB
 
-timesFile = open("./OutputFile/BasicAlg_CombCuts_"*dataSet*".txt", "a")
-println(timesFile, dataSet, "; Ins ", Ins,"; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
+println("LB = ", sum(h_val[k]*p_val[k] for k=1:newCell))
+
+timesFile = open("./OutputFile/Alg_"*set*"_"*dataSet*".txt", "a")
+println(timesFile, dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 close(timesFile)
 
 # println("\007")

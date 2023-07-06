@@ -15,7 +15,6 @@ include("functionPartition_BasicAlg.jl")
 # #Setting constraint for start node
 # outgoing = findall(edge[:,1].== origin)
 
-
 # #Setting constraints for remaining none-sink/start nodes
 # @constraint(h1, sum(y_h[k] for k in outgoing) == 1)
 # for i in all_nodes
@@ -113,7 +112,8 @@ while terminate_cond == false
                 for k in K_bar
                     c_L, c_U, M, c, c_g_L, yK = getCellInfo(k, x_now, "c_g_L")
                     #Solving for g(\hat{x}, c^{L,k})
-                    yL, gL, SPL = gx_bound(c, c_g_L, edge)
+                    
+                    yL, gL, SPL = gx_bound(c, c_g_L, edge) #y, gx, SP, T, pred, label, path
                     df_cell[k,:Y_Lk] = yL
                     df_cell[k,:gL] = gL
 

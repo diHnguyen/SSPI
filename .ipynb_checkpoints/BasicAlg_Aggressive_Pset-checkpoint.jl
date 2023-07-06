@@ -10,6 +10,12 @@
 # Pkg.add("Polynomials")
 
 #Ready for upload
+global A1 = 0 # 1=Select arc having the largest uncertainty , 0=Select arc using Lemma2
+global A2 = 0 # 1=Partition once per cell , 0=Partition multiple per cell
+global A3 = 1 # 1=Split at mean base cost , 0=Split using SA if possible
+global A4 = 1 # 1=Frequent solve MP
+global A5 = 1 # 1=Regular opt model
+
 include("functionLoadSharedFiles.jl")
 include("functionPartition_BasicAlg.jl")
 # #Setting constraint for start node
@@ -32,12 +38,12 @@ df_constraints = DataFrame(NUM = Int[], CELL = Int[], Y = Array[], SP = Float64[
 df_cell = DataFrame(CELL = Int[], Y = Array[], Y_Lk = Array[], g = Float64[], h = Float64[], gL = Float64[], LB = Array[], UB = Array[], PROB = Float64[])
 
 
-MP_obj = 0.0
+
 
 push!(df_cell, (1, yy,yy, SP_init, 0, 0, cL_orig, cU_orig, 1))
 push!(df_constraints, (1, 1,yy,SP_init,1))
 ##println(f,"MASTER PROBLEM==========================================================================================")
-
+MP_obj = 0.0
 zNum = 200000
 cRefNum = 2000000
 m = Model(() -> Gurobi.Optimizer(gurobi_env)) # If we want to add # in Gurobi, then we have to turn of 
@@ -308,9 +314,9 @@ println("con_num " , con_num)
 println("z_now ", z_now[1:newCell])
 total_time = time() - start
 
-println("BasicAlg_ADelCon_"*dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
+println("BasicAlg_APset_"*dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 
-timesFile = open("./OutputFile/BasicAlg_ADelCon_"*dataSet*".txt", "a")
+timesFile = open("./OutputFile/BasicAlg_APset_"*dataSet*".txt", "a")
 println(timesFile, dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 close(timesFile)
 # println(LB_w + β)

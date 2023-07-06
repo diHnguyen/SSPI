@@ -1,70 +1,3 @@
-# using Pkg
-# Pkg.add("JuMP")
-# Pkg.add("Gurobi")
-# Pkg.add("LightGraphs")
-# Pkg.add("DataFrames")
-# Pkg.add("Query")
-# Pkg.add("CSV")
-# Pkg.add("TimerOutputs")
-# Pkg.add("Dates")
-# Pkg.add("Polynomials")
-
-#Ready for upload
-include("functionLoadSharedFiles.jl")
-include("functionPartition_BasicAlg.jl")
-
-#Setting constraint for start node
-# outgoing = findall(edge[:,1].== origin)
-
-# If we want to add # in Gurobi, then we have to turn of Gurobi's own Cuts 
-# h1 = Model(() -> Gurobi.Optimizer(gurobi_env))
-# h1.setParam("OutputFlag", 0)
-# set_optimizer_attribute(h1, "OutputFlag", 0)
-
-# @variable(h1, 1 >= y_h[1:Len]>=0)
-#@variable(h, q[1:Len]>=0)
-
-#Setting constraints for remaining none-sink/start nodes
-# @constraint(h1, sum(y_h[k] for k in outgoing) == 1)
-# for i in all_nodes
-#     global outgoing
-#     if i != destination && i != origin
-#         incoming = findall(edge[:,2].== i)
-#         outgoing = findall(edge[:,1].== i)
-#         @constraint(h1, sum(-y_h[k] for k in outgoing) + sum(y_h[k] for k in incoming) == 0)
-#     end
-# end
-
-
-#MAIN PROGRAM:
-df_constraints = DataFrame(NUM = Int[], CELL = Int[], Y = Array[], SP = Float64[])
-df_cell = DataFrame(CELL = Int[], Y = Array[], Y_Lk = Array[], g = Float64[], h = Float64[], gL = Float64[], LB = Array[], UB = Array[], PROB = Float64[])
-
-
-MP_obj = 0.0
-
-push!(df_cell, (1, yy,yy, SP_init, 0, 0, cL_orig, cU_orig, 1))
-push!(df_constraints, (1, 1,yy,SP_init))
-##println(f,"MASTER PROBLEM==========================================================================================")
-
-zNum = 200000
-cRefNum = 2000000
-m = Model(() -> Gurobi.Optimizer(gurobi_env)) # If we want to add # in Gurobi, then we have to turn of 
-# set_optimizer_attribute(m, "OutputFlag", 0)    #Gurobi's own Cuts 
-# println("1")
-@variable(m, x[1:Len], Bin)
-# @variable(m, α)
-@variable(m, 1e6 >= z[1:zNum] >= 0)
-# @constraintref constr[1:200000]
-# @ConstrRef constr[1:200000]
-
-# constr = Array{JuMP.JuMPArray{JuMP.ConstraintRef,1,Tuple{Array{Int64,1}}}}()
-
-constr = Array{JuMP.ConstraintRef}(undef, cRefNum)
-@constraint(m, sum(x[i] for i=1:Len) == b) 
-constr[1] = @constraint(m, z[1] <= SP_init + sum(yy[i]*x[i]*d[i] for i=1:Len) )
-@objective(m, Max, sum(p[i]*z[i] for i = 1:length(p)) )#w - sum(s[k] for k=1:length(s))/length(s) )
-include("functionSetGlobalVar_MP.jl")
 while terminate_cond == false 
     global α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell , LB_w, p
     global x_sol, z_sol, α_sol, last_x, x_now, α_now,z_now, terminate_cond
@@ -98,9 +31,10 @@ while terminate_cond == false
             last_x = x_now
             for k in K_bar #_partition  
                 c_L, c_U, M, c, c_g = getCellInfo(k, x_now, "c_g")
-                y, gx, SP = gx_bound(c, c_g, edge)
+                y, gx, SP, T, pred, label, path = gx_bound(c, c_g, edge)
                 df_cell[k,:g] = gx
                 df_cell[k,:Y] = y
+                df_cell[k,:PI] = label
                 if z_now[k] - gx > delta1
                     con_num = con_num + 1 
                     push!(df_constraints, (con_num, k, y, SP))
@@ -134,13 +68,13 @@ while terminate_cond == false
                     if gx - hx <= delta2
                         push!(K_removed,k)
                     else
-                        # println("Partitioning cell ", k)
+                        # println("Partitioning cell ", k,". gx = ", gx, "; hx = ", hx)
                         newCell = newCell + 1 #nrow(df_cell)+1
                         
                         #Partition cell k -> k & newCell
                         #_L is for k; _U is for newCell
-                        Δ, arc_split, yL, yU, gL, gU, SP_L, SP_U = Partition(x_now, newCell, k, p_k, c_L, c_U, M, df_cell[k,:Y])
-
+                        ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U = Partition(x_now, newCell, k, p_k, c_L, c_U, M, df_cell[k,:Y])
+                        # println("arc_split ", arc_split, " ", ΔL, " ", ΔU, " -- ", M[arc_split])
                         #Updating constraints in MP:
                         #Query rows from df_constraints that satisfy:
                         #(a) CELL column = k, and
@@ -167,10 +101,11 @@ while terminate_cond == false
 
                             #ONLY UPDATE RHS IF ARC SPLIT IS ON THAT PATH  
                             # & revise corresponding constraint that exists for cell k in Gurobi
+                            # println(arc_split)
                             if Y_k[arc_split] == 1 
                                 conRef = dfRow.NUM #Get constraint ref number wrt Gurobi of Y in df row
-                                newCell_RHS = newCell_RHS + Δ #Get RHS value of newCell
-                                dfRow.SP = dfRow.SP - Δ #Get RHS value of revised k
+                                newCell_RHS = newCell_RHS + ΔU #Get RHS value of newCell
+                                dfRow.SP = dfRow.SP - ΔL #Get RHS value of revised k
                                 df_constraints[conRef,:SP] = dfRow.SP #Update df that tracks only constraints
                                 set_normalized_rhs(constr[conRef], dfRow.SP) #Update k's constraint in Gurobi model
                             end
@@ -198,6 +133,7 @@ while terminate_cond == false
                 end #END OF for k = 1:myLength
                 #Update obj function
                 p = df_cell.PROB #[!,:PROB]
+                # println("p = ", p)
                 @objective(m, Max, sum(p[i]*z[i] for i = 1:length(p)))
                 
                 #K_bar = set of cells that haven't satisfied g-h<=delta2 at the beginning of the loop (for current x)
@@ -239,15 +175,3 @@ while terminate_cond == false
 #     end
     # println("con_num = ", con_num)
 end
-println("con_num " , con_num)
-# println("constr ", constr[1:con_num])
-println("z_now ", z_now[1:newCell])
-total_time = time() - start
-
-println("BasicAlg_C_"*dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
-
-timesFile = open("./OutputFile/BasicAlg_C_"*dataSet*".txt", "a")
-println(timesFile, dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
-close(timesFile)
-# println(LB_w + β)
-# println("\007")
