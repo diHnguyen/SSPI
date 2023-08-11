@@ -63,7 +63,7 @@ while terminate_cond == false
                     df_cell[k,:h] = hx
                     gx = df_cell[k,:g] 
 
-                    # println("Cell ", k, ". gx = ", gx, "; hx = ", hx)
+                    println("Cell ", k, ". gx = ", gx, "; hx = ", hx)
                     #Check to see if cell k needs to be partitioned
                     if gx - hx <= delta2
                         push!(K_removed,k)

@@ -11,10 +11,12 @@
 
 #Ready for upload
 
-global A1 = 1 # 1=Select arc having the largest uncertainty , 0=Select arc using Lemma2
-global A2 = 1 # 1=Partition once per cell , 0=Partition multiple per cell
-global A3 = 1# 1=Split at mean base cost , 0=Split using SA if possible
+global A1 = 0 # 1=Select arc having the largest uncertainty , 0=Select arc using Lemma2
+global A2 = 0 # 1=Partition once per cell , 0=Partition multiple per cell
+global A3 = 0# 1=Split at mean base cost , 0=Split using SA if possible
 global A4 = 1 # 1=Frequent solve MP
+#If running A5 = 0, do not use this file, use LazyAlg.jl instead
+#FIXED IN THIS FILE
 global A5 = 1 # 1=Regular opt model
 
 include("functionLoadSharedFiles.jl")

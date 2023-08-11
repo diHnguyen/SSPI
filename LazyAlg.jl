@@ -11,8 +11,8 @@
 
 #Ready for upload
 global A1 = 0 # 1=Select arc having the largest uncertainty , 0=Select arc using Lemma2
-global A2 = 1 # 1=Partition once per cell , 0=Partition multiple per cell
-global A3 = 1# 1=Split at mean base cost , 0=Split using SA if possible
+global A2 = 0 # 1=Partition once per cell , 0=Partition multiple per cell
+global A3 = 0# 1=Split at mean base cost , 0=Split using SA if possible
 global A4 = 1 # 1=Frequent solve MP
 global A5 = 0 # 1=Regular opt model
 include("functionLoadSharedFiles.jl")
@@ -141,9 +141,13 @@ function my_callback_function(cb_data)#, cb_where::Cint)
     
     iter = iter + 1
     println("-----------------------")
-    println("Iter ", iter )
+    println("Lazy - Iter ", iter )
     println("-----------------------")
     
+    if iter > 2
+        return
+        # break
+    end
     # Gurobi.load_callback_variable_primal(cb_data, cb_where)
     x_now = callback_value.(Ref(cb_data), x) #Julia v1.9
     # x_now = callback_value.(Ref(cb_data), x)
@@ -171,7 +175,7 @@ function my_callback_function(cb_data)#, cb_where::Cint)
         
 #         optimize!(m) 
        # println("\nIter : ", iter," ; LB = ", LB)
-#         println(m)
+        println(m)
 #         println("", df_cell)
 #         K = vcat(K, K_newly_added)
         
