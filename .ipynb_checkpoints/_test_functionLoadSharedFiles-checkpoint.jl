@@ -16,7 +16,7 @@ global edge, cL_orig, cU_orig, Len, c_orig, yy, SP_init, p,g,h, origin, destinat
 to = TimerOutput()
 numNodes = string(ARGS[1])
 dataSet = "N50" #"N"*string(numNodes)
-Ins = "16" #string(ARGS[2])
+Ins = "84" #string(ARGS[2])
 myFile = "./TestInstances/"*dataSet*"/"*dataSet*"_"*Ins*".jl"
 println("Ins ", dataSet,"_", Ins, " Running...", myRun)
 include(myFile)

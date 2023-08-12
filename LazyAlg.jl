@@ -144,10 +144,10 @@ function my_callback_function(cb_data)#, cb_where::Cint)
     println("Lazy - Iter ", iter )
     println("-----------------------")
     
-    if iter > 2
-        return
-        # break
-    end
+    # if iter > 2
+    #     return
+    #     # break
+    # end
     # Gurobi.load_callback_variable_primal(cb_data, cb_where)
     x_now = callback_value.(Ref(cb_data), x) #Julia v1.9
     # x_now = callback_value.(Ref(cb_data), x)
