@@ -175,7 +175,7 @@ function my_callback_function(cb_data)#, cb_where::Cint)
         
 #         optimize!(m) 
        # println("\nIter : ", iter," ; LB = ", LB)
-        println(m)
+        # println(m)
 #         println("", df_cell)
 #         K = vcat(K, K_newly_added)
         
@@ -198,7 +198,7 @@ function my_callback_function(cb_data)#, cb_where::Cint)
         #     terminate_cond = true
         #     K_bar = []
         # else
-        println(status)
+        # println(status)
     # if status == MOI.CALLBACK_NODE_STATUS_INTEGER
     # if isempty(K_bar) == false
     if status == MOI.CALLBACK_NODE_STATUS_INTEGER #GRB_CB_MIPSOL
