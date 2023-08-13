@@ -393,7 +393,7 @@ p_val = df_cell.PROB
 
 println("LB = ", sum(h_val[k]*p_val[k] for k=1:newCell))
 
-timesFile = open("./OutputFile/Alg_"*set*"_"*dataSet*".txt", "a")
+timesFile = open(myPath*"/PrelimOutputFile/Alg_"*set*"_"*dataSet*".txt", "a")
 println(timesFile, dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 close(timesFile)
 
