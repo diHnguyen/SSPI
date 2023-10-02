@@ -30,6 +30,6 @@ include("functionHbound.jl")
 include("functionGetCellInfo.jl")
 include("functionSelectArc.jl")
 include("functionArcSplit.jl")
-include("functionPartition_MainAlg.jl")
+include("functionPartition.jl")
 global epsilon = 1e-4
 Gurobi.GRBsetintparam(gurobi_env, "OutputFlag", 0)
