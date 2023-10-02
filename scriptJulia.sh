@@ -1,8 +1,14 @@
 #!/bin/bash
-for i in {1..2}
+for N in 50 30;
 do
-    echo "Welcome $i times"
-    gtimeout -k 5 3600s julia /Users/dinguyen/Library/CloudStorage/GoogleDrive-di.hoai.nguyen@gmail.com/Other\ computers/My\ Laptop/Documents/GitHub/Paper5/LazyAlg.jl 30 30 $i
-    # gtimeout -k 5 2s sleep $((i*10)) && echo "Hello"
-    echo "End of 2 seconds"
+    for d in 30 20;
+    do
+        for i in {1..20};
+        do
+            echo "Running N=$N d=$d i=$i "
+            gtimeout -k 5 900 julia /Users/dinguyen/Desktop/Paper5/MainAlg.jl $N $d $i
+            # gtimeout -k 5 2s sleep $((i*10)) && echo "Hello"
+            echo "End of 2 seconds"
+        done
+    done
 done

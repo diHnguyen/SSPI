@@ -15,6 +15,7 @@ global A2 = 0 # 1=Partition once per cell , 0=Partition multiple per cell
 global A3 = 0# 1=Split at mean base cost , 0=Split using SA if possible
 global A4 = 1 # 1=Frequent solve MP
 global A5 = 0 # 1=Regular opt model
+global set = string(A1)*string(A2)*string(A3)*string(A4)*string(A5)
 include("functionLoadSharedFiles.jl")
 
 # #Setting constraint for start node

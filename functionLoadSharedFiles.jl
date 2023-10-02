@@ -14,13 +14,13 @@ global edge, cL_orig, cU_orig, Len, c_orig, yy, SP_init, p,g,h, origin, destinat
 # gurobi_env.setParam("LogToConsole", 0)
 
 to = TimerOutput()
-numNodes = string(ARGS[1])
-density = string(ARGS[2])
-Ins = string(ARGS[3])
+global numNodes = string(ARGS[1])
+global density = string(ARGS[2])
+global Ins = string(ARGS[3])
 # global myPath = "/Users/dinguyen/Library/CloudStorage/GoogleDrive-di.hoai.nguyen@gmail.com/Other\ computers/My\ Laptop/Documents/GitHub/Paper5"
-dataSet = "N"*string(numNodes)*"_d"*string(density)
+global dataSet = "N"*string(numNodes)*"_d"*string(density)
 
-myFile = myPath*"/PrelimTestInstances/"*dataSet*"/"*dataSet*"_Ins_"*Ins*".jl"
+myFile = "./PrelimTestInstances/"*dataSet*"/"*dataSet*"_Ins_"*Ins*".jl"
 println("Ins ", dataSet,"_", Ins, " Running...", myRun)
 include(myFile)
 include("functionGbound.jl")

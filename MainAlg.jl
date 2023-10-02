@@ -12,13 +12,13 @@
 #Ready for upload
 
 global A1 = 0 # 1=Select arc having the largest uncertainty , 0=Select arc using Lemma2
-global A2 = 0 # 1=Partition once per cell , 0=Partition multiple per cell
-global A3 = 0# 1=Split at mean base cost , 0=Split using SA if possible
+global A2 = 1 # 1=Partition once per cell , 0=Partition multiple per cell
+global A3 = 1# 1=Split at mean base cost , 0=Split using SA if possible
 global A4 = 1 # 1=Frequent solve MP
 #If running A5 = 0, do not use this file, use LazyAlg.jl instead
 #FIXED IN THIS FILE
 global A5 = 1 # 1=Regular opt model
-
+global set = string(A1)*string(A2)*string(A3)*string(A4)*string(A5)
 include("functionLoadSharedFiles.jl")
 
 
@@ -104,14 +104,14 @@ end
 # println("constr ", constr[1:con_num])
 # println("z_now ", z_now[1:newCell])
 total_time = time() - start
-set = string(A1)*string(A2)*string(A3)*string(A4)*string(A5)
+
 println("Alg_"*set*"_"*dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 h_val = df_cell.h
 p_val = df_cell.PROB
 
 println("LB = ", sum(h_val[k]*p_val[k] for k=1:newCell))
 
-timesFile = open(myPath*"/PrelimOutputFile/Alg_"*set*"_"*dataSet*".txt", "a")
+timesFile = open("./PrelimOutputFile/Alg_"*set*"_"*dataSet*".txt", "a")
 println(timesFile, dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; x_now ", findall(x_now.==1),"; Cells ", nrow(df_cell), "; Iter ", iter)#, "; W ", LB_w, "; Cuts ", numConv)
 close(timesFile)
 # println(LB_w + β)

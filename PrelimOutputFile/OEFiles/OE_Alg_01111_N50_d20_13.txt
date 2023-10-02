@@ -1,0 +1,4 @@
+N50_d20; Ins 13; Time 2.986816167831421; MP_obj 204.0; LB 0.0; x_now [1, 2, 3, 4, 26]; Cells 2/2; Iter 1
+N50_d20; Ins 13; Time 3.2604050636291504; MP_obj 204.0; LB 102.0; x_now [1, 2, 3, 4, 26]; Cells 2/3; Iter 2
+N50_d20; Ins 13; Time 3.387923002243042; MP_obj 204.0; LB 153.0; x_now [1, 2, 3, 4, 26]; Cells 2/4; Iter 3
+N50_d20; Ins 13; Time 3.522231101989746; MP_obj 204.0; LB 204.0; x_now [1, 2, 21, 26, 47]; Cells 0/4; Iter 4

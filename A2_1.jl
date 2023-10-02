@@ -1,7 +1,7 @@
 while terminate_cond == false 
     global α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell , LB_w, p
     global x_sol, z_sol, α_sol, last_x, x_now, α_now,z_now, terminate_cond
-    global start
+    global start, set, Ins, density, dataset
     while isempty(K_bar) == false #length(K_bar) > K
         iter = iter + 1  
         optimize!(m) 
@@ -63,7 +63,7 @@ while terminate_cond == false
                     df_cell[k,:h] = hx
                     gx = df_cell[k,:g] 
 
-                    println("Cell ", k, ". gx = ", gx, "; hx = ", hx)
+                    #println("Cell ", k, ". gx = ", gx, "; hx = ", hx)
                     #Check to see if cell k needs to be partitioned
                     if gx - hx <= delta2
                         push!(K_removed,k)
@@ -150,6 +150,15 @@ while terminate_cond == false
             end
         end #If O1Flag == true
         # end #If Feasibles
+        total_time = time() - start
+
+        h_val = df_cell.h
+        p_val = df_cell.PROB
+        LB = sum(h_val[k]*p_val[k] for k=1:newCell)
+
+        oeFile = open("./PrelimOutputFile/OEFiles/OE_Alg_"*set*"_"*dataSet*"_"*Ins*".txt", "a")
+        println(oeFile, dataSet, "; Ins ", Ins, "; Time ", total_time, "; MP_obj ", MP_obj, "; LB ", LB, "; x_now ", findall(x_now.==1),"; Cells ", length(K_bar),"/", newCell, "; Iter ", iter)
+        close(oeFile)
     end #While K_partition is non-empty
 #    println("Convolve x_now = ", findall(x_now.>0))
 #     if terminate_cond == false
