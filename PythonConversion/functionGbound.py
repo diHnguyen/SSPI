@@ -1,11 +1,11 @@
 import networkx as nx
 import numpy as np
 
-def gx_bound(c, c_g, edge):
+def gx_bound(c, c_g, edge,origin,destination):
     start_node = np.array(edge)[:, 0]
     end_node = np.array(edge)[:, 1]
 
-    no_node = max(max(start_node), max(end_node))
+    no_node = max(max(start_node), max(end_node))+1
     no_link = len(start_node)
 
     def get_shortest_x(state, start_node, end_node, origin, destination):
@@ -25,9 +25,16 @@ def gx_bound(c, c_g, edge):
 
     graph = nx.DiGraph()
     distmx = np.full((no_node, no_node), np.inf)
-
+    
+    # print(start_node)
+    # print(end_node)
+    # print(distmx)
+    # print(c_g)
+    # print(no_link)
     # Adding links to the graph
     for i in range(no_link):
+        # print("\ni ", i)
+        # print("start ", start_node[i], "; end ", end_node[i])
         graph.add_edge(start_node[i], end_node[i])
         distmx[start_node[i], end_node[i]] = c_g[i]
 

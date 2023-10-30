@@ -1,7 +1,7 @@
 import numpy as np
 
 print("Running testInstance")
-edge = np.array([[1, 2], [1, 3], [2, 3], [2, 4], [3, 4]])
+edge = np.array([[0, 1], [0, 2], [1, 2], [1, 3], [2, 3]])
 cL_orig = np.array([0.0, 8, 11, 4, 0])
 cU_orig = np.array([0.0, 12, 11, 20, 0])
 d = np.array([0.0, 1, 0, 8, 0])
@@ -13,8 +13,8 @@ SP_init = sum(yy[i] * c_orig[i] for i in range(0, Len))
 p = [1.0]
 g = [SP_init]
 h = [0.0]
-origin = 1
-destination = 4
+origin = 0
+destination = 3
 last_node = np.max(edge)
 all_nodes = list(range(1, last_node + 1))
 M_orig = np.zeros(Len)
