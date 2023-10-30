@@ -1,5 +1,8 @@
-def arc_split(x_now, arc_split, k, c_L, c_U, M, y, label):
-    global A1, A2, A3, A4, A5, edge, destination, d
+import importlib
+importlib.import_module("functionGbound")
+from functionGbound import gx_bound
+def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,d,Len,A3):
+    # global A1, A2, A3, A4, A5, edge, destination, d
     # global K_bar, K_newly_added, d, df_cell
 
     c = (c_L + c_U) / 2
@@ -31,12 +34,12 @@ def arc_split(x_now, arc_split, k, c_L, c_U, M, y, label):
         else:  # arc_split not in y -- check directly with labels to see when (i, j) is on the shortest path
             c2 = c.copy()
             c2[arc_split] = c_L[arc_split]
-            c2_g = [c2[i] + d[i] * x_now[i] for i in range(len(d))]
-            y2, g2, SP2, T2, pred2, label2 = gx_bound(c2, c2_g, edge)
+            c2_g = [c2[i] + d[i] * x_now[i] for i in range(Len)]
+            y2, g2, SP2, T2, pred2, label2, path2 = gx_bound(c2, c2_g, edge, origin,destination)
             y_index = [i for i, val in enumerate(y) if val > 0.9]
             y2_index = [i for i, val in enumerate(y2) if val > 0.9]
-            y_cost_c2 = sum(y[i] * (c2[i] + d[i] * x_now[i]) for i in range(len(d))
-            y2_cost_c2 = sum(y2[i] * (c2[i] + d[i] * x_now[i]) for i in range(len(d))
+            y_cost_c2 = sum(y[i] * (c2[i] + d[i] * x_now[i]) for i in range(Len))
+            y2_cost_c2 = sum(y2[i] * (c2[i] + d[i] * x_now[i]) for i in range(Len))
 
             ΔL = y_cost_c2 - y2_cost_c2
 
@@ -45,6 +48,7 @@ def arc_split(x_now, arc_split, k, c_L, c_U, M, y, label):
                 ΔU = M[arc_split] - ΔL
 
     if A3 == 1 or mean_split == True:  # 1=Split at mean base cost - we can always do so
+        # print(M[arc_split])
         ΔL = M[arc_split] / 2
         ΔU = ΔL
 

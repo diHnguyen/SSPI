@@ -26,3 +26,4 @@ b = 1
 last_node = np.max(edge)
 β = 0.253
 print(c_orig)
+print("Input file read ok.")

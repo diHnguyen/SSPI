@@ -6,11 +6,33 @@ importlib.import_module("functionGbound")
 from functionGbound import gx_bound
 importlib.import_module("functionHbound")
 from functionHbound import hx_bound
+importlib.import_module("functionSelectArc")
+from functionSelectArc import selectArc
+importlib.import_module("functionArcSplit")
+from functionArcSplit import arcSplit
 
 
-
-
-
+c_L = cL_orig
+c_U = cU_orig
+M = M_orig
+y = [0,1,0,0,1]
+x_now = np.zeros(Len)
+k=1
+label = [ 0., 10., 11., 12.,  0.]
+A3=0
+arc_split = 3
+ΔL, ΔU = arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,d,Len,A3)
+print(ΔL," ", ΔU)
+########functionSelectArc.py########
+# c_L = cL_orig
+# c_U = cU_orig
+# M = M_orig
+# y = [0,1,0,0,1]
+# x_now = np.zeros(Len)
+# A1 = 0
+# arc_split = selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1)
+# print(arc_split)
+################################
 ########functionHbound.py########
 # c_L = cL_orig
 # c_U = cU_orig
