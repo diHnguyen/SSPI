@@ -24,7 +24,6 @@ importlib.import_module("functionGetCellInfo")
 from functionGetCellInfo import getCellInfo
 
 #python main.py -> #f1 #a23 as parameters
-
 c_L = cL_orig
 c_U = cU_orig
 M = M_orig
@@ -124,7 +123,10 @@ m.addConstr(x.sum() == b, "sum_x_equals_b")
 #     'Age': [25, 30, 22, 35, 28],
 #     'City': ['New York', 'San Francisco', 'Los Angeles', 'Chicago', 'Miami']
 # }
-data = {"cell":1, "rhs": SP_init, "SP": yy, "con":
+data = {"cell":1, 
+        "rhs": SP_init, 
+        "SP": yy, 
+        "con":
     m.addConstr(z[1] <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))}
 
 # df = pd.DataFrame(data)
@@ -233,7 +235,7 @@ while not terminate_cond:
                                 conRef = dfRow['NUM']
                                 
                                 print("k = ", k)
-                                
+                                constraints_dict.loc[constraints_dict.cell ==k, 'cell']
                                 
                                     
                                 newCell_RHS = newCell_RHS + ΔU

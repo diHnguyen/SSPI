@@ -24,7 +24,6 @@ importlib.import_module("functionGetCellInfo")
 from functionGetCellInfo import getCellInfo
 
 #python main.py -> #f1 #a23 as parameters
-
 c_L = cL_orig
 c_U = cU_orig
 M = M_orig
