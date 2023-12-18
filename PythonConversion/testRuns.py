@@ -2,8 +2,10 @@
 import numpy as np
 import pandas as pd
 import importlib
+import time
 import gurobipy as gp
 from gurobipy import GRB
+
 
 exec(open('testInstance.py').read())
 importlib.import_module("functionGbound")
@@ -16,6 +18,10 @@ importlib.import_module("functionArcSplit")
 from functionArcSplit import arcSplit
 importlib.import_module("functionPartition")
 from functionPartition import Partition
+importlib.import_module("functionCheckO1Flag")
+from functionCheckO1Flag import checkO1Flag
+importlib.import_module("functionGetCellInfo")
+from functionGetCellInfo import getCellInfo
 
 #python main.py -> #f1 #a23 as parameters
 
@@ -29,46 +35,42 @@ k=1
 A1=1
 A3=1
 
-# df_constraints = pd.DataFrame({
-#     'NUM': [],
-#     'CELL': [],
-#     'Y': [],
-#     'SP': []
-# })
-
-# df_cell = pd.DataFrame({
-#     'CELL': [],
-#     'Y': [],
-#     'Y_Lk': [],
-#     'g': [],
-#     'h': [],
-#     'gL': [],
-#     'LB': [],
-#     'UB': [],
-#     'PROB': [],
-#     'PI': []
-# })
 # Calculate c values
 c = (cU_orig + cL_orig) / 2
 
 # Call the gx_bound function (assuming you have it defined elsewhere)
 yy, SP_init, SP_init, T, pred, label, path = gx_bound(c, c, edge, origin,destination)
 
-
 # Create and append rows to the DataFrames
 new_row = {
     'CELL': [1],
-    'Y': [[yy]],
-    'Y_Lk': [[yy]],
+    'Y': [np.array(yy)],
+    'Y_Lk': [np.array(yy)],
     'g': [SP_init],
     'h': [0],
     'gL': [0],
-    'LB': [[cL_orig]],
-    'UB': [[cU_orig]],
+    'LB': [cL_orig],
+    'UB': [cU_orig],
     'PROB': [1],
-    'PI': [[label]]
+    'PI': [np.array(label)]
 }
-df_cell = pd.DataFrame(new_row)
+
+# Define data types for each column
+dtypes = {
+    'CELL': int,
+    'Y': object,
+    'Y_Lk': object,  # Assuming 'Y' contains arrays
+    'g': float,
+    'h': float,
+    'gL': float,
+    'LB': object,
+    'UB': object,
+    'PROB': float,
+    'PI': object
+}
+# df_cell = pd.DataFrame(new_row)
+df_cell = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
+print(df_cell)
 new_row = {
     'NUM': [1],
     'CELL': [1],
@@ -102,14 +104,36 @@ zNum = 200000
 cRefNum = 2000000
 
 m = gp.Model()
+m.setParam(GRB.Param.OutputFlag, 0)
 x = m.addVars(range(Len), vtype=GRB.BINARY, name="x")
-z = m.addVars(range(zNum), lb=0, ub=1e6, name="z")
+z = m.addVars(range(1,zNum), lb=0, ub=1e6, name="z")
+
+
+# Create a dictionary to store constraints - for constraints related to cells
+constraints_dict = {}
 
 # Constraint: Sum of x[i] equals b
 m.addConstr(x.sum() == b, "sum_x_equals_b")
 
+
+
 # Constraint: z[1] <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(1, Len + 1))
-m.addConstr(z[1] <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))
+# data = {
+#     'ID': [1, 2, 3, 4, 5],
+#     'Name': ['Alice', 'Bob', 'Charlie', 'David', 'Eva'],
+#     'Age': [25, 30, 22, 35, 28],
+#     'City': ['New York', 'San Francisco', 'Los Angeles', 'Chicago', 'Miami']
+# }
+data = {"cell":1, 
+        "rhs": SP_init, 
+        "SP": yy, 
+        "con":
+    m.addConstr(z[1] <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))}
+
+# df = pd.DataFrame(data)
+constraints_dict = pd.DataFrame(data)
+
+# constraints_dict["1"] = {"info":cell1_info, "cons":cell1_constraints}
 # m.addConstr(z[1] <= SP_init + x.prod(yy[i] * d[i] for i in range(1, Len + 1)), "z_constraint_1")
 
 # Objective: Maximize sum(p[i]*z[i])
@@ -136,55 +160,71 @@ MP_obj = 1e6
 K_newly_added = []
 K_removed = []
 
-start = time()
+start = time.time()
 terminate_cond = False
 
 while not terminate_cond:
     # α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell, LB_w, p, \
     # x_sol, z_sol, α_sol, last_x, x_now, α_now, z_now, terminate_cond, start, set, Ins, density, dataset = \
     #     (global variable values here)
-
-    while K_bar:
+    print("HERE")
+    while len(K_bar)>0:
         iter += 1
+        m.write("checkModel.lp")
         m.optimize()
-        
-        if termination_status(m) == MOI.OPTIMAL:
+        K_bar = []#Remove when done debug 
+        print("STATUS ", m.status)
+        # if termination_status(m) == MOI.OPTIMAL:
+        if m.status == 2:
             MP_obj = m.ObjVal
-            x_now = m.getAttr('x', vars)
-            z_now = m.getAttr('z', vars)
-            print("\nIter : ", iter, " ; MP_obj = ", MP_obj, " ; time ", time() - start, "; ", len(K_bar), "/", newCell)
+            x_now = np.empty(Len) #[0.0]*Len
+            z_now = np.empty(zNum)
+            
+            for i in range(Len):
+                x_now[i] = x[i].X #m.getAttr('x', x[i].X) #m.getAttr('X', vars)
+            for i in range(1,zNum):
+                z_now[i] = z[i].X
+            print("\nIter : ", iter, " ; MP_obj = ", MP_obj, " ; time ", time.time() - start, "; ", len(K_bar), "/", newCell)
             print("x = ", np.where(x_now > 0)[0])
 
         O1Flag = True
-        O1Flag, K_bar,constr = checkO1Flag(O1Flag,last_x,x_now,k,z_now,constr)
+        O1Flag, K_bar = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,constraints_dict)
+        print("O1Flag ", O1Flag)
 
         if O1Flag:
+            print("\tO1Flag=True")
             partitionCounter = 1
             myCounter = 0
+            # print("HERE")
+            print("myCounter ", myCounter)
             while myCounter < partitionCounter:
                 myCounter += 1
                 for k in K_bar:
-                    c_L, c_U, M, c, c_g_L, yK = getCellInfo(k, x_now, "c_g_L")
-                    yL, gL, SPL = gx_bound(c, c_g_L, edge)
-                    df_cell.at[k, 'Y_Lk'] = yL
-                    df_cell.at[k, 'gL'] = gL
+                    print("Cell ", k)
+                    c_L, c_U, M, c, c_g_L, yK = getCellInfo(k, x_now, "c_g_L", d, df_cell)
+                    yL, gL, SPL,_,_,_,_ = gx_bound(c, c_g_L, edge,origin,destination)
+                    df_cell.loc[df_cell.CELL==k, 'Y_Lk'][0] = yL
+                    df_cell.loc[df_cell.CELL==k, 'gL'][0] = gL
 
-                    y_h, hx = hx_bound(c_L, c_U, d, x_now)
-                    p_k = df_cell.at[k, 'PROB']
-                    df_cell.at[k, 'h'] = hx
-                    gx = df_cell.at[k, 'g']
-
+                    y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+                    p_k = df_cell.loc[df_cell.CELL==k, 'PROB']
+                    df_cell.loc[df_cell.CELL==k, 'h'][0] = hx
+                    gx = df_cell.loc[df_cell.CELL==k, 'g'][0]
+                    print("gx = ", gx)
+                    print("hx = ", hx)
+                          
                     if gx - hx <= delta2:
                         K_removed.append(k)
                     else:
                         newCell += 1
-                        ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U = Partition(x_now, newCell, k, p_k, c_L, c_U, M, df_cell.at[k, 'Y'])
+                        ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added)
                         df_temp_k = df_constraints[df_constraints['CELL'] == k]
                         add_yL = True
                         add_yU = True
-
+                        print("arc_split = ", arc_split)
                         for _, dfRow in df_temp_k.iterrows():
-                            Y_k = np.array(dfRow['Y'])
+                            Y_k = np.array(dfRow['Y'][0])
+                            print("Y_k ", Y_k)
                             if np.array_equal(Y_k, yL):
                                 add_yL = False
                             if np.array_equal(Y_k, yU):
@@ -192,12 +232,18 @@ while not terminate_cond:
 
                             newCell_RHS = dfRow['SP']
 
-                            if Y_k[arc_split - 1] == 1:
+                            if Y_k[arc_split] == 1:
                                 conRef = dfRow['NUM']
+                                
+                                print("k = ", k)
+                                constraints_dict.loc[constraints_dict.cell ==k, 'cell']
+                                
+                                    
                                 newCell_RHS = newCell_RHS + ΔU
                                 dfRow['SP'] = dfRow['SP'] - ΔL
                                 df_constraints.at[conRef - 1, 'SP'] = dfRow['SP']
                                 set_normalized_rhs(constr[conRef], dfRow['SP'])
+                                
 
                             con_num += 1
                             m.addConstr(z[newCell] <= sum(d[i] * x[i] * Y_k[i - 1] for i in range(Len)) + newCell_RHS)
@@ -214,10 +260,13 @@ while not terminate_cond:
                             m.addConstr(z[newCell] <= sum(d[i] * x[i] * YU[i] for i in range(Len)) + SP_U)
                             # constr[con_num] = @constraint(m, z[newCell] <= sum(d[i] * x[i] * yU[i - 1] for i in range(1, Len + 1)) + SP_U)
                             df_constraints.loc[con_num - 1] = [con_num, newCell, yU.tolist(), SP_U]
-
+                print("HERE")
                 p = df_cell['PROB'].tolist()
-                @objective(m, Max, sum(p[i] * z[i] for i in range(1, len(p) + 1)))
-
+                
+                # @objective(m, Max, sum(p[i] * z[i] for i in range(1, len(p) + 1)))
+                m.setObjective(sum(p[i] * z[i] for i in range(1, len(p) + 1)), sense=GRB.MAXIMIZE)
+                m.update()
+                
                 K_bar = list(set(K_bar) - set(K_removed))
                 K_bar.extend(K_newly_added)
                 K_newly_added = []
@@ -227,15 +276,18 @@ while not terminate_cond:
                     myCounter = partitionCounter
                     terminate_cond = True
 
-        total_time = time() - start
+        total_time = time.time() - start
         h_val = df_cell['h']
+        print("h_val ", h_val[0])
         p_val = df_cell['PROB']
-        LB = sum(h_val[k] * p_val[k] for k in range(1, newCell + 1))
+        LB = sum(h_val[k] * p_val[k] for k in range(newCell))
 
-        oeFile = open(f"./PrelimOutputFile/OEFiles/OE_Alg_{set}_{dataSet}_{Ins}.txt", "a")
-        print(oeFile, f"{dataSet}; Ins {Ins}; Time {total_time}; MP_obj {MP_obj}; LB {LB}; x_now {np.where(x_now == 1)[0]}; Cells {len(K_bar)}/{newCell}; Iter {iter}")
-        oeFile.close()
-
+        # oeFile = open(f"./PrelimOutputFile/OEFiles/OE_Alg_{set}_{dataSet}_{Ins}.txt", "a")
+        # print(oeFile, f"{dataSet}; Ins {Ins}; Time {total_time}; MP_obj {MP_obj}; LB {LB}; x_now {np.where(x_now == 1)[0]}; Cells {len(K_bar)}/{newCell}; Iter {iter}")
+        # oeFile.close()
+#Remove when done fixing bug
+    terminate_cond=True
+    
 # Optimize the model
 m.optimize()
 

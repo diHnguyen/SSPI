@@ -14,7 +14,7 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
     # Selecting the arc to split
     arc_split = selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1)
 
-    label = df_cell.loc[k-1, "PI"]
+    label = df_cell.loc[k-1, "PI"][0]
     
     # Calculate ΔL and ΔU
     ΔL, ΔU = arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,d,Len,A3)
