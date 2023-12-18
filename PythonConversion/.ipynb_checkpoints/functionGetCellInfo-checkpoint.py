@@ -1,6 +1,7 @@
 import numpy as np
 def getCellInfo(k, x_now, c_or_cL, d, df_cell):
     print("Cell ", k)
+    print(df_cell.loc[df_cell.CELL==k,"LB"])
     c_L = np.array(df_cell.loc[df_cell.CELL==k,"LB"][0])
     c_U = np.array(df_cell.loc[df_cell.CELL==k,"UB"][0])
     print(df_cell)

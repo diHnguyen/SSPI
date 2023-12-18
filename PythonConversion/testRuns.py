@@ -42,7 +42,7 @@ yy, SP_init, SP_init, T, pred, label, path = gx_bound(c, c, edge, origin,destina
 
 # Create and append rows to the DataFrames
 new_row = {
-    'CELL': [1],
+    'CELL': [0],
     'Y': [np.array(yy)],
     'Y_Lk': [np.array(yy)],
     'g': [SP_init],
@@ -70,13 +70,16 @@ dtypes = {
 # df_cell = pd.DataFrame(new_row)
 df_cell = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
 print(df_cell)
-new_row = {
-    'NUM': [1],
-    'CELL': [1],
-    'Y': [[yy]],
-    'SP': [SP_init]
-}
-df_constraints = pd.DataFrame(new_row)
+
+
+# data = {"cell":1, 
+#         "rhs": SP_init, 
+#         "SP": yy, 
+#         "con":
+#     m.addConstr(z[1] <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))}
+
+# # df = pd.DataFrame(data)
+# constraints_dict = pd.DataFrame(data)
 # df_cell = pd.concat([df_cell, pd.Series({
 #     'CELL': 1,
 #     'Y': [yy],
@@ -105,12 +108,32 @@ cRefNum = 2000000
 m = gp.Model()
 m.setParam(GRB.Param.OutputFlag, 0)
 x = m.addVars(range(Len), vtype=GRB.BINARY, name="x")
-z = m.addVars(range(1,zNum), lb=0, ub=1e6, name="z")
+z = m.addVars(range(zNum), lb=0, ub=1e6, name="z")
 
 
-# Create a dictionary to store constraints - for constraints related to cells
-constraints_dict = {}
+# # Create a dictionary to store constraints - for constraints related to cells
+# constraints_dict = {}
 
+
+new_row = {
+    'CELL': [0],
+    'Y': [yy],
+    'SP': [SP_init],
+    "con":
+    [m.addConstr(z[0] <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))]
+}
+# Define data types for each column
+dtypes = {
+    'CELL': int,
+    'Y': object,  # Assuming 'Y' contains arrays
+    'SP': float,
+    'con': object
+}
+print("yy ", yy)
+df_constraints = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
+print(type(df_constraints.loc[0, 'con']))
+print("df_constraints")
+print(df_constraints)
 # Constraint: Sum of x[i] equals b
 m.addConstr(x.sum() == b, "sum_x_equals_b")
 
@@ -123,14 +146,7 @@ m.addConstr(x.sum() == b, "sum_x_equals_b")
 #     'Age': [25, 30, 22, 35, 28],
 #     'City': ['New York', 'San Francisco', 'Los Angeles', 'Chicago', 'Miami']
 # }
-data = {"cell":1, 
-        "rhs": SP_init, 
-        "SP": yy, 
-        "con":
-    m.addConstr(z[1] <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))}
 
-# df = pd.DataFrame(data)
-constraints_dict = pd.DataFrame(data)
 
 # constraints_dict["1"] = {"info":cell1_info, "cons":cell1_constraints}
 # m.addConstr(z[1] <= SP_init + x.prod(yy[i] * d[i] for i in range(1, Len + 1)), "z_constraint_1")
@@ -149,10 +165,10 @@ x_now = []
 z_now = []
 last_x = np.zeros(Len)
 con_num = 1
-newCell = 1
+newCell = 0
 total_time = 0.0
 iter = 0
-K_bar = [1]
+K_bar = [0]
 LB = 0
 LB_w = 0
 MP_obj = 1e6
@@ -166,7 +182,7 @@ while not terminate_cond:
     # α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell, LB_w, p, \
     # x_sol, z_sol, α_sol, last_x, x_now, α_now, z_now, terminate_cond, start, set, Ins, density, dataset = \
     #     (global variable values here)
-    print("HERE")
+    # print("HERE")
     while len(K_bar)>0:
         iter += 1
         m.write("checkModel.lp")
@@ -181,13 +197,13 @@ while not terminate_cond:
             
             for i in range(Len):
                 x_now[i] = x[i].X #m.getAttr('x', x[i].X) #m.getAttr('X', vars)
-            for i in range(1,zNum):
+            for i in range(zNum):
                 z_now[i] = z[i].X
             print("\nIter : ", iter, " ; MP_obj = ", MP_obj, " ; time ", time.time() - start, "; ", len(K_bar), "/", newCell)
             print("x = ", np.where(x_now > 0)[0])
 
         O1Flag = True
-        O1Flag, K_bar = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,constraints_dict)
+        O1Flag, K_bar = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints)
         print("O1Flag ", O1Flag)
 
         if O1Flag:
@@ -215,40 +231,61 @@ while not terminate_cond:
                     if gx - hx <= delta2:
                         K_removed.append(k)
                     else:
+                        print("\tO2Flag=True")
                         newCell += 1
                         ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added)
-                        df_temp_k = df_constraints[df_constraints['CELL'] == k]
+                        # df_temp_k = df_constraints[df_constraints.CELL == k]
+                        indices = df_constraints.index[df_constraints.CELL == k].tolist()
                         add_yL = True
                         add_yU = True
                         print("arc_split = ", arc_split)
-                        for _, dfRow in df_temp_k.iterrows():
-                            Y_k = np.array(dfRow['Y'][0])
+                        # print(df_temp_k)
+                        #Iterate over constraints related to k
+                        for r in indices: #_, dfRow in df_temp_k.iterrows():
+                            # Y_k = np.array(dfRow['Y'])
+                            Y_k = np.array(df_constraints.loc[r,'Y'])
                             print("Y_k ", Y_k)
                             if np.array_equal(Y_k, yL):
                                 add_yL = False
                             if np.array_equal(Y_k, yU):
                                 add_yU = False
 
-                            newCell_RHS = dfRow['SP']
-
+                            # newCell_RHS = dfRow['SP']
+                            newCell_RHS = df_constraints.loc[r, 'SP']
+                            
+                            #If current constraint (correspond to row)
                             if Y_k[arc_split] == 1:
-                                conRef = dfRow['NUM']
+                                # conRef = dfRow['NUM']
+                                # constr_to_update = dfRow['con'] 
+                                constr_to_update = df_constraints.loc[r,'con'] 
+                                print(constr_to_update)
+                                #constraints_dict.loc[constraints_dict.cell ==k, 'cell']
                                 
-                                print("k = ", k)
-                                constraints_dict.loc[constraints_dict.cell ==k, 'cell']
-                                
+                                print("ΔU = ", ΔU,"; ΔL = ", ΔL)
                                     
                                 newCell_RHS = newCell_RHS + ΔU
-                                dfRow['SP'] = dfRow['SP'] - ΔL
-                                df_constraints.at[conRef - 1, 'SP'] = dfRow['SP']
-                                set_normalized_rhs(constr[conRef], dfRow['SP'])
+                                print(k, "Before update SP ", df_constraints.loc[r,'SP'])
+                                # dfRow['SP'] = dfRow['SP'] - ΔL
+                                df_constraints.loc[r,'SP'] = df_constraints.loc[r,'SP'] - ΔL
+                                print(k, "After update SP ", df_constraints.loc[r,'SP'])
+                                print(newCell, "After update SP ", newCell_RHS)
+                                # df_constraints.at[conRef - 1, 'SP'] = dfRow['SP']
+                                # set_normalized_rhs(constr[conRef], dfRow['SP'])
+                                constr_to_update.setAttr(GRB.Attr.RHS, df_constraints.loc[r,'SP'])
                                 
-
                             con_num += 1
-                            m.addConstr(z[newCell] <= sum(d[i] * x[i] * Y_k[i - 1] for i in range(Len)) + newCell_RHS)
+                            
                             # constr[con_num] = @constraint(m, z[newCell] <= sum(d[i] * x[i] * Y_k[i - 1] for i in range(1, Len + 1)) + newCell_RHS)
-                            df_constraints.loc[con_num - 1] = [con_num, newCell, Y_k.tolist(), newCell_RHS]
-
+                            new_row_data = {
+                                'CELL': 2,
+                                'Y': np.array(Y_k),
+                                'SP':newCell_RHS,
+                                'con': m.addConstr(z[newCell] <= sum(d[i] * x[i] * Y_k[i - 1] for i in range(Len)) + newCell_RHS)
+                            }
+                            # df_constraints.loc[con_num - 1] = [con_num, newCell, Y_k.tolist(), newCell_RHS]
+                            df_constraints = df_constraints.append(new_row_data, ignore_index=True)
+                            print("Y_k ", np.array(Y_k))
+                            print(df_constraints)
                         if add_yL:
                             con_num += 1
                             m.addConstr(z[k] <= sum(d[i] * x[i] * YL[i] for i in range(Len)) + SP_L)
@@ -259,11 +296,12 @@ while not terminate_cond:
                             m.addConstr(z[newCell] <= sum(d[i] * x[i] * YU[i] for i in range(Len)) + SP_U)
                             # constr[con_num] = @constraint(m, z[newCell] <= sum(d[i] * x[i] * yU[i - 1] for i in range(1, Len + 1)) + SP_U)
                             df_constraints.loc[con_num - 1] = [con_num, newCell, yU.tolist(), SP_U]
-                print("HERE")
+                print("newCell ", newCell)
                 p = df_cell['PROB'].tolist()
                 
                 # @objective(m, Max, sum(p[i] * z[i] for i in range(1, len(p) + 1)))
-                m.setObjective(sum(p[i] * z[i] for i in range(1, len(p) + 1)), sense=GRB.MAXIMIZE)
+                # m.setObjective(sum(p[i] * z[i] for i in range(1, len(p) + 1)), sense=GRB.MAXIMIZE)
+                m.setObjective(sum(p[i] * z[i] for i in range(newCell)),sense=GRB.MAXIMIZE)
                 m.update()
                 
                 K_bar = list(set(K_bar) - set(K_removed))

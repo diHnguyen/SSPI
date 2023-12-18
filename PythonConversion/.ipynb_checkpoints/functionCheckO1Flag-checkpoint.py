@@ -6,7 +6,7 @@ from functionGetCellInfo import getCellInfo
 importlib.import_module("functionGbound")
 from functionGbound import gx_bound
 
-def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,constraints_dict):
+def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints):
     if not np.array_equal(last_x, x_now):
         K_bar = list(range(1, newCell + 1))
         last_x = x_now
