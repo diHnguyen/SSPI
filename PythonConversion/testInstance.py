@@ -16,12 +16,12 @@ h = [0.0]
 origin = 0
 destination = 3
 last_node = np.max(edge)
-all_nodes = list(range(1, last_node + 1))
+all_nodes = list(range(last_node))
 M_orig = np.zeros(Len)
 for i in range(Len):
     M_orig[i] = cU_orig[i] - cL_orig[i]
 delta1 = 1.0
-delta2 = 1.0
+delta2 = 0.25
 b = 1
 last_node = np.max(edge)
 β = 0.253
