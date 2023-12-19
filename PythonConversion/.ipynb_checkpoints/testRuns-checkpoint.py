@@ -1,3 +1,7 @@
+#To run from command line:
+#python testRuns.py
+#Change line 14 if run a different input file.
+
 #Imports for main 
 import numpy as np
 import pandas as pd
