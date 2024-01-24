@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import importlib
 importlib.import_module("functionSelectArc")
 from functionSelectArc import selectArc
@@ -10,11 +11,11 @@ from functionGbound import gx_bound
 def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added):
     # global K_bar, K_newly_added, d, df_cell
     # global A1, A2, A3, A4, A5
-    print("\tInside Partition Function, cell k = ", k)
-    print("\tNewCell = ", newCell)
+    print("\t",k,": Partitioning (inside function)")
+    # print("\tNewCell = ", newCell)
     # Selecting the arc to split
     arc_split = selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1)
-    print("arc_split ", arc_split)
+    # print("arc_split ", arc_split)
     label = df_cell.at[k, "PI"]
     
     # Calculate ΔL and ΔU
@@ -38,10 +39,42 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
     # print("label_L ",label_L)
 
     current_p = df_cell.loc[k, "PROB"]
+    
+    # print("TESTING")
+    # print(df_cell)
     # Add information for the new cell K+1
     # print("Before update")
     # print(df_cell)
-    df_cell = df_cell.append({'CELL':newCell, 'Y': yU, 'Y_Lk':yU, 'g':gU, 'h':0, 'gL':0, 'LB':cL_newCell, 'UB':c_U, 'PROB':current_p * (ΔU / M[arc_split]), 'PI':label_U},ignore_index=True)
+#     df_cell = df_cell.append({'CELL':newCell, 'Y': yU, 'Y_Lk':yU, 'g':gU, 'h':0, 'gL':0, 'LB':cL_newCell, 'UB':c_U, 'PROB':current_p * (ΔU / M[arc_split]), 'PI':label_U},ignore_index=True)
+    dtypes = {
+        'CELL': int,
+        'Y': object,
+        'Y_Lk': object,  # Assuming 'Y' contains arrays
+        'g': float,
+        'h': float,
+        'gL': float,
+        'LB': object,
+        'UB': object,
+        'PROB': float,
+        'PI': object
+    }
+    new_row = {
+    'CELL': [newCell],
+    'Y': [np.array(yU)],
+    'Y_Lk': [np.array(yU)],
+    'g': [gU],
+    'h': [0],
+    'gL': [0],
+    'LB': [cL_newCell],
+    'UB': [c_U],
+    'PROB': [current_p * (ΔU / M[arc_split])],
+    'PI': [np.array(label_U)]
+    }
+#     new_row = {'CELL':newCell, 'Y': yU, 'Y_Lk':yU, 'g':gU, 'h':0, 'gL':0, 'LB':cL_newCell, 'UB':c_U, 'PROB':current_p * (ΔU / M[arc_split]), 'PI':label_U}
+    df_new_row = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
+    # print("NEW ROW")
+#     print(pd.DataFrame(new_row))
+    df_cell = pd.concat([df_cell,df_new_row], axis=0, ignore_index=True)
     # print("2.3")
     # print(df_cell)
     # print("k = ", k)

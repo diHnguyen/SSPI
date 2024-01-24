@@ -8,6 +8,8 @@ from gurobipy import GRB
 
 
 exec(open('testInstance.py').read())
+#Getting args from command line: int(sys.argv[1])
+#h-bound model: 
 importlib.import_module("functionGbound")
 from functionGbound import gx_bound
 importlib.import_module("functionHbound")
@@ -69,7 +71,7 @@ dtypes = {
 }
 # df_cell = pd.DataFrame(new_row)
 df_cell = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
-print(df_cell)
+# print(df_cell)
 
 
 # data = {"cell":1, 
@@ -151,7 +153,7 @@ m.addConstr(x.sum() == b, "sum_x_equals_b")
 # constraints_dict["1"] = {"info":cell1_info, "cons":cell1_constraints}
 # m.addConstr(z[1] <= SP_init + x.prod(yy[i] * d[i] for i in range(1, Len + 1)), "z_constraint_1")
 newCell = 0
-print("p = ",p)
+# print("p = ",p)
 
 # Objective: Maximize sum(p[i]*z[i])
 m.setObjective(sum(p[i] * z[i] for i in range(newCell+1)),sense=GRB.MAXIMIZE)
@@ -205,9 +207,10 @@ while not terminate_cond:
             print("Iter : ", iter, " ; MP_obj = ", MP_obj, " ; time ", time.time() - start, "; ", len(K_bar), "/", newCell)
             print("==========================================================")
             print("x = ", np.where(x_now > 0)[0])
-            print("z ", z_now[0:(newCell+1)])
-            print("p ", p)
+            print("z = ", z_now[0:(newCell+1)])
+            print("p = ", p)
             print("newCell = ", newCell)
+            
 
         O1Flag = True
         O1Flag, K_bar = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints)
@@ -223,8 +226,9 @@ while not terminate_cond:
             while myCounter < partitionCounter:
                 myCounter += 1
                 # print("K_bar = ", K_bar)
+                print("Cells failing O2Flag")
                 for k in K_bar:
-                    print("Cell ", k)
+                    # print("Cell ", k)
                     c_L, c_U, M, c, c_g_L, yK = getCellInfo(k, x_now, "c_g_L", d, df_cell)
                     yL, gL, SPL,_,_, = gx_bound(c, c_g_L, edge,origin,destination)
                     df_cell.at[k, 'Y_Lk'] = yL
@@ -240,20 +244,20 @@ while not terminate_cond:
                     # print("After update hx")
                     # print(df_cell)
                     gx = df_cell.at[k, 'g']
-                    print("gx = ", gx)
-                    print("hx = ", hx)
+                    # print("gx = ", gx)
+                    # print("hx = ", hx)
                     
                     if gx - hx <= delta2:
-                        print("O2Flag: Passed")
+                        # print("O2Flag: Passed")
                         K_removed.append(k)
                     else:
-                        print("\tO2Flag: Failed")
+                        # print(k, end=": ")
                         newCell += 1
                         # print("2. After update hx")
-                        print(df_cell)
+                        # print(df_cell)
                         ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added)
-                        print("Added a new cell")
-                        print(df_cell)
+                        # print(k, ": Added a new cell")
+                        # print(df_cell)
                         
                         # df_temp_k = df_constraints[df_constraints.CELL == k]
                         #constraints associated with cell k
@@ -274,7 +278,8 @@ while not terminate_cond:
 
                             # newCell_RHS = dfRow['SP']
                             newCell_RHS = df_constraints.loc[r, 'SP']
-                            
+                            # print("arc_split ", arc_split)
+                            # print("Y_k ", Y_k)
                             #If current constraint (correspond to row)
                             if Y_k[arc_split] == 1:
                                 # conRef = dfRow['NUM']
@@ -298,40 +303,85 @@ while not terminate_cond:
                             # con_num += 1
                             
                             # constr[con_num] = @constraint(m, z[newCell] <= sum(d[i] * x[i] * Y_k[i - 1] for i in range(1, Len + 1)) + newCell_RHS)
-                            new_row_data = {
-                                'CELL': newCell,
-                                'Y': Y_k,
-                                'SP':newCell_RHS,
-                                'con': m.addConstr(z[newCell] <= sum(d[i] * x[i] * Y_k[i] for i in range(Len)) + newCell_RHS)
+                            
+                            new_con = {
+                                'CELL': [newCell],
+                                'Y': [Y_k],
+                                'SP':[newCell_RHS],
+                                'con': [m.addConstr(z[newCell] <= sum(d[i] * x[i] * Y_k[i] for i in range(Len)) + newCell_RHS)]
                             }
+
+                            dtypes = {
+                                'CELL': int,
+                                'Y': object,  # Assuming 'Y' contains arrays
+                                'SP': float,
+                                'con': object
+                            }
+                            # print("yy ", yy)
                             # df_constraints.loc[con_num - 1] = [con_num, newCell, Y_k.tolist(), newCell_RHS]
-                            df_constraints = df_constraints.append(new_row_data, ignore_index=True)
+#                             df_constraints = df_constraints.append(new_row_data, ignore_index=True)
+                            
+                            df_new_con = pd.DataFrame(new_con, columns=dtypes.keys()).astype(dtypes)
+                            df_constraints = pd.concat([df_constraints,df_new_con], axis=0, ignore_index=True)
                             # print("Y_k ", np.array(Y_k))
                             # print(df_constraints)
                         if add_yL:
                             # con_num += 1
-                            new_row_data = {
-                                'CELL': k,
-                                'Y': yL,
-                                'SP':SP_L,
-                                'con': m.addConstr(z[k] <= sum(d[i] * x[i] * yL[i] for i in range(Len)) + SP_L)
+                            new_con = {
+                                'CELL': [k],
+                                'Y': [yL],
+                                'SP':[SP_L],
+                                'con': [m.addConstr(z[k] <= sum(d[i] * x[i] * yL[i] for i in range(Len)) + SP_L)]
                             }
+
+                            dtypes = {
+                                'CELL': int,
+                                'Y': object,  # Assuming 'Y' contains arrays
+                                'SP': float,
+                                'con': object
+                            }
+                            # print("yy ", yy)
+                            # df_constraints.loc[con_num - 1] = [con_num, newCell, Y_k.tolist(), newCell_RHS]
+#                             df_constraints = df_constraints.append(new_row_data, ignore_index=True)
+                            
+                            df_new_con = pd.DataFrame(new_con, columns=dtypes.keys()).astype(dtypes)
+                            df_constraints = pd.concat([df_constraints,df_new_con], axis=0, ignore_index=True)
                             # m.addConstr(z[k] <= sum(d[i] * x[i] * YL[i] for i in range(Len)) + SP_L)
                             # constr[con_num] = @constraint(m, z[k] <= sum(d[i] * x[i] * yL[i - 1] for i in range(1, Len + 1)) + SP_L)
                             # df_constraints.loc[con_num - 1] = [con_num, k, yL.tolist(), SP_L]
-                            df_constraints = df_constraints.append(new_row_data, ignore_index=True)
+#                             df_constraints = df_constraints.append(new_row_data, ignore_index=True)
                         if add_yU:
                             # con_num += 1
-                            new_row_data = {
-                                'CELL': newCell,
-                                'Y': yU,
-                                'SP':SP_U,
-                                'con': m.addConstr(z[newCell] <= sum(d[i] * x[i] * yU[i] for i in range(Len)) + SP_U)
-                            }
+                            
                             # m.addConstr(z[newCell] <= sum(d[i] * x[i] * YU[i] for i in range(Len)) + SP_U)
                             # constr[con_num] = @constraint(m, z[newCell] <= sum(d[i] * x[i] * yU[i - 1] for i in range(1, Len + 1)) + SP_U)
                             # df_constraints.loc[con_num - 1] = [con_num, newCell, yU.tolist(), SP_U]
-                            df_constraints = df_constraints.append(new_row_data, ignore_index=True)
+#                             new_row_data = {
+#                                 'CELL': newCell,
+#                                 'Y': yU,
+#                                 'SP':SP_U,
+#                                 'con': m.addConstr(z[newCell] <= sum(d[i] * x[i] * yU[i] for i in range(Len)) + SP_U)
+#                             }
+#                             df_constraints = df_constraints.append(new_row_data, ignore_index=True)
+                            new_con = {
+                                'CELL': [newCell],
+                                'Y': [yU],
+                                'SP':[SP_U],
+                                'con': [m.addConstr(z[newCell] <= sum(d[i] * x[i] * yU[i] for i in range(Len)) + SP_U)]
+                            }
+
+                            dtypes = {
+                                'CELL': int,
+                                'Y': object,  # Assuming 'Y' contains arrays
+                                'SP': float,
+                                'con': object
+                            }
+                            # print("yy ", yy)
+                            # df_constraints.loc[con_num - 1] = [con_num, newCell, Y_k.tolist(), newCell_RHS]
+#                             df_constraints = df_constraints.append(new_row_data, ignore_index=True)
+                            
+                            df_new_con = pd.DataFrame(new_con, columns=dtypes.keys()).astype(dtypes)
+                            df_constraints = pd.concat([df_constraints,df_new_con], axis=0, ignore_index=True)
                 # print("newCell ", newCell)
                 p = df_cell['PROB'].tolist()
                 
@@ -355,7 +405,8 @@ while not terminate_cond:
         # print("h_val ", h_val[0])
         p_val = df_cell['PROB']
         LB = sum(h_val[k] * p_val[k] for k in range(newCell))
-        print(df_constraints)
+        print("UB ", MP_obj, "; LB ", LB)
+        # print(df_constraints)
         # oeFile = open(f"./PrelimOutputFile/OEFiles/OE_Alg_{set}_{dataSet}_{Ins}.txt", "a")
         # print(oeFile, f"{dataSet}; Ins {Ins}; Time {total_time}; MP_obj {MP_obj}; LB {LB}; x_now {np.where(x_now == 1)[0]}; Cells {len(K_bar)}/{newCell}; Iter {iter}")
         # oeFile.close()
@@ -365,10 +416,12 @@ while not terminate_cond:
 # Optimize the model
 m.optimize()
 
-# print(df_cell)
-K_newly_added = [1]
-ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len,A1,A3,df_cell,K_newly_added)
-########functionArcSplit.py########
+# print("UB ", sum(df_cell.at[i, 'g']*df_cell.at[i, 'PROB'] for i in range(newCell)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell)))
+
+# # print(df_cell)
+# K_newly_added = [1]
+# ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len,A1,A3,df_cell,K_newly_added)
+# ########functionArcSplit.py########
 # c_L = cL_orig
 # c_U = cU_orig
 # M = M_orig
