@@ -25,8 +25,8 @@ def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x
             df_cell.at[k,'Y'] = y
             df_cell.at[k, 'PI'] = label
             # print("After: ", df_cell)
-            print("z_now[k]", z_now[k])
-            print("gx ", gx)
+            # print("z_now[k]", z_now[k])
+            # print("gx ", gx)
             if z_now[k] - gx > delta1:
                 # con_num += 1
 #                 constraints_dict
