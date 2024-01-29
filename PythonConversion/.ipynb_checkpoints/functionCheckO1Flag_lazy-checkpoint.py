@@ -58,8 +58,10 @@ def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x
                                 'CELL': k,
                                 'Y': Y_k,
                                 'SP':newCell_RHS,
-                                'con': m.addConstr(z[k] <= sum(d[i] * x[i] * y[i] for i in range(Len)) + SP)
+                                'con': m.cbLazy(z[k] <= sum(d[i] * m._x[i] * y[i] for i in range(Len)) + SP)
                             }
+                # model.cbLazy(gp.quicksum(model._vars[i, j] for i, j in combinations(tour, 2))<= len(tour)-1)
+            
                 # df_constraints.loc[con_num - 1] = [con_num, newCell, Y_k.tolist(), newCell_RHS]
                 df_constraints = df_constraints.append(new_row_data, ignore_index=True)
                 # df_constraints.loc[con_num] = [con_num, k, y.tolist(), SP]

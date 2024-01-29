@@ -8,7 +8,8 @@ from gurobipy import GRB
 
 
 exec(open('testInstance.py').read())
-#Getting args from command line: int(sys.argv[1])
+
+# Getting args from command line: int(sys.argv[1])
 #h-bound model: 
 importlib.import_module("functionGbound")
 from functionGbound import gx_bound
@@ -156,7 +157,7 @@ newCell = 0
 # print("p = ",p)
 
 # Objective: Maximize sum(p[i]*z[i])
-m.setObjective(sum(p[i] * z[i] for i in range(newCell+1)),sense=GRB.MAXIMIZE)
+m.setObjective(sum(p[i] * z[i] for i in range(newCell)),sense=GRB.MAXIMIZE)
 
 import numpy as np
 
@@ -181,6 +182,8 @@ K_removed = []
 
 start = time.time()
 terminate_cond = False
+print("df_cell")
+print(df_cell.g)
 
 while not terminate_cond:
     # α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell, LB_w, p, \
@@ -191,7 +194,7 @@ while not terminate_cond:
         iter += 1
         # m.write("checkModel.lp")
         m.optimize()
-        K_bar = []#Remove when done debug 
+        # K_bar = []#Remove when done debug 
         # print("STATUS ", m.status)
         # if termination_status(m) == MOI.OPTIMAL:
         if m.status == 2:
@@ -204,12 +207,14 @@ while not terminate_cond:
             for i in range(zNum):
                 z_now[i] = z[i].X
             print("\n==========================================================")
-            print("Iter : ", iter, " ; MP_obj = ", MP_obj, " ; time ", time.time() - start, "; ", len(K_bar), "/", newCell)
+            print("Iter : ", iter, " ; MP_obj = ", MP_obj, " ; time ", time.time() - start, "; ", len(K_bar), "/", newCell+1)
             print("==========================================================")
             print("x = ", np.where(x_now > 0)[0])
             print("z = ", z_now[0:(newCell+1)])
             print("p = ", p)
             print("newCell = ", newCell)
+            # print("g = ", df_cell.loc[:,'g'])
+            # print("h = ", df_cell.loc[:,'h'])
             
 
         O1Flag = True
@@ -404,8 +409,9 @@ while not terminate_cond:
         h_val = df_cell['h']
         # print("h_val ", h_val[0])
         p_val = df_cell['PROB']
-        LB = sum(h_val[k] * p_val[k] for k in range(newCell))
+        LB = sum(h_val[k] * p_val[k] for k in range(newCell+1))
         print("UB ", MP_obj, "; LB ", LB)
+        print("h_val ", h_val)
         # print(df_constraints)
         # oeFile = open(f"./PrelimOutputFile/OEFiles/OE_Alg_{set}_{dataSet}_{Ins}.txt", "a")
         # print(oeFile, f"{dataSet}; Ins {Ins}; Time {total_time}; MP_obj {MP_obj}; LB {LB}; x_now {np.where(x_now == 1)[0]}; Cells {len(K_bar)}/{newCell}; Iter {iter}")
@@ -416,7 +422,12 @@ while not terminate_cond:
 # Optimize the model
 m.optimize()
 
-# print("UB ", sum(df_cell.at[i, 'g']*df_cell.at[i, 'PROB'] for i in range(newCell)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell)))
+# print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
+
+# for i in range(newCell+1):
+#     print(p[i], "\t", df_cell.at[i,'PROB'])
+# print(np.array(df_cell['g']))
+# print(np.array(df_cell['h']))
 
 # # print(df_cell)
 # K_newly_added = [1]
