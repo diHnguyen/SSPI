@@ -105,5 +105,6 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
 
     ΔL /= 2
     ΔU /= 2
-
+    # print("Inside Partition")
+    # print(df_cell)
     return ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell
