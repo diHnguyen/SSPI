@@ -120,7 +120,12 @@ LB_w = 0
 MP_obj = 1e6
 K_newly_added = []
 K_removed = []
+P_bar = np.array([yy])
+# print(P_bar)
+# P_bar = P_bar.append(yy)
 
+
+# print(P_bar)
 start = time.time()
 terminate_cond = False
 # print("df_cell")
@@ -136,6 +141,7 @@ def lazy(m, where):
         K_bar = m._K_bar
         K_newly_added = m._K_newly_added
         p = m._p
+        P_bar = m._P_bar
         newCell = m._newCell
         x_now = np.array(m.cbGetSolution(m._x).values())
         z_now = m.cbGetSolution(m._z)
@@ -172,6 +178,7 @@ def lazy(m, where):
         # print("z = ", z_now[0:(newCell+1)])
         print("p = ", p)
         print("newCell = ", newCell)
+        print("P_bar = ", P_bar)
         # print("g = ", df_cell.loc[:,'g'])
         # print("h = ", df_cell.loc[:,'h'])
 
@@ -227,6 +234,15 @@ def lazy(m, where):
                 # if x_last != x_now then we have to recalculate g
                 # Y_k, gx, SP = gx_bound(c, c_g, edge)
                 Y_k, gx, SPL,_,_, = gx_bound(c, c_g, edge,origin,destination)
+                
+                if ((Y_k == P_bar).all(1).any()) == False:
+                    P_bar = np.vstack((P_bar,Y_k))
+#                 print("Y_k = ", Y_k)
+#                 print("P_bar = ", P_bar)
+#                 print("Y_k in P_bar ", (Y_k in P_bar))
+                # break
+                # 
+                
                 df_cell.at[k,'g'] = gx
                 df_cell.at[k,'Y'] = Y_k
                 # print("Y_k = ", Y_k)
@@ -239,12 +255,14 @@ def lazy(m, where):
                 coef_x = coef_x + p[k]*np.array([a*b for a,b in zip(Y_k,d)])
                 constant_SP = constant_SP +  p[k]*sum(c[i]*Y_k[i] for i in range(Len))
                 # println("coef_x = ", coef_x)
-                print("k = ", k, "; coef_x ",coef_x,"; constant_SP", constant_SP) 
+                # print("k = ", k, "; coef_x ",coef_x,"; constant_SP", constant_SP) 
 
                 # push!(df_constraints, (con_num, k, y, SP))
                 # constr[con_num] = @constraint(m, z <= 
                             # sum(p[k]*(sum(d[i]*x[i]*Y_k[i] for i = 1:Len) + newCell_RHS) for k = 1:newCell))
             # constr[con_num] = @constraint(m, z <= sum(coef_x[i]*x[i] for i = 1:Len)+ constant_SP)
+            RHS = sum(d[i]*x_now[i] for i in range(Len)) + sum(p[k]*sum(c[i]*Y_k[i] for i in range(Len)) for k in range(newCell+1))
+            print("RHS = ", RHS)
             print("z_now ", z_now, "; RHS ", sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP)
             if z_now > sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP + 10**(-4): #plus tolerance
                 con_num = con_num + 1 
@@ -254,7 +272,6 @@ def lazy(m, where):
                 # println(con)
                 # MOI.submit(m, MOI.LazyConstraint(cb_data), con)
                 O1Flag = False
-
         
         if O1Flag:
             print("\tO1Flag: Passed")
@@ -298,16 +315,23 @@ def lazy(m, where):
                             # print("2. After update hx")
                             # print(df_cell)
                             ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added)
-
+                            
+                            if ((yL == P_bar).all(1).any()) == False:
+                                P_bar = np.vstack((P_bar,yL))
+                            if ((yU == P_bar).all(1).any()) == False:
+                                P_bar = np.vstack((P_bar,yU))
+                            # print("yL = ", yL)
+                            # print("P_bar = ", P_bar)
+                            # print("yL in P_bar ", (yL in P_bar))
                             # print(k, ": Added a new cell")
                             # print("Outside Partition")
                             # print(df_cell)
 
                             # df_temp_k = df_constraints[df_constraints.CELL == k]
                             #constraints associated with cell k
-                    print("After Partition")
+                    # print("After Partition")
                     p = df_cell.PROB.tolist()
-                    print("p = ", p)
+                    # print("p = ", p)
                     coef_x = [0]*Len
                     constant_SP = 0
 
@@ -348,11 +372,12 @@ def lazy(m, where):
         m._p = p
         m._newCell = newCell
         m._con_num = con_num
+        m._P_bar = P_bar
         # x_now = np.array(m.cbGetSolution(m._x).values())
         # z_now = m.cbGetSolution(m._z)
         # MP_obj = m.cbGet(GRB.Callback.MIP_OBJBST) #m.ObjVal
         # m._best = m.cbGet(GRB.Callback.MIPSOL_OBJBST)
-        print(df_cell)
+        # print(df_cell)
     
 # Create a new Gurobi model
 MP_obj = 0.0
@@ -401,6 +426,7 @@ m._best = 0
 m.Params.LazyConstraints = 1
 m._newCell = newCell
 m._df_cell = df_cell
+m._P_bar = P_bar
 # print("p = ",p)
 
 # Objective: Maximize sum(p[i]*z[i])
