@@ -1,3 +1,17 @@
+#This version only solves the shortest-path problem if we cannot find a violating (aggr) cut
+# P = P1, P2, P3
+# K = {k1, k2}
+# P1 -- cost
+# P2 -- cost
+# P3 -- cost
+# Pick smallest cost among paths -- per cell k
+# E.g., k1 gets P2 as shortest path, k2 has P3 as shortest path --> Check if aggr cut btwn P1 and P2 violates z 
+# If yes -- add cut (Phase 1)
+# ---- Repeat Phase 1 as long as possible
+# If no -- find new shortest path (Phase 2)
+
+
+
 #Imports for main 
 import numpy as np
 import pandas as pd
@@ -10,21 +24,7 @@ import sys
 import math
 # from itertools import combinations
 
-# P = P1, P2, P3
 
-# K k1, k2
-
-# P1 -- cost
-# P2 -- cost
-# P3 -- cost
-
-# Pick smallest cost among paths -- per cell k
-
-# E.g., k1 gets P2 as shortest path, k2 has P3 as shortest path --> Check if aggr cut btwn P1 and P2 violates z 
-# If yes -- add cut (Phase 1)
-# ---- Repeat Phase 1 as long as possible
-
-# If no -- find new shortest path (Phase 2)
 
 
 exec(open('./testInstance.py').read())
