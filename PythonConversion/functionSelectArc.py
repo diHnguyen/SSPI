@@ -4,9 +4,11 @@ importlib.import_module("functionGbound")
 from functionGbound import gx_bound
 def selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1):
     # global A1, A2, A3, A4, A5
-
+    # print("A1 ", A1)
+    # print("M ", M)
     if A1 == 1:
         S_k_W = np.where(M == np.max(M))[0]
+        # print("S_k_W ", S_k_W)
         arc_split = S_k_W[0]
     else:
         cW = c_L + M * y

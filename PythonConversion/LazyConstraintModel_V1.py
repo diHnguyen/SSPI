@@ -14,9 +14,29 @@ import sys
 import math
 # from itertools import combinations
 
+# exec(open('./testInstance.py').read())
+importlib.import_module("functionProcessInputFile")
+from functionProcessInputFile import processInputFile
+testSet = "N"+sys.argv[1]
+i = int(sys.argv[2])
+Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, i)
+# print("cL_orig ", cL_orig)
+# print(cU_orig - cL_orig)
+c_orig = 0.5*(cL_orig+cU_orig)
+# last_node = maximum(edge)
+# all_nodes = collect(1:last_node)
+# M_orig = zeros(Len)
+# for i = 1:Len
+p = [1.0]
+M_orig = cU_orig - cL_orig
+delta1 = 1.0
+delta2 = 2.0
+b = 7
+# print("M_orig ", M_orig)
+# y,gx,SP = gx_bound(c_L, c_U, c, c_g, x_now, edge)
 
-exec(open('./testInstance.py').read())
-
+# sys.exit()
+# exec(open('./functionProcessInputFile.py'.read())
 # Getting args from command line: int(sys.argv[1])
 #h-bound model: 
 importlib.import_module("functionGbound")
@@ -35,11 +55,11 @@ importlib.import_module("functionGetCellInfo")
 from functionGetCellInfo import getCellInfo
 
 #python main.py -> #f1 #a23 as parameters
-c_L = cL_orig
-c_U = cU_orig
-M = M_orig
-y = [0,1,0,0,1]
-x_now = np.zeros(Len)
+# c_L = cL_orig
+# c_U = cU_orig
+# M = M_orig
+# y = [0,1,0,0,1]
+# x_now = np.zeros(Len)
 # newCell = 2
 k=1
 A1=1
@@ -80,7 +100,7 @@ dtypes = {
 }
 # df_cell = pd.DataFrame(new_row)
 df_cell = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
-# print(df_cell)
+print(df_cell)
 
 
 
@@ -171,7 +191,7 @@ def lazy(m, where):
         print("==========================================================")
         print("z_now " , z_now)
         # print(type(x_now))
-        print("x = ", x_now)
+        print("x = ", np.where(x_now > 0.5)[0])
         # print("x = ", np.where(x_now > 0)[0])
         # print("z = ", z_now[0:(newCell+1)])
         print("p = ", p)
@@ -243,13 +263,13 @@ def lazy(m, where):
                 coef_x = coef_x + p[k]*np.array([a*b for a,b in zip(Y_k,d)])
                 constant_SP = constant_SP +  p[k]*sum(c[i]*Y_k[i] for i in range(Len))
                 # println("coef_x = ", coef_x)
-                print("k = ", k, "; coef_x ",coef_x,"; constant_SP", constant_SP) 
+                # print("k = ", k, "; coef_x ",coef_x,"; constant_SP", constant_SP) 
 
                 # push!(df_constraints, (con_num, k, y, SP))
                 # constr[con_num] = @constraint(m, z <= 
                             # sum(p[k]*(sum(d[i]*x[i]*Y_k[i] for i = 1:Len) + newCell_RHS) for k = 1:newCell))
             # constr[con_num] = @constraint(m, z <= sum(coef_x[i]*x[i] for i = 1:Len)+ constant_SP)
-            print("z_now ", z_now, "; RHS ", sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP)
+            # print("z_now ", z_now, "; RHS ", sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP)
             if z_now > sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP + 10**(-4): #plus tolerance
                 con_num = con_num + 1 
                 # con = @build_constraint(z <= sum(coef_x[i]*x[i] for i in range(Len))+ constant_SP)
@@ -266,14 +286,18 @@ def lazy(m, where):
             while terminate_cond == False:
                 partitionCounter = 1
                 myCounter = 0
+                print("Before Counter")
                 # print("HERE")
                 # print("myCounter ", myCounter)
                 while myCounter < partitionCounter:
                     myCounter += 1
-                    # print("K_bar = ", K_bar)
-                    print("Cells failing O2Flag")
+                    print("K_bar = ", K_bar)
+                    # print("Cells failing O2Flag")
+                    
                     for k in K_bar:
                         # print("Cell ", k)
+                        # if k > 3:
+                        #     sys.exit()
                         c_L, c_U, M, c, c_g_L, yK = getCellInfo(k, x_now, "c_g_L", d, df_cell)
                         yL, gL, SPL,_,_, = gx_bound(c, c_g_L, edge,origin,destination)
                         df_cell.at[k, 'Y_Lk'] = yL
@@ -302,6 +326,7 @@ def lazy(m, where):
                             # print("2. After update hx")
                             # print(df_cell)
                             ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added)
+                            # sys.exit()
 
                             # print(k, ": Added a new cell")
                             # print("Outside Partition")
@@ -309,9 +334,9 @@ def lazy(m, where):
 
                             # df_temp_k = df_constraints[df_constraints.CELL == k]
                             #constraints associated with cell k
-                    print("After Partition")
+                    # print("After Partition")
                     p = df_cell.PROB.tolist()
-                    print("p = ", p)
+                    # print("p = ", p)
                     coef_x = [0]*Len
                     constant_SP = 0
 
@@ -333,8 +358,8 @@ def lazy(m, where):
 
                     if not K_bar:
                         myCounter = partitionCounter
-                        terminate_cond = True
-
+                        
+                terminate_cond = True
         total_time = time.time() - start
         # h_val = df_cell['h']
         # print(df_cell)
@@ -356,7 +381,7 @@ def lazy(m, where):
         # z_now = m.cbGetSolution(m._z)
         # MP_obj = m.cbGet(GRB.Callback.MIP_OBJBST) #m.ObjVal
         # m._best = m.cbGet(GRB.Callback.MIPSOL_OBJBST)
-        print(df_cell)
+        # print(df_cell)
     
 # Create a new Gurobi model
 MP_obj = 0.0
@@ -427,7 +452,7 @@ m._K_newly_added=K_newly_added
 m._K_removed=K_removed
 m._p = p
 m._start = start
-m._terminate_cond = terminate_cond
+# m._terminate_cond = terminate_cond
 m.optimize(lazy)
 
 vals = m.getAttr('X', x)

@@ -25,8 +25,6 @@ import math
 # from itertools import combinations
 
 
-
-
 exec(open('./testInstance.py').read())
 
 # Getting args from command line: int(sys.argv[1])
