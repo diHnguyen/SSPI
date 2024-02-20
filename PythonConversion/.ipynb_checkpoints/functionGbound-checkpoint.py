@@ -33,16 +33,16 @@ def gx_bound(c, c_g, edge,origin,destination):
     
     y = np.zeros(len(G.edges))
     shortest_path=nx.shortest_path(G, source=origin, target=destination, weight='weight')
-    print("shortest_path ", shortest_path)
+    # print("shortest_path ", shortest_path)
     for i in range(len(shortest_path) - 1):
         start_node = shortest_path[i]
         end_node = shortest_path[i + 1]
-        print("\t", start_node, "\t", end_node)
+        # print("\t", start_node, "\t", end_node)
         # print(list(G.edges))
         # edge_index = list(G.edges).index((start_node, end_node)) #this rearranges the elements - don't do this
         a = np.array([start_node, end_node])
         edge_index = np.where((edge==a).all(1))[0]
-        print("\t edge_index ", edge_index)
+        # print("\t edge_index ", edge_index)
         y[edge_index] = 1
     # print("y = ", y)
     gx = np.sum(np.array(c_g) * y)
