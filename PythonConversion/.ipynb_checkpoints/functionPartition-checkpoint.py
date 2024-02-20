@@ -11,9 +11,10 @@ from functionGbound import gx_bound
 def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added):
     # global K_bar, K_newly_added, d, df_cell
     # global A1, A2, A3, A4, A5
-    print("\t",k,": Partitioning (inside function)")
+    # print("\t",k,": Partitioning (inside function)")
     # print("\tNewCell = ", newCell)
     # Selecting the arc to split
+    print("M ", M)
     arc_split = selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1)
     # print("arc_split ", arc_split)
     label = df_cell.at[k, "PI"]
@@ -39,7 +40,8 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
     # print("label_L ",label_L)
 
     current_p = df_cell.loc[k, "PROB"]
-    
+    # print("current_p ", current_p)
+    # print("(ΔU / M[arc_split]) ", (M[arc_split]))
     # print("TESTING")
     # print(df_cell)
     # Add information for the new cell K+1
