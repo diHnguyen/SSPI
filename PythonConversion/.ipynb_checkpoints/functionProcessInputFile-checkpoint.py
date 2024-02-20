@@ -10,8 +10,8 @@ import numpy as np
 # edge = np.empty([[]])
 def processInputFile(testSet, i):
     print("Processing network instance", testSet+"_"+str(i))
-    fileName = "/Users/dinguyen/Desktop/Local Documents/GitHub/Paper5/TestInstances/CSV_TestInstances/"+testSet+"/"+testSet+"_"+str(i)+".csv"
-    # fileName = "/Users/dinguyen/Desktop/Local Documents/GitHub/Paper5/NewCSVFeb24/"+testSet+"_"+str(i)+".csv"
+    # fileName = "/Users/dinguyen/Desktop/Local Documents/GitHub/Paper5/TestInstances/CSV_TestInstances/"+testSet+"/"+testSet+"_"+str(i)+".csv"
+    fileName = "/Users/dinguyen/Desktop/Local Documents/GitHub/Paper5/NewCSVFeb24/"+testSet+"_"+str(i)+".csv"
     # Desktop/Local Documents/GitHub/Paper5/TestInstances/CSV_TestInstances/N25/N25_108.csv
     # N25/N25_108.csv
     with open(fileName, newline='\n') as csvfile:
@@ -36,7 +36,7 @@ def processInputFile(testSet, i):
                 arc = np.array([[int(row[0]), int(row[1])]])
                 edge = np.concatenate((edge, arc), axis=0)
                 # print(row[2])
-                d = np.append(d, float(row[2]))
+                d = np.append(d, float(row[4]))
                 cL_orig = np.append(cL_orig, float(row[2]))
                 cU_orig = np.append(cU_orig, float(row[3]))
                 # print(d)
