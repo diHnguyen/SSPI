@@ -14,6 +14,7 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
     # print("\t",k,": Partitioning (inside function)")
     # print("\tNewCell = ", newCell)
     # Selecting the arc to split
+    print("M ", M)
     arc_split = selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1)
     # print("arc_split ", arc_split)
     label = df_cell.at[k, "PI"]

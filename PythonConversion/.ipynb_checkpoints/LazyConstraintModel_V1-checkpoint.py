@@ -31,7 +31,11 @@ p = [1.0]
 M_orig = cU_orig - cL_orig
 delta1 = 1.0
 delta2 = 2.0
-b = 7
+# b = 7
+b=2
+print(edge)
+# exec(open('./testInstance.py').read())
+
 # print("M_orig ", M_orig)
 # y,gx,SP = gx_bound(c_L, c_U, c, c_g, x_now, edge)
 
@@ -62,7 +66,7 @@ from functionGetCellInfo import getCellInfo
 # x_now = np.zeros(Len)
 # newCell = 2
 k=1
-A1=1
+A1=0
 A3=1
 
 # Calculate c values
@@ -70,7 +74,7 @@ c = (cU_orig + cL_orig) / 2
 
 # Call the gx_bound function (assuming you have it defined elsewhere)
 yy, SP_init, SP_init, label, path = gx_bound(c, c, edge, origin,destination)
-
+print("Init yy = ", np.where(yy > 0.5)[0])
 # Create and append rows to the DataFrames
 new_row = {
     'CELL': [0],
@@ -100,7 +104,7 @@ dtypes = {
 }
 # df_cell = pd.DataFrame(new_row)
 df_cell = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
-print(df_cell)
+# print(df_cell)
 
 
 
@@ -191,7 +195,9 @@ def lazy(m, where):
         print("==========================================================")
         print("z_now " , z_now)
         # print(type(x_now))
+       
         print("x = ", np.where(x_now > 0.5)[0])
+        # print("x = ", x_now)
         # print("x = ", np.where(x_now > 0)[0])
         # print("z = ", z_now[0:(newCell+1)])
         print("p = ", p)
@@ -251,9 +257,14 @@ def lazy(m, where):
                 # if x_last != x_now then we have to recalculate g
                 # Y_k, gx, SP = gx_bound(c, c_g, edge)
                 Y_k, gx, SPL,_,_, = gx_bound(c, c_g, edge,origin,destination)
+                print("Y_k = ", edge[np.where(Y_k > 0.5)[0]])
                 df_cell.at[k,'g'] = gx
                 df_cell.at[k,'Y'] = Y_k
-                # print("Y_k = ", Y_k)
+                # myPath = np.where(Y_k > 0.5)[0]
+                # print("Y_k = ", myPath)
+                # print("c_L = ", c_L[myPath])
+                # print("c_U = ", c_U[myPath])                
+                # print("g_k = ", gx)
                 # print("d = ", d)
                 # print("p = ", p)
                 # print(type(Y_k))
@@ -283,28 +294,31 @@ def lazy(m, where):
         if O1Flag:
             print("\tO1Flag: Passed")
             terminate_cond = False
+            RHS = 0
             while terminate_cond == False:
                 partitionCounter = 1
                 myCounter = 0
-                print("Before Counter")
+                print("Before Counter, numCells = ", newCell)
                 # print("HERE")
                 # print("myCounter ", myCounter)
+                print("z = ", z_now, " vs RHS = ", RHS)
                 while myCounter < partitionCounter:
                     myCounter += 1
-                    print("K_bar = ", K_bar)
+                    # print("K_bar = ", K_bar)
                     # print("Cells failing O2Flag")
                     
                     for k in K_bar:
-                        # print("Cell ", k)
+                        print("\nCell ", k)
                         # if k > 3:
                         #     sys.exit()
                         c_L, c_U, M, c, c_g_L, yK = getCellInfo(k, x_now, "c_g_L", d, df_cell)
+                        print("yK = ", edge[np.where(yK > 0.5)[0]])
                         yL, gL, SPL,_,_, = gx_bound(c, c_g_L, edge,origin,destination)
                         df_cell.at[k, 'Y_Lk'] = yL
                         df_cell.at[k, 'gL'] = gL
 
                         y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
-
+                        
                         # print("y_h = ", y_h)
                         # print("hx = ", hx)
                         p_k = df_cell.at[k, 'PROB']
@@ -314,8 +328,9 @@ def lazy(m, where):
                         # print("After update hx")
                         # print(df_cell)
                         gx = df_cell.at[k, 'g']
-                        # print("gx = ", gx)
-                        # print("hx = ", hx)
+                        print("gx = ", gx)
+                        print("yK = ", np.where(yK > 0.5)[0])
+                        print("hx = ", hx)
                         # print(df_cell.loc[k,:])
                         if gx - hx <= delta2:
                             # print("O2Flag: Passed")
@@ -327,6 +342,9 @@ def lazy(m, where):
                             # print(df_cell)
                             ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added)
                             # sys.exit()
+                            if k == 0:
+                                print("gx = ", gx, " hx = ", hx)
+                                print("arc_split = ", arc_split)
 
                             # print(k, ": Added a new cell")
                             # print("Outside Partition")
@@ -347,10 +365,14 @@ def lazy(m, where):
                         constant_SP = constant_SP + p[k]*sum(c[i]*Y_k[i] for i in range(Len))
 
 
-
+                    # print("z_now ", z_now)
+                    # print("RHS " , sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP)
+                    RHS = sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP
                     if z_now > sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP + 10**(-4):
+                        print("Add a constraint & re-solve")
                         m.cbLazy(z <= sum(coef_x[i]*m._x[i] for i in range(Len)) + constant_SP)
                         print(z <= sum(coef_x[i]*m._x[i] for i in range(Len)) + constant_SP)
+                        terminate_cond = True
                     K_bar = list(set(K_bar) - set(K_removed))
                     K_bar.extend(K_newly_added)
                     K_newly_added = []
@@ -358,8 +380,17 @@ def lazy(m, where):
 
                     if not K_bar:
                         myCounter = partitionCounter
+                        terminate_cond = True
+                    # g = np.array(df_cell.g.tolist())
+                    # h = np.array(df_cell.h.tolist())
+                    # print("g-h = ", g-h)
+                    # print(df_cell)
+                
                         
-                terminate_cond = True
+                    
+                    # if sum(
+                        
+                
         total_time = time.time() - start
         # h_val = df_cell['h']
         # print(df_cell)
