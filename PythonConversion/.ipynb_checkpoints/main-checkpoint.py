@@ -1,13 +1,35 @@
 #Imports for main 
 import numpy as np
 import pandas as pd
+pd.set_option('display.max_columns', 500)
 import importlib
 import time
 import gurobipy as gp
 from gurobipy import GRB
+import sys
+import math
 
 
-exec(open('testInstance.py').read())
+# exec(open('testInstance.py').read())
+importlib.import_module("functionProcessInputFile")
+from functionProcessInputFile import processInputFile
+testSet = "N"+sys.argv[1]
+i = int(sys.argv[2])
+Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, i)
+# print("cL_orig ", cL_orig)
+# print(cU_orig - cL_orig)
+c_orig = 0.5*(cL_orig+cU_orig)
+# last_node = maximum(edge)
+# all_nodes = collect(1:last_node)
+# M_orig = zeros(Len)
+# for i = 1:Len
+p = [1.0]
+M_orig = cU_orig - cL_orig
+delta1 = 1.0
+delta2 = 2.0
+# b = 7
+b=2
+print(d)
 
 # Getting args from command line: int(sys.argv[1])
 #h-bound model: 
@@ -27,11 +49,11 @@ importlib.import_module("functionGetCellInfo")
 from functionGetCellInfo import getCellInfo
 
 #python main.py -> #f1 #a23 as parameters
-c_L = cL_orig
-c_U = cU_orig
-M = M_orig
-y = [0,1,0,0,1]
-x_now = np.zeros(Len)
+# c_L = cL_orig
+# c_U = cU_orig
+# M = M_orig
+# y = [0,1,0,0,1]
+# x_now = np.zeros(Len)
 # newCell = 2
 k=1
 A1=1
@@ -42,7 +64,8 @@ c = (cU_orig + cL_orig) / 2
 
 # Call the gx_bound function (assuming you have it defined elsewhere)
 yy, SP_init, SP_init, label, path = gx_bound(c, c, edge, origin,destination)
-
+print("yy = ", np.where(yy > 0.5)[0])
+print("SP_init = ", SP_init)
 # Create and append rows to the DataFrames
 new_row = {
     'CELL': [0],
@@ -132,6 +155,7 @@ dtypes = {
     'SP': float,
     'con': object
 }
+
 # print("yy ", yy)
 df_constraints = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
 # print(type(df_constraints.loc[0, 'con']))
@@ -157,9 +181,10 @@ newCell = 0
 # print("p = ",p)
 
 # Objective: Maximize sum(p[i]*z[i])
-m.setObjective(sum(p[i] * z[i] for i in range(newCell)),sense=GRB.MAXIMIZE)
+m.setObjective(sum(p[i] * z[i] for i in range(newCell+1)),sense=GRB.MAXIMIZE)
+m.update()
+print(m)
 
-import numpy as np
 
 # Initialize global variables
 x_sol = []
@@ -184,6 +209,7 @@ start = time.time()
 terminate_cond = False
 print("df_cell")
 print(df_cell.g)
+print(df_cell)
 
 while not terminate_cond:
     # α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell, LB_w, p, \
@@ -249,7 +275,7 @@ while not terminate_cond:
                     # print("After update hx")
                     # print(df_cell)
                     gx = df_cell.at[k, 'g']
-                    # print("gx = ", gx)
+                    print("gx = ", gx,"; hx = ", hx)
                     # print("hx = ", hx)
                     
                     if gx - hx <= delta2:
@@ -410,8 +436,8 @@ while not terminate_cond:
         # print("h_val ", h_val[0])
         p_val = df_cell['PROB']
         LB = sum(h_val[k] * p_val[k] for k in range(newCell+1))
-        print("UB ", MP_obj, "; LB ", LB)
-        print("h_val ", h_val)
+        # print("UB ", MP_obj, "; LB ", LB)
+        # print("h_val ", h_val)
         # print(df_constraints)
         # oeFile = open(f"./PrelimOutputFile/OEFiles/OE_Alg_{set}_{dataSet}_{Ins}.txt", "a")
         # print(oeFile, f"{dataSet}; Ins {Ins}; Time {total_time}; MP_obj {MP_obj}; LB {LB}; x_now {np.where(x_now == 1)[0]}; Cells {len(K_bar)}/{newCell}; Iter {iter}")
