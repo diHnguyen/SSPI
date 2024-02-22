@@ -13,14 +13,14 @@ def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x
         print("checkO1Flag/ K_bar = ", K_bar)
         last_x = x_now
         for k in K_bar:
-            print("k = ", k)
+            # print("k = ", k)
             c_L, c_U, M, c, c_g, Y_k = getCellInfo(k, x_now, "c_g", d,  df_cell)
             y, gx, SP, label, path = gx_bound(c, c_g, edge,origin,destination)
             # print("k ", k)
             # print("y = ", y)
             # print("c-bar = ", c)
             # print("c_g = ", c_g)
-            print("gx = ", gx)
+            # print("gx = ", gx)
             df_cell.at[k, 'g'] = gx
             # t = np.array(df_cell.loc[df_cell.CELL==k, 'Y'])
             # print("Y ", np.array(df_cell.loc[df_cell.CELL==k]['Y'][0]))
@@ -32,7 +32,7 @@ def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x
             # print("After: ", df_cell)
             # print("z_now[k]", z_now[k])
             # print("gx ", gx)
-            print("z_now = ", z_now)
+            # print("z_now = ", z_now)
             if z_now[k] - gx > delta1:
                 # con_num += 1
 #                 constraints_dict

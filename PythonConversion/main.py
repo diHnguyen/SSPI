@@ -207,9 +207,9 @@ K_removed = []
 
 start = time.time()
 terminate_cond = False
-print("df_cell")
-print(df_cell.g)
-print(df_cell)
+# print("df_cell")
+# print(df_cell.g)
+# print(df_cell)
 
 while not terminate_cond:
     # α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell, LB_w, p, \
@@ -257,7 +257,7 @@ while not terminate_cond:
             while myCounter < partitionCounter:
                 myCounter += 1
                 # print("K_bar = ", K_bar)
-                print("Cells failing O2Flag")
+                # print("Cells failing O2Flag")
                 for k in K_bar:
                     # print("Cell ", k)
                     c_L, c_U, M, c, c_g_L, yK = getCellInfo(k, x_now, "c_g_L", d, df_cell)
@@ -275,7 +275,7 @@ while not terminate_cond:
                     # print("After update hx")
                     # print(df_cell)
                     gx = df_cell.at[k, 'g']
-                    print("gx = ", gx,"; hx = ", hx)
+                    # print("gx = ", gx,"; hx = ", hx)
                     # print("hx = ", hx)
                     
                     if gx - hx <= delta2:
