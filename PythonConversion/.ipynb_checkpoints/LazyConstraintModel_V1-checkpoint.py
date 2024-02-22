@@ -169,11 +169,11 @@ def lazy(m, where):
         x_now = np.array(m.cbGetSolution(m._x).values())
         z_now = m.cbGetSolution(m._z)
         con_num = m._con_num
-        print("m._con_num " , m._con_num)
+        # print("m._con_num " , m._con_num)
         MP_obj = m.cbGet(gp.GRB.Callback.MIPSOL_OBJBST) #m.ObjVal
-        m._best = m.cbGet(gp.GRB.Callback.MIPSOL_OBJBND) #m.cbGet(GRB.Callback.MIPSOL_OBJBST)
-        print("MP_obj " , MP_obj)
-        print("m._best ", m._best)
+        MP_bnd = m.cbGet(gp.GRB.Callback.MIPSOL_OBJBND) #m.cbGet(GRB.Callback.MIPSOL_OBJBST)
+        # print("MP_obj " , MP_obj)
+        # print("m._best ", m._best)
         # α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell, LB_w, p, \
         # x_sol, z_sol, α_sol, last_x, x_now, α_now, z_now, terminate_cond, start, set, Ins, density, dataset = \
         #     (global variable values here)
@@ -195,8 +195,9 @@ def lazy(m, where):
         # for i in range(zNum):
         #     z_now[i] = z[i].X
         print("\n==========================================================")
-        print("Iter : ", m._iter, " ; MP_obj = ", m._best, " ; time ", time.time() - m._start, "; ", len(m._K_bar), "/", m._newCell+1)
+        print("Iter : ", m._iter, " ; MP_obj = ", MP_bnd, " ; time ", time.time() - m._start, "; ", len(m._K_bar), "/", m._newCell+1)
         print("==========================================================")
+        # print(
         print("z_now " , z_now)
         # print(type(x_now))
         
@@ -213,7 +214,7 @@ def lazy(m, where):
         O1Flag = True
         # O1Flag, K_bar = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints)
         # print("O1Flag ", O1Flag)
-        print("K_bar ", K_bar)
+        # print("K_bar ", K_bar)
         # print("last_x " , last_x)
         # print((last_x.shape))
         # print("x_now " , x_now)
@@ -221,15 +222,15 @@ def lazy(m, where):
         # print(last_x!=x_now)
         # print(type(last_x))
         last_x = np.array(last_x)
-        print("Start m._last_x ", np.where(last_x > 0.5)[0])
+#         print("Start m._last_x ", np.where(last_x > 0.5)[0])
         
-        print("x_now ", np.where(x_now > 0.5)[0])
-        print(list(last_x))
-        print(list(x_now))
+#         print("x_now ", np.where(x_now > 0.5)[0])
+#         print(list(last_x))
+#         print(list(x_now))
         last_x_arc = np.where(last_x > 0.5)[0]
         x_now_arc = np.where(x_now > 0.5)[0]
         
-        print("?", np.array_equal(last_x_arc,x_now_arc)) #Provide a 3rd arg if there's a possibility of NaN
+        # print("?", np.array_equal(last_x_arc,x_now_arc)) #Provide a 3rd arg if there's a possibility of NaN
         if np.array_equal(last_x_arc,x_now_arc)==False: #last_x_arc != x_now_arc:
             print("\nO1Flag Check")
             print("x_now = ", np.where(x_now > 0.5)[0])
@@ -277,10 +278,10 @@ def lazy(m, where):
                 df_cell.at[k,'g'] = gx
                 df_cell.at[k,'Y'] = Y_k
                 myPath = np.where(Y_k > 0.5)[0]
-                # print("Y_k = ", myPath)
-                # print("Y_k = ", edge[myPath])
-                # print("g_k = ", gx)
-                # print("c = ", c[myPath])
+                print("Y_k = ", myPath)
+                print("Y_k = ", edge[myPath])
+                print("g_k = ", gx)
+                print("c = ", c[myPath])
                 # print("c_g = ", c_g[myPath])
                 # print("c_L = ", c_L[myPath])
                 # print("c_U = ", c_U[myPath])                
@@ -300,7 +301,8 @@ def lazy(m, where):
                 # constr[con_num] = @constraint(m, z <= 
                             # sum(p[k]*(sum(d[i]*x[i]*Y_k[i] for i = 1:Len) + newCell_RHS) for k = 1:newCell))
             # constr[con_num] = @constraint(m, z <= sum(coef_x[i]*x[i] for i = 1:Len)+ constant_SP)
-            print("z_now ", z_now, "; RHS ", sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP)
+            # print("z_now ", z_now, "; RHS ", sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP)
+            print(z <= sum(coef_x[i]*m._x[i] for i in range(Len)) + constant_SP)
             if z_now > sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP + 10**(-4): #plus tolerance
                 con_num = con_num + 1 
                 # con = @build_constraint(z <= sum(coef_x[i]*x[i] for i in range(Len))+ constant_SP)
@@ -318,7 +320,7 @@ def lazy(m, where):
             while terminate_cond == False:
                 partitionCounter = 1
                 myCounter = 0
-                print("Before Counter: numCells = ", newCell)
+                # print("Before Counter: numCells = ", newCell)
                 # print("HERE")
                 # print("myCounter ", myCounter)
                 # print("z = ", z_now, " vs RHS = ", RHS)
@@ -328,7 +330,7 @@ def lazy(m, where):
                     # print("Cells failing O2Flag")
                     
                     for k in K_bar:
-                        print("\nCell ", k)
+                        # print("\nCell ", k)
                         # if k > 3:
                         #     sys.exit()
                         c_L, c_U, M, c, c_g_L, yK = getCellInfo(k, x_now, "c_g_L", d, df_cell)
@@ -349,15 +351,15 @@ def lazy(m, where):
                         # print(df_cell)
                         gx = df_cell.at[k, 'g']
                         
-                        print("gx = ", gx, "; hx = ", hx)
+                        # print("gx = ", gx, "; hx = ", hx)
                         # print(df_cell.loc[k,:])
                         if gx - hx <= delta2:
                             # print("O2Flag: Passed")
-                            print("\tRemove")
+                            # print("\tRemove")
                             K_removed.append(k)
                         else:
                             # print("yK = ", np.where(yK > 0.5)[0])
-                            print("\tPartition")
+                            # print("\tPartition")
                             # print("hx = ", hx)
                             # print(k, end=": ")
                             newCell += 1
@@ -377,7 +379,7 @@ def lazy(m, where):
                     coef_x = [0]*Len
                     constant_SP = 0
 
-                    print(df_cell.g.tolist())
+                    # print(df_cell.g.tolist())
                     for k in range(newCell+1):
                         # print("k = ", k)
                         c_L, c_U, M, c, c_g, Y_k = getCellInfo(k, x_now, "c_g", d, df_cell)
@@ -389,9 +391,10 @@ def lazy(m, where):
                     # print("RHS " , sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP)
                     RHS = sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP
                     if z_now > sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP + 10**(-4):
-                        print("Add a constraint & re-solve")
+                        # print("Add a constraint & re-solve")
                         m.cbLazy(z <= sum(coef_x[i]*m._x[i] for i in range(Len)) + constant_SP)
-                        print(z <= sum(coef_x[i]*m._x[i] for i in range(Len)) + constant_SP)
+                        
+                        # print(z <= sum(coef_x[i]*m._x[i] for i in range(Len)) + constant_SP)
                         terminate_cond = True
                     K_bar = list(set(K_bar) - set(K_removed))
                     K_bar.extend(K_newly_added)
@@ -420,21 +423,24 @@ def lazy(m, where):
         # print("UB ", MP_obj, "; LB ", LB)
         # print("h_val ", h_val)
     # terminate_cond=True
-    
+        print("MP_obj ", MP_obj)
+        print("MP_bnd ", MP_bnd)
         m._last_x = last_x #Weird Gurobi behavior if move these updates to mid of the lazy call -- Don't do it
-        print("End m._last_x ", m._last_x)
+        # print("End m._last_x ", m._last_x)
         m._df_cell = df_cell
         m._K_removed = K_removed
         m._K_bar = K_bar
-        print("END : ", K_bar)
+        # print("END : ", K_bar)
         m._K_newly_added = K_newly_added
         m._p = p
         m._newCell = newCell
         m._con_num = con_num
         # x_now = np.array(m.cbGetSolution(m._x).values())
         # z_now = m.cbGetSolution(m._z)
-        # MP_obj = m.cbGet(GRB.Callback.MIP_OBJBST) #m.ObjVal
-        # m._best = m.cbGet(GRB.Callback.MIPSOL_OBJBST)
+        m._MP_obj = MP_obj #m.cbGet(GRB.Callback.MIP_OBJBST) #m.ObjVal
+        m._MP_bnd = MP_bnd #m.cbGet(GRB.Callback.MIPSOL_OBJBST)
+        m.update()
+        # m.write("out.mst")
         # print(df_cell)
     
 # Create a new Gurobi model
@@ -447,8 +453,7 @@ m.setParam(GRB.Param.OutputFlag, 0)
 x = m.addVars(range(Len), vtype=GRB.BINARY, name="x")
 z = m.addVar(lb=0, ub=1e6, name="z")
 m.addConstr(x.sum() == b, "sum_x_equals_b") 
-m.addConstr(z <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))
-
+con = m.addConstr(z <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))
 
 # # Create a dictionary to store constraints - for constraints related to cells
 # constraints_dict = {}
@@ -502,15 +507,19 @@ m._iter=iter
 m._K_bar=K_bar
 m._LB=None
 m._MP_obj=None
+m._MP_bnd=None
 m._K_newly_added=K_newly_added
 m._K_removed=K_removed
 m._p = p
 m._start = start
 # m._terminate_cond = terminate_cond
+m.update()
+print(z <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))
 m.optimize(lazy)
 
-vals = m.getAttr('X', x)
+# vals = m.getAttr('X', x)
 
 
 # Optimize the model
-m.optimize()
+# m.optimize()
+# print("MP_obj = ", m._MP_obj)
