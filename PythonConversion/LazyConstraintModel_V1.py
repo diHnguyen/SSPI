@@ -516,7 +516,11 @@ m._start = start
 m.update()
 print(z <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))
 m.optimize(lazy)
-
+x_now = np.empty(Len)
+for i in range(Len):
+    x_now[i] = x[i].X
+print('x = ', np.where(x_now > 0.5)[0])        
+print('Final optimal obj: %g' % m.ObjVal)
 # vals = m.getAttr('X', x)
 
 
