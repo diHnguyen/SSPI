@@ -3,7 +3,7 @@ function getCellInfo(k, x_now, c_or_cL)
     c_U = df_cell[k,:UB]
     M = c_U - c_L
     c = (c_U + c_L)/2  
-    # print("c_L = ", c_L)
+    
     if c_or_cL == "c_g"
         c_with_x = c + d.*x_now
     elseif c_or_cL == "c_g_L"
