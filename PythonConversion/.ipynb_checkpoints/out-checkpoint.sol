@@ -1,0 +1,29 @@
+# Solution for model facility_location
+# Objective value = 4.72371290896185
+Select[0] 0
+Select[1] 0
+Select[2] 0
+Select[3] 1
+Select[4] 0
+Select[5] 0
+Select[6] 0
+Select[7] 0
+Select[8] 0
+Assign[0,0] 0
+Assign[0,1] 0
+Assign[0,2] 0
+Assign[0,3] 1
+Assign[0,4] 0
+Assign[0,5] 0
+Assign[0,6] 0
+Assign[0,7] 0
+Assign[0,8] 0
+Assign[1,0] 0
+Assign[1,1] 0
+Assign[1,2] 0
+Assign[1,3] 1
+Assign[1,4] 0
+Assign[1,5] 0
+Assign[1,6] 0
+Assign[1,7] 0
+Assign[1,8] 0
