@@ -14,13 +14,10 @@ global edge, cL_orig, cU_orig, Len, c_orig, yy, SP_init, p,g,h, origin, destinat
 # gurobi_env.setParam("LogToConsole", 0)
 
 to = TimerOutput()
-global numNodes = string(ARGS[1])
-global density = string(ARGS[2])
-global Ins = string(ARGS[3])
-# global myPath = "/Users/dinguyen/Library/CloudStorage/GoogleDrive-di.hoai.nguyen@gmail.com/Other\ computers/My\ Laptop/Documents/GitHub/Paper5"
-global dataSet = "N"*string(numNodes)*"_d"*string(density)
-
-myFile = "./PrelimTestInstances/"*dataSet*"/"*dataSet*"_Ins_"*Ins*".jl"
+numNodes = string(ARGS[1])
+dataSet = "N"*string(numNodes)
+Ins = string(ARGS[2])
+myFile = "./TestInstances/"*dataSet*"/"*dataSet*"_"*Ins*".jl"
 println("Ins ", dataSet,"_", Ins, " Running...", myRun)
 include(myFile)
 include("functionGbound.jl")
@@ -28,8 +25,7 @@ include("functionGbound.jl")
 include("functionHbound.jl")
 
 include("functionGetCellInfo.jl")
-include("functionSelectArc.jl")
-include("functionArcSplit.jl")
-include("functionPartition.jl")
+
+
 global epsilon = 1e-4
 Gurobi.GRBsetintparam(gurobi_env, "OutputFlag", 0)
