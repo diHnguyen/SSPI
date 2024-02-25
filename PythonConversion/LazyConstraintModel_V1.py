@@ -195,7 +195,7 @@ def lazy(m, where):
         # for i in range(zNum):
         #     z_now[i] = z[i].X
         print("\n==========================================================")
-        print("Iter : ", m._iter, " ; MP_obj = ", MP_bnd, " ; time ", time.time() - m._start, "; ", len(m._K_bar), "/", m._newCell+1)
+        print("Iter : ", m._iter, " ; MP_bnd = ", MP_bnd, " ; time ", time.time() - m._start, "; ", len(m._K_bar), "/", m._newCell+1)
         print("==========================================================")
         # print(
         print("z_now " , z_now)
@@ -233,9 +233,9 @@ def lazy(m, where):
         # print("?", np.array_equal(last_x_arc,x_now_arc)) #Provide a 3rd arg if there's a possibility of NaN
         if np.array_equal(last_x_arc,x_now_arc)==False: #last_x_arc != x_now_arc:
             print("\nO1Flag Check")
-            print("x_now = ", np.where(x_now > 0.5)[0])
+            # print("x_now = ", np.where(x_now > 0.5)[0])
             K_bar = np.arange(newCell+1) #collect(1:newCell)
-            print("K_bar ", K_bar)
+            # print("K_bar ", K_bar)
             last_x = x_now
             # print("Mid m._last_x ", last_x)
         
@@ -278,10 +278,10 @@ def lazy(m, where):
                 df_cell.at[k,'g'] = gx
                 df_cell.at[k,'Y'] = Y_k
                 myPath = np.where(Y_k > 0.5)[0]
-                print("Y_k = ", myPath)
-                print("Y_k = ", edge[myPath])
-                print("g_k = ", gx)
-                print("c = ", c[myPath])
+                # print("Y_k = ", myPath)
+                # print("Y_k = ", edge[myPath])
+                # print("g_k = ", gx)
+                # print("c = ", c[myPath])
                 # print("c_g = ", c_g[myPath])
                 # print("c_L = ", c_L[myPath])
                 # print("c_U = ", c_U[myPath])                
@@ -302,7 +302,7 @@ def lazy(m, where):
                             # sum(p[k]*(sum(d[i]*x[i]*Y_k[i] for i = 1:Len) + newCell_RHS) for k = 1:newCell))
             # constr[con_num] = @constraint(m, z <= sum(coef_x[i]*x[i] for i = 1:Len)+ constant_SP)
             # print("z_now ", z_now, "; RHS ", sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP)
-            print(z <= sum(coef_x[i]*m._x[i] for i in range(Len)) + constant_SP)
+            # print(z <= sum(coef_x[i]*m._x[i] for i in range(Len)) + constant_SP)
             if z_now > sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP + 10**(-4): #plus tolerance
                 con_num = con_num + 1 
                 # con = @build_constraint(z <= sum(coef_x[i]*x[i] for i in range(Len))+ constant_SP)
@@ -314,7 +314,7 @@ def lazy(m, where):
 
         
         if O1Flag:
-            print("O1Flag: Passed\n")
+            # print("O1Flag: Passed\n")
             terminate_cond = False
             RHS = 0
             while terminate_cond == False:
@@ -423,8 +423,8 @@ def lazy(m, where):
         # print("UB ", MP_obj, "; LB ", LB)
         # print("h_val ", h_val)
     # terminate_cond=True
-        print("MP_obj ", MP_obj)
-        print("MP_bnd ", MP_bnd)
+        # print("MP_obj ", MP_obj)
+        # print("MP_bnd ", MP_bnd)
         m._last_x = last_x #Weird Gurobi behavior if move these updates to mid of the lazy call -- Don't do it
         # print("End m._last_x ", m._last_x)
         m._df_cell = df_cell
@@ -516,7 +516,11 @@ m._start = start
 m.update()
 print(z <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))
 m.optimize(lazy)
-
+x_now = np.empty(Len)
+for i in range(Len):
+    x_now[i] = x[i].X
+print('x = ', np.where(x_now > 0.5)[0])        
+print('Final optimal obj: %g' % m.ObjVal)
 # vals = m.getAttr('X', x)
 
 
