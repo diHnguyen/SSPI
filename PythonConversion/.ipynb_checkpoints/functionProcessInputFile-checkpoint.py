@@ -34,6 +34,8 @@ def processInputFile(testSet, i):
                 destination = int(row[0])
             if count >= 5: 
                 arc = np.array([[int(row[0]), int(row[1])]])
+                # print("Shape arc: ", np.shape(arc))
+                # print("arc ", arc)
                 edge = np.concatenate((edge, arc), axis=0)
                 # print(row[2])
                 d = np.append(d, float(row[4]))

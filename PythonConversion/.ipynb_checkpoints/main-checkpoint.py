@@ -64,8 +64,8 @@ c = (cU_orig + cL_orig) / 2
 
 # Call the gx_bound function (assuming you have it defined elsewhere)
 yy, SP_init, SP_init, label, path = gx_bound(c, c, edge, origin,destination)
-print("yy = ", np.where(yy > 0.5)[0])
-print("SP_init = ", SP_init)
+# print("yy = ", np.where(yy > 0.5)[0])
+# print("SP_init = ", SP_init)
 # Create and append rows to the DataFrames
 new_row = {
     'CELL': [0],
@@ -236,9 +236,9 @@ while not terminate_cond:
             print("Iter : ", iter, " ; MP_obj = ", MP_obj, " ; time ", time.time() - start, "; ", len(K_bar), "/", newCell+1)
             print("==========================================================")
             print("x = ", np.where(x_now > 0)[0])
-            print("z = ", z_now[0:(newCell+1)])
-            print("p = ", p)
-            print("newCell = ", newCell)
+            # print("z = ", z_now[0:(newCell+1)])
+            # print("p = ", p)
+            # print("newCell = ", newCell)
             # print("g = ", df_cell.loc[:,'g'])
             # print("h = ", df_cell.loc[:,'h'])
             

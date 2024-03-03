@@ -10,7 +10,7 @@ from functionGbound import gx_bound
 def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints):
     if not np.array_equal(last_x, x_now):
         K_bar = list(range(newCell+1))
-        print("checkO1Flag/ K_bar = ", K_bar)
+        # print("checkO1Flag/ K_bar = ", K_bar)
         last_x = x_now
         for k in K_bar:
             # print("k = ", k)
