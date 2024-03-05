@@ -15,6 +15,7 @@ importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 testSet = "N"+sys.argv[1]
 i = int(sys.argv[2])
+directory = "./PythonConversion/Output/INOC2024/"
 Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, i)
 # print("cL_orig ", cL_orig)
 # print(cU_orig - cL_orig)
@@ -232,10 +233,14 @@ while not terminate_cond:
                 x_now[i] = x[i].X #m.getAttr('x', x[i].X) #m.getAttr('X', vars)
             for i in range(zNum):
                 z_now[i] = z[i].X
+            cur_time = time.time() - start
             print("\n==========================================================")
-            print("Iter : ", iter, " ; MP_obj = ", MP_obj, " ; time ", time.time() - start, "; ", len(K_bar), "/", newCell+1)
+            print("Iter : ", iter, " ; MP_obj = ", MP_obj, " ; time ", cur_time, "; ", len(K_bar), "/", newCell+1)
             print("==========================================================")
-            print("x = ", np.where(x_now > 0)[0])
+            x_index = np.where(x_now > 0)[0]
+            print("x = ", x_index)
+            with open(directory+'main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
             # print("z = ", z_now[0:(newCell+1)])
             # print("p = ", p)
             # print("newCell = ", newCell)
@@ -448,6 +453,9 @@ while not terminate_cond:
 # Optimize the model
 m.optimize()
 
+with open(directory+'main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
+        
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
 # for i in range(newCell+1):
