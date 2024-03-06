@@ -59,7 +59,7 @@ from functionGetCellInfo import getCellInfo
 # x_now = np.zeros(Len)
 # newCell = 2
 k=1
-A1=1
+A1=0
 A3=1
 
 # Calculate c values
