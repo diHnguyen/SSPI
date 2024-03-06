@@ -252,7 +252,7 @@ while not terminate_cond:
             print("x = ", x_index)
             if collect_output == True:
                 with open(directory+'main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                    # the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
+                    the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
             # print("z = ", z_now[0:(newCell+1)])
             # print("p = ", p)
             # print("newCell = ", newCell)
