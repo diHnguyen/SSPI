@@ -230,6 +230,7 @@ while not terminate_cond:
         #     print(k, ": ", df_constraints.loc[k,'con'])
         iter += 1
         # m.write("checkModel.lp")
+        m.update()
         m.optimize()
         # K_bar = []#Remove when done debug 
         # print("STATUS ", m.status)
@@ -257,18 +258,18 @@ while not terminate_cond:
             # print("newCell = ", newCell)
             # print("g = ", df_cell.loc[:,'g'])
             # print("h = ", df_cell.loc[:,'h'])
-            if iter == 6:
-                print("HERE")
-                # print (m.display())
-                m.write("mainModel.lp")
-                m.write("mainModel.rlp")
-                m.write("mainModel.mps")
+            # if iter == 6:
+            #     print("HERE")
+            #     # print (m.display())
+            #     m.write("mainModel.lp")
+            #     m.write("mainModel.rlp")
+            #     m.write("mainModel.mps")
             
 
         O1Flag = True
         O1Flag, K_bar = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints)
         
-        m.update()
+        
         # print("O1Flag ", O1Flag)
         # print("K_bar ", K_bar)
 
