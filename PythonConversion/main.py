@@ -11,6 +11,8 @@ import math
 
 
 # exec(open('testInstance.py').read())
+collect_output = False #if True, will write output to file.
+
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 testSet = "N"+sys.argv[1]
@@ -217,7 +219,15 @@ while not terminate_cond:
     # x_sol, z_sol, α_sol, last_x, x_now, α_now, z_now, terminate_cond, start, set, Ins, density, dataset = \
     #     (global variable values here)
     # print("HERE")
+    
     while (len(K_bar)>0):
+        
+        # print("\n\n@@@@@DF_CELL@@@@@@")
+        # for k in K_bar:
+        #     print(k, ": ", np.where(df_cell.loc[k,'Y']>0)[0])
+        # print("\n\n@@@@@DF_CONSTRAINTS@@@@@@")
+        # for k in K_bar:
+        #     print(k, ": ", df_constraints.loc[k,'con'])
         iter += 1
         # m.write("checkModel.lp")
         m.optimize()
@@ -239,17 +249,26 @@ while not terminate_cond:
             print("==========================================================")
             x_index = np.where(x_now > 0)[0]
             print("x = ", x_index)
-            with open(directory+'main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
+            if collect_output == True:
+                with open(directory+'main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                    the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
             # print("z = ", z_now[0:(newCell+1)])
             # print("p = ", p)
             # print("newCell = ", newCell)
             # print("g = ", df_cell.loc[:,'g'])
             # print("h = ", df_cell.loc[:,'h'])
+            if iter == 6:
+                print("HERE")
+                # print (m.display())
+                m.write("mainModel.lp")
+                m.write("mainModel.rlp")
+                m.write("mainModel.mps")
             
 
         O1Flag = True
         O1Flag, K_bar = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints)
+        
+        m.update()
         # print("O1Flag ", O1Flag)
         # print("K_bar ", K_bar)
 
@@ -452,9 +471,9 @@ while not terminate_cond:
     
 # Optimize the model
 m.optimize()
-
-with open(directory+'main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-    the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
+if collect_output == True:
+    with open(directory+'main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+        the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
         
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
