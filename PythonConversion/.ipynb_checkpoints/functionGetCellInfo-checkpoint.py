@@ -4,8 +4,8 @@ def getCellInfo(k, x_now, c_or_cL, d, df_cell):
     # print(df_cell)
     # print("Cell ", k)
     # print(df_cell.loc[df_cell.CELL==k,"LB"])
-    c_L = df_cell.loc[k,"LB"]
-    c_U = df_cell.loc[k,"UB"]
+    c_L = df_cell.at[k,"LB"]
+    c_U = df_cell.at[k,"UB"]
     # print(df_cell)
     # print("c_L ", c_L)
     # print("c_U ", c_U)

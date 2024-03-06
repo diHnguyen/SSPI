@@ -14,17 +14,24 @@ def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x
         last_x = x_now
         # print("Running O1Flag", K_bar)
         for k in K_bar:
+            # for index, row in df_cell[df_cell.CELL == k].iterrows():
+            #     print(k, "; ", row['LB'][0], "; ",row['UB'][0] )
             # print("Before Concat")
-            # for row in df_constraints[(df_constraints.CELL == k)].iterrows():
-            #     print(k, "; ", np.where(df_constraints.loc[k, 'Y']>0)[0], "; ",df_constraints.loc[k, 'SP'] )
+            # for index, row in df_constraints[(df_constraints.CELL == k)].iterrows():
+            #     print(k, "; ", np.where(row['Y']>0)[0], "; ",row['SP'] )
             # print("k = ", k)
             c_L, c_U, M, c, c_g, Y_k = getCellInfo(k, x_now, "c_g", d,  df_cell)
             y, gx, SP, label, path = gx_bound(c, c_g, edge,origin,destination)
+            
             # print("k ", k)
-            # print("y = ", np.where(y > 0)[0] )
-            # print("c-bar = ", c)
-            # print("c_g = ", c_g)
+            # print("c_L ", repr(c_L))
+            # print("c_U ", repr(c_U))
+            # arcs = np.where(y > 0)[0]
+            # print("y = ", repr(arcs))
             # print("gx = ", gx)
+            # for e in arcs:
+            #     print(edge[e], " ", c[e], " ", c_g[e])
+            # print()
             df_cell.at[k, 'g'] = gx
             # t = np.array(df_cell.loc[df_cell.CELL==k, 'Y'])
             # print("Y ", np.array(df_cell.loc[df_cell.CELL==k]['Y'][0]))
@@ -36,9 +43,10 @@ def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x
             # print("After: ", df_cell)
             # print("z_now[k]", z_now[k])
             # print("gx ", gx)
-            # print("z_now = ", z_now)
+            # print("z_now = ", z_now[k])
             if z_now[k] - gx > delta1:
                 # print("Failing O1Flag")
+                # print('y ', np.where(y>0))
                 # con_num += 1
 #                 constraints_dict
 #                 # key = current_cell k
@@ -85,11 +93,14 @@ def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x
                 # constr[con_num] = m.addConstr(m, z[k] <= sum(d[i] * y[i] * x[i] for i in range(1, Len + 1)) + SP)
                 # print("Len ", Len)
                 # print("d ", len(d))
-                
-            
-                # m.addConstr(z[k] <= sum(d[i] * y[i] * x[i] for i in range(Len)) + SP)
                 O1Flag = False
-            # print("After Concat")
-            # for row in df_constraints[(df_constraints.CELL == k)].iterrows():
-            #     print(k, "; ", np.where(df_constraints.loc[k, 'Y']>0)[0], "; ",df_constraints.loc[k, 'SP'] )
-    return O1Flag, K_bar
+                
+            # print("After Concat - if any")
+            # for index, row in df_constraints[(df_constraints.CELL == k)].iterrows():
+            #     print(k, "; ", np.where(row['Y']>0)[0], "; ",row['SP'] )
+                # m.addConstr(z[k] <= sum(d[i] * y[i] * x[i] for i in range(Len)) + SP)
+                
+            # print(k, "After Concat")
+            # for index, row in df_constraints[(df_constraints.CELL == k)].iterrows():
+            #     print(k, "; ", np.where(np.array(row['Y'])>0)[0], "; ",row['SP'] )
+    return O1Flag, K_bar, df_cell, df_constraints
