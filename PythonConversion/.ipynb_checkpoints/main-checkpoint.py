@@ -186,7 +186,7 @@ newCell = 0
 # Objective: Maximize sum(p[i]*z[i])
 m.setObjective(sum(p[i] * z[i] for i in range(newCell+1)),sense=GRB.MAXIMIZE)
 m.update()
-print(m)
+# print(m)
 
 
 # Initialize global variables
@@ -252,7 +252,7 @@ while not terminate_cond:
             print("x = ", x_index)
             if collect_output == True:
                 with open(directory+'main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                    the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
+                    # the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
             # print("z = ", z_now[0:(newCell+1)])
             # print("p = ", p)
             # print("newCell = ", newCell)
