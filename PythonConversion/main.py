@@ -11,7 +11,7 @@ import math
 
 
 # exec(open('testInstance.py').read())
-collect_output = False #if True, will write output to file.
+collect_output = True #if True, will write output to file.
 
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
