@@ -17,8 +17,8 @@ importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
-# directory = "./PythonConversion/Output/INOC2024/"
-directory = "./Output/INOC2024/"
+directory = "./PythonConversion/Output/INOC2024/"
+#directory = "./Output/INOC2024/"
 Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins)
 # print("cL_orig ", cL_orig)
 # print(cU_orig - cL_orig)
