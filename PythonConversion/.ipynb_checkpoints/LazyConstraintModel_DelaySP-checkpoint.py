@@ -24,10 +24,13 @@ import math
 # from itertools import combinations
 
 # exec(open('./testInstance.py').read())
+collect_output = True #if True, will write output to file.
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
+# directory = "./PythonConversion/Output/INOC2024/"
+directory = "./Output/INOC2024/"
 Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins)
 # print("cL_orig ", cL_orig)
 # print(cU_orig - cL_orig)
@@ -158,7 +161,7 @@ x_now = []
 z_now = []
 last_x = []
 con_num = 1
-
+cur_time = None
 total_time = 0.0
 iter = 0
 K_bar = [0]
@@ -183,6 +186,7 @@ def lazy(m, where):
         K_bar = m._K_bar
         K_newly_added = m._K_newly_added
         p = m._p
+        iter =  m._iter
         newCell = m._newCell
         x_now = np.array(m.cbGetSolution(m._x).values())
         z_now = m.cbGetSolution(m._z)
@@ -212,14 +216,19 @@ def lazy(m, where):
         #     x_now[i] = x[i].X #m.getAttr('x', x[i].X) #m.getAttr('X', vars)
         # for i in range(zNum):
         #     z_now[i] = z[i].X
+        cur_time = time.time() - start
         print("\n==========================================================")
-        print("Iter : ", m._iter, " ; MP_bnd = ", MP_bnd, " ; time ", time.time() - m._start, "; ", len(m._K_bar), "/", m._newCell+1)
+        print("Iter : ", iter, " ; MP_bnd = ", MP_bnd, " ; time ", cur_time, "; ", len(m._K_bar), "/", m._newCell+1)
         print("==========================================================")
         print("z_now " , z_now)
         print("x = ", np.where(x_now > 0.5)[0])
+        x_index = np.where(x_now > 0)[0]
         # print("p = ", p)
         print("newCell = ", newCell)
-
+        if collect_output == True:
+                with open(directory+'lazyDelay_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                    the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(z_now)+";"+str(x_index)+"\n")
+                    
         O1Flag = True
         # O1Flag, K_bar = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints)
         last_x = np.array(last_x)
@@ -521,8 +530,18 @@ m.optimize(lazy)
 x_now = np.empty(Len)
 for i in range(Len):
     x_now[i] = x[i].X
-print('x = ', np.where(x_now > 0.5)[0])        
+z_now = z.X  
+
+# z_now = z.Z
+x_index = np.where(x_now > 0)[0]
+print('x = ', x_index)        
 print('Final optimal obj: %g' % m.ObjVal)
+print("z_now ", z.X   )  
+# for v in m.getVars():
+#     print('%s %g' % (v.VarName, v.X))
+if collect_output == True:
+    with open(directory+'lazyDelay_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+        the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(z_now)+";"+str(x_index)+"\n")
 # vals = m.getAttr('X', x)
 
 

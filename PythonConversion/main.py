@@ -210,7 +210,7 @@ LB_w = 0
 MP_obj = 1e6
 K_newly_added = []
 K_removed = []
-
+cur_time = None
 start = time.time()
 terminate_cond = False
 # print("df_cell")
