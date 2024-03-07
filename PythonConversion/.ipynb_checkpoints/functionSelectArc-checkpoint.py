@@ -11,7 +11,13 @@ def selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1):
         # print("S_k_W ", S_k_W)
         arc_split = S_k_W[0]
     else:
+        arcs = np.where(y>0)[0]
+        # print("\nMULTIPLY")
+        # print("arcs ", arcs)
+        # print(c_L[arcs])
+        
         cW = c_L + M * y
+        # print(cW[arcs])
         c_g_W = cW + d * x_now
 
         # Applying Lemma 2
@@ -24,6 +30,7 @@ def selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1):
         # print("c_L = ", c_L)
         # print("M_path = ", M_path)
         S_k_W = np.where((M_path == np.max(M_path)) & (M_path > 0))[0]
+        
         arc_split = S_k_W[0]
-
+        # print("S_k_W ", S_k_W, " ", M[arc_split])
     return arc_split

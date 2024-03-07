@@ -39,7 +39,7 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
     yU, gU, SP_U, label_U, path_U = gx_bound(cU_avg, cU_avg + d * x_now, edge, origin,destination)
     # print("label_L ",label_L)
 
-    current_p = df_cell.loc[k, "PROB"]
+    current_p = df_cell.at[k, "PROB"]
     # print("current_p ", current_p)
     # print("(ΔU / M[arc_split]) ", (M[arc_split]))
     # print("TESTING")
