@@ -27,8 +27,8 @@ import math
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 testSet = "N"+sys.argv[1]
-i = int(sys.argv[2])
-Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, i)
+ins = int(sys.argv[2])
+Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins)
 # print("cL_orig ", cL_orig)
 # print(cU_orig - cL_orig)
 c_orig = 0.5*(cL_orig+cU_orig)
@@ -86,7 +86,7 @@ c = (cU_orig + cL_orig) / 2
 
 # Call the gx_bound function (assuming you have it defined elsewhere)
 yy, SP_init, SP_init, label, path = gx_bound(c, c, edge, origin,destination)
-print("Init yy = ", np.where(yy > 0.5)[0])
+# print("Init yy = ", np.where(yy > 0.5)[0])
 
 # Create and append rows to the DataFrames
 new_row = {
@@ -145,9 +145,9 @@ newCell = 0
 # print("Len = ", Len)
 P_set = np.empty((0,Len), int)
 new_path =np.array([yy])
-print("P_set ", P_set)
-print("yy = ", new_path)
-print(np.shape(new_path))
+# print("P_set ", P_set)
+# print("yy = ", new_path)
+# print(np.shape(new_path))
 P_set = np.concatenate((P_set, new_path), axis=0)
 
 x_sol = []
@@ -217,7 +217,7 @@ def lazy(m, where):
         print("==========================================================")
         print("z_now " , z_now)
         print("x = ", np.where(x_now > 0.5)[0])
-        print("p = ", p)
+        # print("p = ", p)
         print("newCell = ", newCell)
 
         O1Flag = True
@@ -304,7 +304,7 @@ def lazy(m, where):
 
         
         if O1Flag:
-            # print("O1Flag: Passed\n")
+            print("O1Flag: Passed\n")
             terminate_cond = False
             RHS = 0
             while terminate_cond == False:
@@ -342,6 +342,7 @@ def lazy(m, where):
                         # print(df_cell)
                         df_cell.at[k, 'h'] = hx
                         gx = df_cell.at[k, 'g']
+                        # print(k, " gx ", gx, " hx ", hx)
                         if gx - hx <= delta2:
                             K_removed.append(k)
                         else:
@@ -515,7 +516,7 @@ m._p = p
 m._start = start
 # m._terminate_cond = terminate_cond
 m.update()
-print(z <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))
+# print(z <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))
 m.optimize(lazy)
 x_now = np.empty(Len)
 for i in range(Len):
