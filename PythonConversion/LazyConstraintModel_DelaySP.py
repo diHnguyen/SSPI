@@ -29,8 +29,8 @@ importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
-# directory = "./PythonConversion/Output/INOC2024/"
-directory = "./Output/INOC2024/"
+directory = "./PythonConversion/Output/INOC2024/"
+# directory = "./Output/INOC2024/"
 Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins)
 # print("cL_orig ", cL_orig)
 # print(cU_orig - cL_orig)
@@ -188,7 +188,7 @@ def lazy(m, where):
         p = m._p
         iter =  m._iter
         newCell = m._newCell
-        x_now = np.array(m.cbGetSolution(m._x).values())
+        x_now = np.array(list(m.cbGetSolution(m._x).values()))
         z_now = m.cbGetSolution(m._z)
         con_num = m._con_num
         # print("m._con_num " , m._con_num)
@@ -221,6 +221,7 @@ def lazy(m, where):
         print("Iter : ", iter, " ; MP_bnd = ", MP_bnd, " ; time ", cur_time, "; ", len(m._K_bar), "/", m._newCell+1)
         print("==========================================================")
         print("z_now " , z_now)
+
         print("x = ", np.where(x_now > 0.5)[0])
         x_index = np.where(x_now > 0)[0]
         # print("p = ", p)
@@ -450,6 +451,7 @@ def lazy(m, where):
         # z_now = m.cbGetSolution(m._z)
         m._MP_obj = MP_obj #m.cbGet(GRB.Callback.MIP_OBJBST) #m.ObjVal
         m._MP_bnd = MP_bnd #m.cbGet(GRB.Callback.MIPSOL_OBJBST)
+        m._cur_time = cur_time
         m.update()
         # m.write("out.mst")
         # print(df_cell)
@@ -512,7 +514,7 @@ m._x_now=x_now
 m._z_now=z_now
 m._last_x=last_x #np.array(last_x)
 m._con_num=con_num
-
+m._cur_time = cur_time
 m._total_time=total_time
 m._iter=iter
 m._K_bar=K_bar
@@ -531,7 +533,7 @@ x_now = np.empty(Len)
 for i in range(Len):
     x_now[i] = x[i].X
 z_now = z.X  
-
+cur_time = time.time() - start
 # z_now = z.Z
 x_index = np.where(x_now > 0)[0]
 print('x = ', x_index)        
@@ -541,7 +543,7 @@ print("z_now ", z.X   )
 #     print('%s %g' % (v.VarName, v.X))
 if collect_output == True:
     with open(directory+'lazyDelay_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(z_now)+";"+str(x_index)+"\n")
+        the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(m.ObjVal)+";"+str(z_now)+";"+str(x_index)+"\n")
 # vals = m.getAttr('X', x)
 
 
