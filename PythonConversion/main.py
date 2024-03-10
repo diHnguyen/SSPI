@@ -32,7 +32,7 @@ M_orig = cU_orig - cL_orig
 delta1 = 1.0
 delta2 = 2.0
 # b = 7
-b=2
+b=20
 print(d)
 
 # Getting args from command line: int(sys.argv[1])
