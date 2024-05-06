@@ -9,17 +9,17 @@ from functionGbound import gx_bound
 def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints):
     if not np.array_equal(last_x, x_now):
         K_bar = list(range(newCell+1))
-        print("checkO1Flag/ K_bar = ", K_bar)
+        # print("checkO1Flag/ K_bar = ", K_bar)
         last_x = x_now
         for k in K_bar:
-            print("k = ", k)
+            # print("k = ", k)
             c_L, c_U, M, c, c_g, y = getCellInfo(k, x_now, "c_g", d,  df_cell)
             y, gx, SP, label, path = gx_bound(c, c_g, edge,origin,destination)
             # print("k ", k)
             # print("y = ", y)
             # print("c-bar = ", c)
             # print("c_g = ", c_g)
-            print("gx = ", gx)
+            # print("gx = ", gx)
             df_cell.at[k, 'g'] = gx
             # t = np.array(df_cell.loc[df_cell.CELL==k, 'Y'])
             # print("Y ", np.array(df_cell.loc[df_cell.CELL==k]['Y'][0]))
@@ -72,4 +72,4 @@ def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x
                 
                 # m.addConstr(z[k] <= sum(d[i] * y[i] * x[i] for i in range(Len)) + SP)
                 O1Flag = False
-    return O1Flag, K_bar
+    return O1Flag, K_bar,df_constraints

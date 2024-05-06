@@ -24,11 +24,14 @@ import math
 # from itertools import combinations
 
 # exec(open('./testInstance.py').read())
+collect_output = True #if True, will write output to file.
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 testSet = "N"+sys.argv[1]
-i = int(sys.argv[2])
-Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, i)
+ins = int(sys.argv[2])
+directory = "./PythonConversion/Output/INOC2024/"
+# directory = "./Output/INOC2024/"
+Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins)
 # print("cL_orig ", cL_orig)
 # print(cU_orig - cL_orig)
 c_orig = 0.5*(cL_orig+cU_orig)
@@ -41,7 +44,7 @@ M_orig = cU_orig - cL_orig
 delta1 = 1.0
 delta2 = 2.0
 # b = 7
-b=2
+b=20
 print(d)
 # print(edge)
 # exec(open('./testInstance.py').read())
@@ -86,7 +89,7 @@ c = (cU_orig + cL_orig) / 2
 
 # Call the gx_bound function (assuming you have it defined elsewhere)
 yy, SP_init, SP_init, label, path = gx_bound(c, c, edge, origin,destination)
-print("Init yy = ", np.where(yy > 0.5)[0])
+# print("Init yy = ", np.where(yy > 0.5)[0])
 
 # Create and append rows to the DataFrames
 new_row = {
@@ -145,9 +148,9 @@ newCell = 0
 # print("Len = ", Len)
 P_set = np.empty((0,Len), int)
 new_path =np.array([yy])
-print("P_set ", P_set)
-print("yy = ", new_path)
-print(np.shape(new_path))
+# print("P_set ", P_set)
+# print("yy = ", new_path)
+# print(np.shape(new_path))
 P_set = np.concatenate((P_set, new_path), axis=0)
 
 x_sol = []
@@ -158,7 +161,7 @@ x_now = []
 z_now = []
 last_x = []
 con_num = 1
-
+cur_time = None
 total_time = 0.0
 iter = 0
 K_bar = [0]
@@ -183,8 +186,9 @@ def lazy(m, where):
         K_bar = m._K_bar
         K_newly_added = m._K_newly_added
         p = m._p
+        iter =  m._iter
         newCell = m._newCell
-        x_now = np.array(m.cbGetSolution(m._x).values())
+        x_now = np.array(list(m.cbGetSolution(m._x).values()))
         z_now = m.cbGetSolution(m._z)
         con_num = m._con_num
         # print("m._con_num " , m._con_num)
@@ -212,14 +216,20 @@ def lazy(m, where):
         #     x_now[i] = x[i].X #m.getAttr('x', x[i].X) #m.getAttr('X', vars)
         # for i in range(zNum):
         #     z_now[i] = z[i].X
+        cur_time = time.time() - start
         print("\n==========================================================")
-        print("Iter : ", m._iter, " ; MP_bnd = ", MP_bnd, " ; time ", time.time() - m._start, "; ", len(m._K_bar), "/", m._newCell+1)
+        print("Iter : ", iter, " ; MP_bnd = ", MP_bnd, " ; time ", cur_time, "; ", len(m._K_bar), "/", m._newCell+1)
         print("==========================================================")
         print("z_now " , z_now)
-        print("x = ", np.where(x_now > 0.5)[0])
-        print("p = ", p)
-        print("newCell = ", newCell)
 
+        print("x = ", np.where(x_now > 0.5)[0])
+        x_index = np.where(x_now > 0)[0]
+        # print("p = ", p)
+        print("newCell = ", newCell)
+        if collect_output == True:
+                with open(directory+'lazyDelay_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                    the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(z_now)+";"+str(x_index)+"\n")
+                    
         O1Flag = True
         # O1Flag, K_bar = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints)
         last_x = np.array(last_x)
@@ -304,7 +314,7 @@ def lazy(m, where):
 
         
         if O1Flag:
-            # print("O1Flag: Passed\n")
+            print("O1Flag: Passed\n")
             terminate_cond = False
             RHS = 0
             while terminate_cond == False:
@@ -342,6 +352,7 @@ def lazy(m, where):
                         # print(df_cell)
                         df_cell.at[k, 'h'] = hx
                         gx = df_cell.at[k, 'g']
+                        # print(k, " gx ", gx, " hx ", hx)
                         if gx - hx <= delta2:
                             K_removed.append(k)
                         else:
@@ -440,6 +451,7 @@ def lazy(m, where):
         # z_now = m.cbGetSolution(m._z)
         m._MP_obj = MP_obj #m.cbGet(GRB.Callback.MIP_OBJBST) #m.ObjVal
         m._MP_bnd = MP_bnd #m.cbGet(GRB.Callback.MIPSOL_OBJBST)
+        m._cur_time = cur_time
         m.update()
         # m.write("out.mst")
         # print(df_cell)
@@ -502,7 +514,7 @@ m._x_now=x_now
 m._z_now=z_now
 m._last_x=last_x #np.array(last_x)
 m._con_num=con_num
-
+m._cur_time = cur_time
 m._total_time=total_time
 m._iter=iter
 m._K_bar=K_bar
@@ -515,13 +527,23 @@ m._p = p
 m._start = start
 # m._terminate_cond = terminate_cond
 m.update()
-print(z <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))
+# print(z <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))
 m.optimize(lazy)
 x_now = np.empty(Len)
 for i in range(Len):
     x_now[i] = x[i].X
-print('x = ', np.where(x_now > 0.5)[0])        
+z_now = z.X  
+cur_time = time.time() - start
+# z_now = z.Z
+x_index = np.where(x_now > 0)[0]
+print('x = ', x_index)        
 print('Final optimal obj: %g' % m.ObjVal)
+print("z_now ", z.X   )  
+# for v in m.getVars():
+#     print('%s %g' % (v.VarName, v.X))
+if collect_output == True:
+    with open(directory+'lazyDelay_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+        the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(m.ObjVal)+";"+str(z_now)+";"+str(x_index)+"\n")
 # vals = m.getAttr('X', x)
 
 
