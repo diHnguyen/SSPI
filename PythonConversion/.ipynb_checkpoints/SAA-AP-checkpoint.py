@@ -36,7 +36,7 @@ from functionFindCluster import findCluster
 
 # networkCSV = './NewCSVFeb24/N10_1.csv'
 num_cases = int(sys.argv[3]) #1000
-b = 2
+b = 20
 option = 2; #1: conservative refinement; 2: aggressive refinement
 np.random.seed(2024)
 
@@ -269,7 +269,7 @@ for e in G.edges:
 # print(edge)
 total_time = time.time() - start
 print(total_time)
-# with open(directory+'SAA_AP_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
-#     the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+"\n")
+with open(directory+'SAA-AP_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+    the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+"\n")
 
 print(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+"\n")
