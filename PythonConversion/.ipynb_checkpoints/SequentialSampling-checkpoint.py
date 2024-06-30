@@ -73,6 +73,8 @@ k_f = 1e6 #resampling frequency
 num_cases = int(np.ceil(((1/(h-h_prime))**2)*(c_p+2*p*((np.log(iter))**2))))#int(sys.argv[3]) #1000
 
 para = str(h)+","+str(h_prime)+","+str(epsilon)+","+str(epsilon_prime)+","+str(alpha)+","+str(c_p)+","+str(k_f)
+var = 1e6
+opt_gap = 1e6
 
 print("Num scens for k=1 ", num_cases)
 b = 2
@@ -151,7 +153,7 @@ def lazy(model, where):
         
         
         print("\n\nIter ", iter)
-        print("c_p ", c_p)
+        # print("c_p ", c_p)
         
         # if iter <4:
         #Obtain num_scens n_k:
@@ -162,13 +164,13 @@ def lazy(model, where):
         # print(2*p*(np.log(iter)**2))
         # print("h-h_prime ",h-h_prime)
         # print("c_p ", c_p, "; p ", p, "; log(iter) ", iter)
-        print("iter ", iter, " num_scens n_k ", num_scens)
+        # print("iter ", iter, " num_scens n_k ", num_scens)
         
         #Using m_k = 2n_k similar to paper
         m_k = 2*num_scens
         x_candidate, obj_val = solveSAASeq(m_k, G,b,origin,destination)
-        print("obj_val ", obj_val)
-        print("m_k ", m_k, " samples")
+        # print("obj_val ", obj_val)
+        # print("m_k ", m_k, " samples")
         # print(candidate_x)
         
         # solveSAASeq(m_k,
@@ -262,6 +264,8 @@ def lazy(model, where):
         model._iter = iter
         model._opt_gap = opt_gap
         model._var = var
+        model._epsilon = epsilon
+        model._h = h
 
 
 # In[9]:
@@ -271,6 +275,7 @@ def lazy(model, where):
 
 total_time = 0.0
 start = time.time()
+
 master = gp.Model()
 master.setParam(GRB.Param.OutputFlag, 0)
 # Create variables
@@ -292,8 +297,8 @@ master._origin = origin
 master._destination = destination
 # master._scens = scens
 
-master._opt_gap = 1e6
-master._var = 1e6
+master._opt_gap = opt_gap
+master._var = var
         
 master._iter = iter
 master._p = p
@@ -310,7 +315,9 @@ master._c_p = c_p #for alpha = 0.1, p=1
 master.modelSense = GRB.MAXIMIZE
 master.Params.LazyConstraints = 1
 master.optimize(lazy)
-
+var = master._var
+iter = master._iter
+opt_gap = master._opt_gap
 xvals = master.getAttr('X', x)
 
 print('')
@@ -330,6 +337,10 @@ for e in G.edges:
 total_time = time.time() - start
 print("Time taken ", total_time)
 print("para ", para)
-with open(directory+'SAA_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
-    the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+";"+para+"\n")
+print("var ", var)
+print("opt_gap ", opt_gap)
+print("one-sided CI [0, ", h*np.sqrt(var)+epsilon,"]")
+# print("iter ", iter)
+with open(directory+'SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+    the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+";"+str(var)+";"+str(opt_gap)+";"+str(iter)+";"+para+"\n")
 # print(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+";"+para+"\n")
