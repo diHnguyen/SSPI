@@ -24,7 +24,7 @@ import math
 # from itertools import combinations
 
 # exec(open('./testInstance.py').read())
-collect_output = True #if True, will write output to file.
+collect_output = False #if True, will write output to file.
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 testSet = "N"+sys.argv[1]
@@ -44,7 +44,7 @@ M_orig = cU_orig - cL_orig
 delta1 = 1.0
 delta2 = 2.0
 # b = 7
-b=20
+b=2
 print(d)
 # print(edge)
 # exec(open('./testInstance.py').read())
@@ -186,6 +186,7 @@ def lazy(m, where):
         K_bar = m._K_bar
         K_newly_added = m._K_newly_added
         p = m._p
+        P_set = m._P_set
         iter =  m._iter
         newCell = m._newCell
         x_now = np.array(list(m.cbGetSolution(m._x).values()))
@@ -194,28 +195,10 @@ def lazy(m, where):
         # print("m._con_num " , m._con_num)
         MP_obj = m.cbGet(gp.GRB.Callback.MIPSOL_OBJBST) #m.ObjVal
         MP_bnd = m.cbGet(gp.GRB.Callback.MIPSOL_OBJBND) #m.cbGet(GRB.Callback.MIPSOL_OBJBST)
-        # print("MP_obj " , MP_obj)
-        # print("m._best ", m._best)
-        # α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell, LB_w, p, \
-        # x_sol, z_sol, α_sol, last_x, x_now, α_now, z_now, terminate_cond, start, set, Ins, density, dataset = \
-        #     (global variable values here)
-        # print("HERE")
-        # while (len(K_bar)>0):
-            
-            # m.write("checkModel.lp")
-            # m.optimize()
-            # K_bar = []#Remove when done debug 
-            # print("STATUS ", m.status)
-            # if termination_status(m) == MOI.OPTIMAL:
-            # if m.status == 2:
-        # MP_obj = m.ObjVal
-        # x_now = np.empty(Len) #[0.0]*Len
-        # z_now = np.empty(zNum)
-
-        # for i in range(Len):
-        #     x_now[i] = x[i].X #m.getAttr('x', x[i].X) #m.getAttr('X', vars)
-        # for i in range(zNum):
-        #     z_now[i] = z[i].X
+        # print("\nPaths in P_set ", len(P_set))
+        # print("P_set ", P_set)
+        # for i in P_set:
+        #     print(np.where(i > 0.5)[0])
         cur_time = time.time() - start
         print("\n==========================================================")
         print("Iter : ", iter, " ; MP_bnd = ", MP_bnd, " ; time ", cur_time, "; ", len(m._K_bar), "/", m._newCell+1)
@@ -275,6 +258,9 @@ def lazy(m, where):
             for k in range(newCell+1):
                 # print("k ", k)
                 c_L, c_U, M, c, c_g, Y_k = getCellInfo(k, x_now, "c_g", d, df_cell)
+                print("Y_k = ", np.where(Y_k > 0.5)[0], "\t", ((Y_k == P_set).all(1).any()))
+                if ((Y_k == P_set).all(1).any()) == False:
+                    P_set = np.concatenate((P_set, [Y_k]), axis=0)
                 Pk,Pk_cost,SP = getPathCost(P_set,c,c_g,k)
                 coef_x = coef_x + p[k]*np.array([a*b for a,b in zip(Pk,d)])
                 constant_SP = constant_SP +  p[k]*sum(c[i]*Pk[i] for i in range(Len))
@@ -292,6 +278,8 @@ def lazy(m, where):
                     Y_k, gx, SPL,_,_, = gx_bound(c, c_g, edge,origin,destination)
                     df_cell.at[k,'g'] = gx
                     df_cell.at[k,'Y'] = Y_k
+                    if ((Y_k == P_set).all(1).any()) == False:
+                        P_set = np.concatenate((P_set, [Y_k]), axis=0)
                     coef_x = coef_x + p[k]*np.array([a*b for a,b in zip(Y_k,d)])
                     constant_SP = constant_SP +  p[k]*sum(c[i]*Y_k[i] for i in range(Len))
                     # println("coef_x = ", coef_x)
@@ -310,6 +298,8 @@ def lazy(m, where):
                     # print(z <= sum(coef_x[i]*m._x[i] for i in range(Len)) + constant_SP)
                     # println(con)
                     # MOI.submit(m, MOI.LazyConstraint(cb_data), con)
+                    
+                    
                     O1Flag = False
 
         
@@ -339,6 +329,7 @@ def lazy(m, where):
                         
                         yL, gL, SPL,_,_, = gx_bound(c, c_g_L, edge,origin,destination)
                         
+
                         
                         df_cell.at[k, 'Y_Lk'] = yL
                         df_cell.at[k, 'gL'] = gL
@@ -358,6 +349,7 @@ def lazy(m, where):
                         else:
                             newCell += 1
                             ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added)
+                            
                             # sys.exit()
                             # print(k, ": Added a new cell")
                             # print("Outside Partition")
@@ -375,6 +367,9 @@ def lazy(m, where):
                     for k in range(newCell+1):
                         # print("k = ", k)
                         c_L, c_U, M, c, c_g, Y_k = getCellInfo(k, x_now, "c_g", d, df_cell)
+                        # if (Y_k in P_set) == False:
+                        #     print("Adding P to P_set")
+                        #     P_set = np.concatenate((P_set, Y_k), axis=0)
                         coef_x = coef_x + p[k]*np.array([a*b for a,b in zip(Y_k,d)])
                         constant_SP = constant_SP + p[k]*sum(c[i]*Y_k[i] for i in range(Len))
 
@@ -398,6 +393,8 @@ def lazy(m, where):
                             Y_k, gx, SPL,_,_, = gx_bound(c, c_g, edge,origin,destination)
                             df_cell.at[k,'g'] = gx
                             df_cell.at[k,'Y'] = Y_k
+                            if ((Y_k == P_set).all(1).any()) == False:
+                                P_set = np.concatenate((P_set, [Y_k]), axis=0)
                             coef_x = coef_x + p[k]*np.array([a*b for a,b in zip(Y_k,d)])
                             constant_SP = constant_SP +  p[k]*sum(c[i]*Y_k[i] for i in range(Len))
                         
@@ -452,6 +449,7 @@ def lazy(m, where):
         m._MP_obj = MP_obj #m.cbGet(GRB.Callback.MIP_OBJBST) #m.ObjVal
         m._MP_bnd = MP_bnd #m.cbGet(GRB.Callback.MIPSOL_OBJBST)
         m._cur_time = cur_time
+        m._P_set = P_set
         m.update()
         # m.write("out.mst")
         # print(df_cell)
@@ -502,6 +500,7 @@ m._best = 0
 m.Params.LazyConstraints = 1
 m._newCell = newCell
 m._df_cell = df_cell
+m._P_set = P_set
 # print("p = ",p)
 
 # Objective: Maximize sum(p[i]*z[i])
