@@ -69,8 +69,10 @@ epsilon = 2e-7#2
 epsilon_prime = 1e-7#1
 alpha = 0.1 #same as paper.
 c_p = 8.14491246025 #8.14491246025 for setup in Bayrak's #4.3786 for alpha = 0.1, p=1
-k_f = 10 #resampling frequency
+k_f = 1e6 #resampling frequency
 num_cases = int(np.ceil(((1/(h-h_prime))**2)*(c_p+2*p*((np.log(iter))**2))))#int(sys.argv[3]) #1000
+
+para = str(h)+","+str(h_prime)+","+str(epsilon)+","+str(epsilon_prime)+","+str(alpha)+","+str(c_p)+","+str(k_f)
 
 print("Num scens for k=1 ", num_cases)
 b = 2
@@ -327,6 +329,7 @@ for e in G.edges:
 # print(edge)
 total_time = time.time() - start
 print("Time taken ", total_time)
-# with open(directory+'SAA_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
-#     the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+"\n")
-print(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+"\n")
+print("para ", para)
+with open(directory+'SAA_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+    the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+";"+para+"\n")
+# print(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+";"+para+"\n")
