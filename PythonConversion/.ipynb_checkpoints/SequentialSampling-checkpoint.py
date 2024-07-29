@@ -139,7 +139,7 @@ print("destination = ", destination);
 start = time.time()
 
 while opt_gap > h_prime*np.sqrt(var)+epsilon_prime:
-    print("Permited gap ", h_prime*np.sqrt(var)+epsilon_prime)
+    # print("Permited gap ", h_prime*np.sqrt(var)+epsilon_prime)
     iter = iter+1
     print("\nIter ", iter)
     # if iter == 1:
@@ -150,21 +150,21 @@ while opt_gap > h_prime*np.sqrt(var)+epsilon_prime:
     
     m_k = 2*num_cases
     x_candidate, obj_val_candidate, _ = solveSAASeq(m_k, G,b,origin,destination)
-    print("num_cases ",num_cases, " m_k ", m_k)
+    # print("num_cases ",num_cases, " m_k ", m_k)
     
     x_sol, obj_val_sol, scens = solveSAASeq(num_cases, G,b,origin,destination)  
     SP_cost_all_scens_candidate = []
-    print(len(G.edges))
-    print("x_candidate ")
-    for e in G.edges:
-        # print("scen", k, "e = ", e, "\t", x_candidate[e] > 1e-5)
-        if x_candidate[e] > 1e-5:
-            print(e)
-    print("x_sol ")
-    for e in G.edges:
-        # print("scen", k, "e = ", e, "\t", x_candidate[e] > 1e-5)
-        if x_sol[e] > 1e-5:
-            print(e)
+    # print(len(G.edges))
+    # print("x_candidate ")
+    # for e in G.edges:
+    #     # print("scen", k, "e = ", e, "\t", x_candidate[e] > 1e-5)
+    #     if x_candidate[e] > 1e-5:
+    #         print(e)
+    # print("x_sol ")
+    # for e in G.edges:
+    #     # print("scen", k, "e = ", e, "\t", x_candidate[e] > 1e-5)
+    #     if x_sol[e] > 1e-5:
+    #         print(e)
     # for e in x_sol:
     #     x_sol[x_sol[e] >1e-5]
     for k in range(len(scens)):
@@ -207,9 +207,9 @@ while opt_gap > h_prime*np.sqrt(var)+epsilon_prime:
     for i in range(len(temp_arr)):
         var = var+ (temp_arr[i]-opt_gap)**2
     var = var/(len(temp_arr)-1)
-    print("var ", var)
-    print("one-sided CI [0, ", h*np.sqrt(var)+epsilon,"]")
-    print("New Permited gap ", h_prime*np.sqrt(var)+epsilon_prime)
+    # print("var ", var)
+    # print("one-sided CI [0, ", h*np.sqrt(var)+epsilon,"]")
+    # print("New Permited gap ", h_prime*np.sqrt(var)+epsilon_prime)
     # print(scens)
     # sys.exit()
 # def lazy(model, where):
@@ -463,7 +463,7 @@ for e in G.edges:
         x_idx = np.concatenate((x_idx, edge_index), axis=0)
 # print(x_sol);
         # print(" ")
-print(x_idx)
+# print(x_idx)
 total_time = time.time() - start
 print("Time taken ", total_time)
 print("para ", para)
@@ -478,6 +478,6 @@ print("one-sided CI [0, ", ci_right,"]")
 # print(x_sol);
 # print(theta_sol)
 # print("iter ", iter)
-# with open(directory+'SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
-#     the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+";"+str(var)+";"+str(opt_gap)+";"+str(iter)+";"+para+"\n")
+with open(directory+'SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+    the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(obj_val_sol)+";"+str(x_idx)+";"+para+";"+str(opt_gap)+";"+"[0 "+ str(ci_right)+"]"+"\n")
 print(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(obj_val_sol)+";"+str(x_idx)+";"+para+";"+str(opt_gap)+";"+"[0 "+ str(ci_right)+"]"+"\n")
