@@ -50,7 +50,7 @@ def solveSAASeq(num_cases, G,b,origin,destination):
         theta[k] = master.addVar(obj=1.0/num_cases, vtype=GRB.CONTINUOUS, lb = 0, ub = 1e7);
 
     # Add interdiction budget constraint
-    master.addConstr(gp.quicksum(x[e] for e in G.edges) <= b);
+    master.addConstr(gp.quicksum(x[e] for e in G.edges) == b);
 
     master._x = x
     master._theta = theta

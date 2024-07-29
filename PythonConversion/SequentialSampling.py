@@ -78,7 +78,7 @@ opt_gap = 1e6
 scens = []
 cur_SP_cost_all_scens = []
 print("Num scens for k=1 ", num_cases)
-b = 2
+b = 20
 np.random.seed(2024)
 
 
@@ -137,7 +137,9 @@ print("destination = ", destination);
 
 # Callback - use lazy constraints
 start = time.time()
+
 while opt_gap > h_prime*np.sqrt(var)+epsilon_prime:
+    print("Permited gap ", h_prime*np.sqrt(var)+epsilon_prime)
     iter = iter+1
     print("\nIter ", iter)
     # if iter == 1:
@@ -152,6 +154,7 @@ while opt_gap > h_prime*np.sqrt(var)+epsilon_prime:
     
     x_sol, obj_val_sol, scens = solveSAASeq(num_cases, G,b,origin,destination)  
     SP_cost_all_scens_candidate = []
+    print(len(G.edges))
     print("x_candidate ")
     for e in G.edges:
         # print("scen", k, "e = ", e, "\t", x_candidate[e] > 1e-5)
@@ -197,7 +200,7 @@ while opt_gap > h_prime*np.sqrt(var)+epsilon_prime:
         cur_SP_cost_all_scens.append(spValue)
     # print("cur_SP_cost_all_scens ", cur_SP_cost_all_scens)
     # print("SP_cost_all_scens_candidate ", SP_cost_all_scens_candidate)
-    temp_arr = -(np.array(cur_SP_cost_all_scens)-np.array(SP_cost_all_scens_candidate)) #Since we're maximizing
+    temp_arr = -(np.array(SP_cost_all_scens_candidate)- np.array(cur_SP_cost_all_scens)) #Since we're maximizing
     opt_gap = sum(temp_arr/len(cur_SP_cost_all_scens))
     print("opt_gap ", opt_gap)
     var = 0
@@ -206,6 +209,7 @@ while opt_gap > h_prime*np.sqrt(var)+epsilon_prime:
     var = var/(len(temp_arr)-1)
     print("var ", var)
     print("one-sided CI [0, ", h*np.sqrt(var)+epsilon,"]")
+    print("New Permited gap ", h_prime*np.sqrt(var)+epsilon_prime)
     # print(scens)
     # sys.exit()
 # def lazy(model, where):
@@ -450,23 +454,23 @@ print('')
 # print('Final Optimal objval: %g' % master.ObjVal)
 print('Final Optimal objval: %g' % obj_val_sol)
 print('')
-print('Optimal xval = ')
 
-# x_sol = np.empty((0), int)
-# for e in G.edges:
-#     if xvals[e] > 1e-5:
-#         edge_index = np.where((edge==e).all(1))[0]
-#         print(edge_index)
-#         x_sol = np.concatenate((x_sol, edge_index), axis=0)
+x_idx = np.empty((0), int)
+for e in G.edges:
+    if x_sol[e] > 1e-5:
+        edge_index = np.where((edge==e).all(1))[0]
+        # print(edge_index)
+        x_idx = np.concatenate((x_idx, edge_index), axis=0)
 # print(x_sol);
         # print(" ")
-# print(edge)
+print(x_idx)
 total_time = time.time() - start
 print("Time taken ", total_time)
 print("para ", para)
 print("var ", var)
 print("opt_gap ", opt_gap)
-print("one-sided CI [0, ", h*np.sqrt(var)+epsilon,"]")
+ci_right =  h*np.sqrt(var)+epsilon
+print("one-sided CI [0, ", ci_right,"]")
 # print(master.getObjective)
 # theta_sol = np.empty(4*num_cases)
 # for i in range(4*num_cases):
@@ -476,4 +480,4 @@ print("one-sided CI [0, ", h*np.sqrt(var)+epsilon,"]")
 # print("iter ", iter)
 # with open(directory+'SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
 #     the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+";"+str(var)+";"+str(opt_gap)+";"+str(iter)+";"+para+"\n")
-# print(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+";"+para+"\n")
+print(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(obj_val_sol)+";"+str(x_idx)+";"+para+";"+str(opt_gap)+";"+"[0 "+ str(ci_right)+"]"+"\n")
