@@ -77,4 +77,4 @@ def solveSAASeq(num_cases, G,b,origin,destination):
         #         print(edge_index)
         #         x_sol = np.concatenate((x_sol, edge_index), axis=0)
         #         print(x_sol);
-    return xvals, master.ObjVal
+    return xvals, master.ObjVal, scens

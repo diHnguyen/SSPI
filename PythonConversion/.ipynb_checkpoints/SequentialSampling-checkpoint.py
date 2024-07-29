@@ -58,7 +58,7 @@ print(x_candidates)
 # numpy.random.seed(2024);
 
 # networkCSV = './NewCSVFeb24/N10_1.csv'
-iter = 1
+iter = 0
 p = 1.91e-1 #1 #same as paper
 
 #These h-values correspond to an initial sample size n1 = 50.
@@ -70,12 +70,13 @@ epsilon_prime = 1e-7#1
 alpha = 0.1 #same as paper.
 c_p = 8.14491246025 #8.14491246025 for setup in Bayrak's #4.3786 for alpha = 0.1, p=1
 k_f = 1e6 #resampling frequency
-num_cases = int(np.ceil(((1/(h-h_prime))**2)*(c_p+2*p*((np.log(iter))**2))))#int(sys.argv[3]) #1000
-
+num_cases_minus1 = 0
+num_cases = 0 #int(np.ceil(((1/(h-h_prime))**2)*(c_p+2*p*((np.log(iter))**2))))#int(sys.argv[3]) #1000
 para = str(h)+","+str(h_prime)+","+str(epsilon)+","+str(epsilon_prime)+","+str(alpha)+","+str(c_p)+","+str(k_f)
 var = 1e6
 opt_gap = 1e6
-
+scens = []
+cur_SP_cost_all_scens = []
 print("Num scens for k=1 ", num_cases)
 b = 2
 np.random.seed(2024)
@@ -135,203 +136,329 @@ print("destination = ", destination);
 
 
 # Callback - use lazy constraints
-def lazy(model, where):
-    if where == GRB.Callback.MIPSOL:
-        xvals = model.cbGetSolution(model._x)
-        thetavals = model.cbGetSolution(model._theta);
-        # print("thetavals ", thetavals)
-        iter = model._iter
-        h = model._h
-        h_prime = model._h_prime
-        p = model._p
-        epsilon = model._epsilon 
-        epsilon_prime = model._epsilon_prime
-        alpha = model._alpha
-        c_p = model._c_p #= 4.3786 #for alpha = 0.1, p=1
-        opt_gap = model._opt_gap
-        var = model._var
+start = time.time()
+while opt_gap > h_prime*np.sqrt(var)+epsilon_prime:
+    iter = iter+1
+    print("\nIter ", iter)
+    # if iter == 1:
+    #     num_cases_minus1 = 0
+    # else:
+    #     num_cases_minus1 = num_cases
+    num_cases = int(np.ceil(((1/(h-h_prime))**2)*(c_p+2*p*(np.log(iter)**2))))
+    
+    m_k = 2*num_cases
+    x_candidate, obj_val_candidate, _ = solveSAASeq(m_k, G,b,origin,destination)
+    print("num_cases ",num_cases, " m_k ", m_k)
+    
+    x_sol, obj_val_sol, scens = solveSAASeq(num_cases, G,b,origin,destination)  
+    SP_cost_all_scens_candidate = []
+    print("x_candidate ")
+    for e in G.edges:
+        # print("scen", k, "e = ", e, "\t", x_candidate[e] > 1e-5)
+        if x_candidate[e] > 1e-5:
+            print(e)
+    print("x_sol ")
+    for e in G.edges:
+        # print("scen", k, "e = ", e, "\t", x_candidate[e] > 1e-5)
+        if x_sol[e] > 1e-5:
+            print(e)
+    # for e in x_sol:
+    #     x_sol[x_sol[e] >1e-5]
+    for k in range(len(scens)):
+        # multi-cut version
+        # update edge cost per scenario
+        for e in G.edges:
+            # print("scen", k, "e = ", e, "\t", x_candidate[e] > 1e-5)
+            if x_candidate[e] > 1e-5:
+                # print(e)
+                G.edges[e]['tempCost'] = scens[k][e] + G.edges[e]['interEffect'];
+            else:
+                G.edges[e]['tempCost'] = scens[k][e];
+        # obtain the shortest path and its length
+        spValue = nx.shortest_path_length(G, source=origin, target=destination, weight='tempCost', method='dijkstra')
+        # break
+        SP_cost_all_scens_candidate.append(spValue)
+    
+    
+    cur_SP_cost_all_scens = []
+    for k in range(len(scens)):
+        # multi-cut version
+        # update edge cost per scenario
+        for e in G.edges:
+            # print("scen", k, "e = ", e, "\t", x_sol[e] > 1e-5)
+            if x_sol[e] > 1e-5:
+                # print(e)
+                G.edges[e]['tempCost'] = scens[k][e] + G.edges[e]['interEffect'];
+            else:
+                G.edges[e]['tempCost'] = scens[k][e];
+        # obtain the shortest path and its length
+        spValue = nx.shortest_path_length(G, source=origin, target=destination, weight='tempCost', method='dijkstra')
+        # break
+        cur_SP_cost_all_scens.append(spValue)
+    # print("cur_SP_cost_all_scens ", cur_SP_cost_all_scens)
+    # print("SP_cost_all_scens_candidate ", SP_cost_all_scens_candidate)
+    temp_arr = -(np.array(cur_SP_cost_all_scens)-np.array(SP_cost_all_scens_candidate)) #Since we're maximizing
+    opt_gap = sum(temp_arr/len(cur_SP_cost_all_scens))
+    print("opt_gap ", opt_gap)
+    var = 0
+    for i in range(len(temp_arr)):
+        var = var+ (temp_arr[i]-opt_gap)**2
+    var = var/(len(temp_arr)-1)
+    print("var ", var)
+    print("one-sided CI [0, ", h*np.sqrt(var)+epsilon,"]")
+    # print(scens)
+    # sys.exit()
+# def lazy(model, where):
+#     if where == GRB.Callback.MIPSOL:
+#         xvals = model.cbGetSolution(model._x)
+#         thetavals = model.cbGetSolution(model._theta);
+#         num_cases = model._num_cases
+#         num_cases_minus1 = model._num_cases_minus1
+#         # print("thetavals ", thetavals)
+#         iter = model._iter
+#         h = model._h
+#         h_prime = model._h_prime
+#         p = model._p
+#         epsilon = model._epsilon 
+#         epsilon_prime = model._epsilon_prime
+#         alpha = model._alpha
+#         c_p = model._c_p #= 4.3786 #for alpha = 0.1, p=1
+#         opt_gap = model._opt_gap
+#         var = model._var
+#         scens = model._scens
+#         cur_SP_cost_all_scens = model._cur_SP_cost_all_scens
         
+#         print("\n\nIter ", iter)
+#         # print("c_p ", c_p)
         
-        print("\n\nIter ", iter)
-        # print("c_p ", c_p)
+#         # if iter <4:
+#         #Obtain num_cases n_k:
+#         if iter == 1:
+#             num_cases_minus1 = 0
+#         else:
+#             num_cases_minus1 = num_cases
+#         num_cases = int(np.ceil(((1/(h-h_prime))**2)*(c_p+2*p*(np.log(iter)**2))))
+#         print("xvals ", xvals)
+#         # model.setObjective(1/num_cases*sum(model._theta[k] for k in range(num_cases_minus1)))
+#         # model.chgCoeff(c0, x, 2.0)
+#         # print((1/(h-h_prime))**2)
+#         # print((c_p))
+#         # print(2*p*(np.log(iter)**2))
+#         # print("h-h_prime ",h-h_prime)
+#         # print("c_p ", c_p, "; p ", p, "; log(iter) ", iter)
+#         # print("iter ", iter, " num_cases n_k ", num_cases)
         
-        # if iter <4:
-        #Obtain num_scens n_k:
-        # print(
-        num_scens = int(np.ceil(((1/(h-h_prime))**2)*(c_p+2*p*(np.log(iter)**2))))
-        # print((1/(h-h_prime))**2)
-        # print((c_p))
-        # print(2*p*(np.log(iter)**2))
-        # print("h-h_prime ",h-h_prime)
-        # print("c_p ", c_p, "; p ", p, "; log(iter) ", iter)
-        # print("iter ", iter, " num_scens n_k ", num_scens)
-        
-        #Using m_k = 2n_k similar to paper
-        m_k = 2*num_scens
-        x_candidate, obj_val = solveSAASeq(m_k, G,b,origin,destination)
-        # print("obj_val ", obj_val)
-        # print("m_k ", m_k, " samples")
-        # print(candidate_x)
-        
-        # solveSAASeq(m_k,
+#         #Using m_k = 2n_k similar to paper
+#         m_k = 2*num_cases
+#         x_candidate, obj_val = solveSAASeq(m_k, G,b,origin,destination)
+#         # print("obj_val ", obj_val)
+#         # print("m_k ", m_k, " samples")
+#         # print("x_candidate ", x_candidate)
+#         x_sol = np.empty((0), int)
+#         for e in G.edges:
+#             if x_candidate[e] > 1e-5:
+#                 edge_index = np.where((edge==e).all(1))[0]
+#                 # print(edge_index)
+#                 x_sol = np.concatenate((x_sol, edge_index), axis=0)
+#         print("x_candidate ", x_sol);
+#         # solveSAASeq(m_k,
 
-        cur_SP_cost_all_scens = []
+#         # cur_SP_cost_all_scens = []
         
-        # print("opt_gap = ", opt_gap, " h_prime*np.sqrt(var)+epsilon_prime " , h_prime*np.sqrt(var)+epsilon_prime)
-        scens = [];
-        for k in range(num_cases):
-            scen = {};
-            for e in G.edges:
-                scen[e] = np.random.uniform(G.edges[e]['costLB'],G.edges[e]['costUB']);
-            scens.append(scen);
-        for k in range(len(scens)):
-            # print(scens)
-            # multi-cut version
-            # update edge cost per scenario
-            for e in model._G.edges:
-                if xvals[e] > 1e-5:
-                    model._G.edges[e]['tempCost'] = scens[k][e] + model._G.edges[e]['interEffect'];
-                else:
-                    model._G.edges[e]['tempCost'] = scens[k][e];
-            # obtain the shortest path and its length
-            spValue = nx.shortest_path_length(model._G, source=model._origin, target=model._destination, weight='tempCost', method='dijkstra')
-            cur_SP_cost_all_scens.append(spValue)
+#         # print("opt_gap = ", opt_gap, " h_prime*np.sqrt(var)+epsilon_prime " , h_prime*np.sqrt(var)+epsilon_prime)
+#         # scens = [];
+#         print("num_cases ", num_cases)
+#         print("range(num_cases_minus1, num_cases) ", range(num_cases_minus1, num_cases))
+#         for k in range(num_cases_minus1,num_cases):
+#             scen = {};
+#             for e in G.edges:
+#                 scen[e] = np.random.uniform(G.edges[e]['costLB'],G.edges[e]['costUB']);
+#             scens.append(scen);
             
-            if (spValue < thetavals[k]-(1e-5)) & (opt_gap > h_prime*np.sqrt(var)+epsilon_prime):
-                # print("add constraint!!!")
-                # add lazy constraints
-                spPath = nx.shortest_path(model._G, source=model._origin, target=model._destination, weight='tempCost', method='dijkstra')
-                constrCoefList = [1];
-                constrVarList = [model._theta[k]];
-                rhs = 0
-                # print("spPath ", spPath)
-                for i in range(len(spPath)-1):
-                    rhs += scens[k][(spPath[i],spPath[i+1])];
-                    constrCoefList.append(-model._G.edges[(spPath[i],spPath[i+1])]['interEffect']);
-                    # print("constrCoefList " , constrCoefList)
-                    constrVarList.append(model._x[(spPath[i],spPath[i+1])]);
-                expr = gp.LinExpr();
-                expr.addTerms(constrCoefList, constrVarList);
-                model.cbLazy(expr <= rhs);
-
-        #Obtain optimality gap:
-        SP_cost_all_scens_candidate = []
+#         x_sol = np.empty((0), int)
+#         for e in G.edges:
+#             if xvals[e] > 1e-5:
+#                 edge_index = np.where((edge==e).all(1))[0]
+#                 # print(edge_index)
+#                 x_sol = np.concatenate((x_sol, edge_index), axis=0)
+#         print("xvals ", x_sol);
         
-        # temp_x = x_pool[iter]
-        # x_candidate = deepcopy(xvals)#[0] * len(xvals)
-        # if iter >=4:
-        #     x_candidate = x_candidates[3]
-        # else:
-        #     x_candidate = x_candidates[iter-1]
+#         for k in range(len(scens)):
+#             # # print("k ", k)
+#             # print(scens)
+#             # multi-cut version
+#             # update edge cost per scenario
+#             for e in model._G.edges:
+#                 if xvals[e] > 1e-5:
+#                     model._G.edges[e]['tempCost'] = scens[k][e] + model._G.edges[e]['interEffect'];
+#                 else:
+#                     model._G.edges[e]['tempCost'] = scens[k][e];
+#             # obtain the shortest path and its length
+#             spValue = nx.shortest_path_length(model._G, source=model._origin, target=model._destination, weight='tempCost', method='dijkstra')
+#             sp_Path = nx.shortest_path(model._G, source=model._origin, target=model._destination, weight='tempCost', method='dijkstra')
+            
+#             if k < num_cases_minus1:
+#                 cur_SP_cost_all_scens[k] = spValue
+#             else:
+#                 cur_SP_cost_all_scens.append(spValue)
+#             # if iter > 5:
+#             #     sys. exit()
+#             # print("thetavals ", len(thetavals))
+#             if (spValue < thetavals[k]-(1e-5)) & (opt_gap > h_prime*np.sqrt(var)+epsilon_prime):
+#                 # print("add constraint!!!")
+#                 # add lazy constraints
+#                 # print("sp_Path ", sp_Path)
+#                 # print("spValue ", spValue, " vs ", thetavals[k])
+#                 spPath = nx.shortest_path(model._G, source=model._origin, target=model._destination, weight='tempCost', method='dijkstra')
+#                 constrCoefList = [1];
+#                 constrVarList = [model._theta[k]];
+#                 rhs = 0
+#                 # print("spPath ", spPath)
+#                 for i in range(len(spPath)-1):
+#                     rhs += scens[k][(spPath[i],spPath[i+1])];
+#                     constrCoefList.append(-model._G.edges[(spPath[i],spPath[i+1])]['interEffect']);
+#                     # print("interEffect ","(",spPath[i],",",spPath[i+1],") ", -model._G.edges[(spPath[i],spPath[i+1])]['interEffect'])
+#                     # print("constrCoefList " , constrCoefList)
+#                     constrVarList.append(model._x[(spPath[i],spPath[i+1])]);
+#                 expr = gp.LinExpr();
+#                 expr.addTerms(constrCoefList, constrVarList);
+                
+#                 model.cbLazy(expr <= rhs);
+#                 # print(expr <= rhs)
+#         #Obtain optimality gap:
+#         SP_cost_all_scens_candidate = []
         
-        # print("x_candidate ", x_candidate)
-        # print("xvals ", xvals)
-        # for e in model._G.edges:
-        #     if xvals[e] > 1e-5:
-        #         print(xvals[e], end=" ")
-        # print("\n")
-        # print("xvals ", xvals[xvals>0.5])#[numpy.array(a) for a in [[0,1,2,3], [2,3,4]]]
-        # for e in temp_x:
-        #     x_candidate[e] = 1
+#         # temp_x = x_pool[iter]
+#         # x_candidate = deepcopy(xvals)#[0] * len(xvals)
+#         # if iter >=4:
+#         #     x_candidate = x_candidates[3]
+#         # else:
+#         #     x_candidate = x_candidates[iter-1]
+        
+#         # print("x_candidate ", x_candidate)
+#         # print("xvals ", xvals)
+#         # for e in model._G.edges:
+#         #     if xvals[e] > 1e-5:
+#         #         print("xvals ", xvals[e], end=" ")
+#         # print("\n")
+#         # print("xvals ", xvals[xvals>0.5])#[numpy.array(a) for a in [[0,1,2,3], [2,3,4]]]
+#         # for e in temp_x:
+#         #     x_candidate[e] = 1
 
-        for k in range(len(scens)):
-            # multi-cut version
-            # update edge cost per scenario
-            for e in model._G.edges:
+#         for k in range(len(scens)):
+#             # multi-cut version
+#             # update edge cost per scenario
+#             for e in model._G.edges:
 
-                if e in x_candidate:#[e] > 1e-5:
-                    # print("scen", k, "e = ", e, "\t", e in x_candidate)
-                    model._G.edges[e]['tempCost'] = scens[k][e] + model._G.edges[e]['interEffect'];
-                else:
-                    model._G.edges[e]['tempCost'] = scens[k][e];
-            # obtain the shortest path and its length
-            spValue = nx.shortest_path_length(model._G, source=model._origin, target=model._destination, weight='tempCost', method='dijkstra')
-            # break
-            SP_cost_all_scens_candidate.append(spValue)
-        temp_arr = -(np.array(cur_SP_cost_all_scens)-np.array(SP_cost_all_scens_candidate)) #Since we're maximizing
-        opt_gap = sum(temp_arr/len(cur_SP_cost_all_scens))
-        print("Opt Gap ", opt_gap)
-        var = 0
-        for i in range(len(temp_arr)):
-            var = var+ (temp_arr[i]-opt_gap)**2
-        var = var/(len(temp_arr)-1)
-        print("var ", var)
-        print("one-sided CI [0, ", h*np.sqrt(var)+epsilon,"]")
-        # print(xxx)
-        #Terminating condition:
-        # print(h_prime*s_k +epsilon_prime)
-        iter = iter+1
-        model._iter = iter
-        model._opt_gap = opt_gap
-        model._var = var
-        model._epsilon = epsilon
-        model._h = h
-
-
+#                 if e in x_candidate:#[e] > 1e-5:
+#                     # print("scen", k, "e = ", e, "\t", e in x_candidate)
+#                     model._G.edges[e]['tempCost'] = scens[k][e] + model._G.edges[e]['interEffect'];
+#                 else:
+#                     model._G.edges[e]['tempCost'] = scens[k][e];
+#             # obtain the shortest path and its length
+#             spValue = nx.shortest_path_length(model._G, source=model._origin, target=model._destination, weight='tempCost', method='dijkstra')
+#             # break
+#             SP_cost_all_scens_candidate.append(spValue)
+#         # print("cur_SP_cost_all_scens ", cur_SP_cost_all_scens)
+#         # print("SP_cost_all_scens_candidate ", SP_cost_all_scens_candidate)
+#         temp_arr = -(np.array(cur_SP_cost_all_scens)-np.array(SP_cost_all_scens_candidate)) #Since we're maximizing
+#         opt_gap = sum(temp_arr/len(cur_SP_cost_all_scens))
+#         print("Opt Gap ", opt_gap)
+#         var = 0
+#         for i in range(len(temp_arr)):
+#             var = var+ (temp_arr[i]-opt_gap)**2
+#         var = var/(len(temp_arr)-1)
+#         print("var ", var)
+#         print("one-sided CI [0, ", h*np.sqrt(var)+epsilon,"]")
+#         # print(xxx)
+#         #Terminating condition:
+#         # print(h_prime*s_k +epsilon_prime)
+#         model.write("Model.mps")
+#         iter = iter+1
+#         model._iter = iter
+#         model._opt_gap = opt_gap
+#         model._var = var
+#         model._epsilon = epsilon
+#         model._h = h
+#         model._cur_SP_cost_all_scens = cur_SP_cost_all_scens
+#         model._scens = scens
+#         model._num_cases_minus1 = num_cases_minus1
+#         model._num_cases = num_cases
+        
 # In[9]:
 #Parameters for sequential sampling
 
 
 
-total_time = 0.0
-start = time.time()
+# total_time = 0.0
+# start = time.time()
 
-master = gp.Model()
-master.setParam(GRB.Param.OutputFlag, 0)
-# Create variables
-x = {};
-for e in G.edges:
-    x[e] = master.addVar(obj=0, vtype=GRB.BINARY);
+# master = gp.Model()
+# master.setParam(GRB.Param.OutputFlag, 0)
+# # Create variables
+# x = {};
+# for e in G.edges:
+#     x[e] = master.addVar(obj=0, vtype=GRB.BINARY);
     
-theta = {};
-for k in range(num_cases):
-    theta[k] = master.addVar(obj=1.0/num_cases, vtype=GRB.CONTINUOUS, lb = 0, ub = 1e7);
+# theta = {};
+# for k in range(4*num_cases):
+#     # theta[k] = master.addVar(obj=1.0/num_cases, vtype=GRB.CONTINUOUS, lb = 0, ub = 1e7);
+#     theta[k] = master.addVar(obj=1.0/num_cases, vtype=GRB.CONTINUOUS, lb = 0, ub = 1e7);
+# # theta = master.addVar(obj=1.0, vtype=GRB.CONTINUOUS, lb = 0, ub = 1e7);
 
-# Add interdiction budget constraint
-master.addConstr(gp.quicksum(x[e] for e in G.edges) <= b);
+# master.setObjective(1/num_cases*sum(theta[k] for k in range(num_cases)))
 
-master._x = x
-master._theta = theta
-master._G = G
-master._origin = origin
-master._destination = destination
+
+# print("num_cases ", num_cases)
+# # Add interdiction budget constraint
+# master.addConstr(gp.quicksum(x[e] for e in G.edges) <= b);
+
+# master._x = x
+# master._theta = theta
+# master._G = G
+# master._origin = origin
+# master._destination = destination
+# master._num_cases = num_cases
+# master._num_cases_minus1 = num_cases_minus1
+# master._opt_gap = opt_gap
+# master._var = var
 # master._scens = scens
+# master._cur_SP_cost_all_scens = cur_SP_cost_all_scens
 
-master._opt_gap = opt_gap
-master._var = var
-        
-master._iter = iter
-master._p = p
-master._h = h
-master._h_prime = h_prime
-master._epsilon = epsilon
-master._epsilon_prime = epsilon_prime
-master._alpha = alpha
-master._c_p = c_p #for alpha = 0.1, p=1
+# master._iter = iter
+# master._p = p
+# master._h = h
+# master._h_prime = h_prime
+# master._epsilon = epsilon
+# master._epsilon_prime = epsilon_prime
+# master._alpha = alpha
+# master._c_p = c_p #for alpha = 0.1, p=1
 
-# In[10]:
+# # In[10]:
 
 
-master.modelSense = GRB.MAXIMIZE
-master.Params.LazyConstraints = 1
-master.optimize(lazy)
-var = master._var
-iter = master._iter
-opt_gap = master._opt_gap
-xvals = master.getAttr('X', x)
+# master.modelSense = GRB.MAXIMIZE
+# master.Params.LazyConstraints = 1
+# # master.write("Model.mps")
+# master.optimize(lazy)
+# var = master._var
+# iter = master._iter
+# opt_gap = master._opt_gap
+# xvals = master.getAttr('X', x)
 
 print('')
-print('Final Optimal objval: %g' % master.ObjVal)
+# print('Final Optimal objval: %g' % master.ObjVal)
+print('Final Optimal objval: %g' % obj_val_sol)
 print('')
 print('Optimal xval = ')
 
-x_sol = np.empty((0), int)
-for e in G.edges:
-    if xvals[e] > 1e-5:
-        edge_index = np.where((edge==e).all(1))[0]
-        print(edge_index)
-        x_sol = np.concatenate((x_sol, edge_index), axis=0)
-        print(x_sol);
+# x_sol = np.empty((0), int)
+# for e in G.edges:
+#     if xvals[e] > 1e-5:
+#         edge_index = np.where((edge==e).all(1))[0]
+#         print(edge_index)
+#         x_sol = np.concatenate((x_sol, edge_index), axis=0)
+# print(x_sol);
         # print(" ")
 # print(edge)
 total_time = time.time() - start
@@ -340,7 +467,13 @@ print("para ", para)
 print("var ", var)
 print("opt_gap ", opt_gap)
 print("one-sided CI [0, ", h*np.sqrt(var)+epsilon,"]")
+# print(master.getObjective)
+# theta_sol = np.empty(4*num_cases)
+# for i in range(4*num_cases):
+#     theta_sol[i] = theta[i].X
+# print(x_sol);
+# print(theta_sol)
 # print("iter ", iter)
-with open(directory+'SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
-    the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+";"+str(var)+";"+str(opt_gap)+";"+str(iter)+";"+para+"\n")
+# with open(directory+'SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+#     the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+";"+str(var)+";"+str(opt_gap)+";"+str(iter)+";"+para+"\n")
 # print(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+";"+para+"\n")
