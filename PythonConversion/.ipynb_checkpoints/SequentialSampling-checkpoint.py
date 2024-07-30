@@ -78,7 +78,7 @@ opt_gap = 1e6
 scens = []
 cur_SP_cost_all_scens = []
 print("Num scens for k=1 ", num_cases)
-b = 20
+b = 2
 np.random.seed(2024)
 
 
