@@ -17,8 +17,8 @@ def evalXSol(scens, xvals, G,b,origin,destination):
         # obtain the shortest path and its length
         spValue = nx.shortest_path_length(G, source=origin, target=destination, weight='tempCost', method='dijkstra')
         spValues.append(spValue)
-    print(xvals)
-    print(spValues)
+    # print(xvals)
+    # print(spValues)
     # Create variables
     
     objVal = sum(spValues)/num_cases

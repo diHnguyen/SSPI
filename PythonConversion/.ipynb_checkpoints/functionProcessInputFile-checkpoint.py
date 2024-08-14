@@ -10,8 +10,8 @@ import numpy as np
 # edge = np.empty([[]])
 def processInputFile(testSet, i):
     print("Processing network instance", testSet+"_"+str(i))
-    fileName = "/Users/dinguyen/Desktop/Local Documents/GitHub/Paper5/NewCSVFeb24/"+testSet+"_"+str(i)+".csv"
-    # fileName = "./NewCSVFeb24/"+testSet+"_"+str(i)+".csv"
+    # fileName = "/Users/dinguyen/Desktop/Local Documents/GitHub/Paper5/NewCSVFeb24/"+testSet+"_"+str(i)+".csv"
+    fileName = "./NewCSVFeb24/"+testSet+"_"+str(i)+".csv"
     # Desktop/Local Documents/GitHub/Paper5/TestInstances/CSV_TestInstances/N25/N25_108.csv
     # N25/N25_108.csv
     with open(fileName, newline='\n') as csvfile:
