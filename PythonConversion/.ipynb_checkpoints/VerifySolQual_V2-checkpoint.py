@@ -16,7 +16,7 @@ from functionEvalXSol import evalXSol
 directory = "./PythonConversion/Output/INOC2024/"
 # directory = "./Output/INOC2024/"
 
-generateScens = False
+# generateScens = False
 
 N = sys.argv[1]
 testSet = "N"+str(N)
@@ -198,40 +198,110 @@ print("destination = ", destination);
 
 
 
-if generateScens == True:
-    scens = [];
-    for k in range(num_cases):
-        scen = {};
-        for e in G.edges:
-            scen[e] = np.random.uniform(G.edges[e]['costLB'],G.edges[e]['costUB']);
-        scens.append(scen);
-    with open(directory+'scens_N'+str(N)+'_'+str(ins)+'.csv', 'w') as the_file:
-        the_file.write(str(scens))
-    # print(scens)
-    print(type(scens))
-else:
-    fileName = directory+"scens_N"+str(10)+"_"+str(ins)+".csv"
-    # "Documents/GitHub/Paper5/PythonConversion/Output/INOC2024/scens_N10_1.csv"
-    scens = []
-    with open(fileName, newline='\n') as csvfile:
-        spamreader = csv.reader(csvfile, delimiter='\t')
-        for row in spamreader:
-            scens = ast.literal_eval(row[0])
-            print(type(row[0]))
-            
-    num_cases = len(scens)        
-    xSol = x_lazyDelay_dict[(int(N),ins, b)]
-    x = {};
+scens = [];
+for k in range(num_cases):
+    scen = {};
     for e in G.edges:
-        for i in range(Len): 
-            if i in xSol:
-                x[(edge[i][0], edge[i][1])]= 1
-            else:
-                x[(edge[i][0], edge[i][1])]= 0
+        scen[e] = np.random.uniform(G.edges[e]['costLB'],G.edges[e]['costUB']);
+    scens.append(scen);
+with open(directory+'scens_N'+str(N)+'_'+str(ins)+'.csv', 'w') as the_file:
+    the_file.write(str(scens))
+# print(scens)
+print(type(scens), "\t", len(scens))
 
-    start = time.time()
-    obj_val_sol= evalXSol(scens, x, G,b,origin,destination)
-    total_time = time.time()-start
-    with open(directory+'evalLazyDelay.txt', 'a') as the_file:
-        the_file.write(str(N)+":"+str(ins)+";"+str(b)+";"+str(num_cases)+";"+str(total_time)+";"+str(obj_val_sol)+";"+str(xSol)+"\n")
-    print(str(N)+":"+str(ins)+";"+str(b)+";"+str(num_cases)+";"+str(total_time)+";"+str(obj_val_sol)+";"+str(xSol)+"\n")
+fileName = directory+"scens_N"+str(10)+"_"+str(ins)+".csv"
+# "Documents/GitHub/Paper5/PythonConversion/Output/INOC2024/scens_N10_1.csv"
+# scens = []
+# with open(fileName, newline='\n') as csvfile:
+#     spamreader = csv.reader(csvfile, delimiter='\t')
+#     for row in spamreader:
+#         scens = ast.literal_eval(row[0])
+#         print(type(row[0]))
+        
+num_cases = len(scens)        
+xSol = x_lazyDelay_dict[(int(N),ins, b)]
+x = {};
+for e in G.edges:
+    for i in range(Len): 
+        if i in xSol:
+            x[(edge[i][0], edge[i][1])]= 1
+        else:
+            x[(edge[i][0], edge[i][1])]= 0
+
+start = time.time()
+obj_val_sol= evalXSol(scens, x, G,b,origin,destination)
+total_time = time.time()-start
+
+with open(directory+'evalLazyDelay.txt', 'a') as the_file:
+    the_file.write(str(N)+":"+str(ins)+";"+str(b)+";"+str(num_cases)+";"+str(total_time)+";"+str(obj_val_sol)+";"+str(xSol)+"\n")
+print(str(N)+":"+str(ins)+";"+str(b)+";"+str(num_cases)+";"+str(total_time)+";"+str(obj_val_sol)+";"+str(xSol)+"\n")
+
+xSol = x_SAA_dict[(int(N),ins, b)]
+x = {};
+for e in G.edges:
+    for i in range(Len): 
+        if i in xSol:
+            x[(edge[i][0], edge[i][1])]= 1
+        else:
+            x[(edge[i][0], edge[i][1])]= 0
+
+start = time.time()
+obj_val_sol= evalXSol(scens, x, G,b,origin,destination)
+total_time = time.time()-start
+
+with open(directory+'evalSAA.txt', 'a') as the_file:
+    the_file.write(str(N)+":"+str(ins)+";"+str(b)+";"+str(num_cases)+";"+str(total_time)+";"+str(obj_val_sol)+";"+str(xSol)+"\n")
+print(str(N)+":"+str(ins)+";"+str(b)+";"+str(num_cases)+";"+str(total_time)+";"+str(obj_val_sol)+";"+str(xSol)+"\n")
+
+
+
+xSol = x_main_dict[(int(N),ins, b)]
+x = {};
+for e in G.edges:
+    for i in range(Len): 
+        if i in xSol:
+            x[(edge[i][0], edge[i][1])]= 1
+        else:
+            x[(edge[i][0], edge[i][1])]= 0
+
+start = time.time()
+obj_val_sol= evalXSol(scens, x, G,b,origin,destination)
+total_time = time.time()-start
+
+with open(directory+'evalMain.txt', 'a') as the_file:
+    the_file.write(str(N)+":"+str(ins)+";"+str(b)+";"+str(num_cases)+";"+str(total_time)+";"+str(obj_val_sol)+";"+str(xSol)+"\n")
+print(str(N)+":"+str(ins)+";"+str(b)+";"+str(num_cases)+";"+str(total_time)+";"+str(obj_val_sol)+";"+str(xSol)+"\n")
+
+xSol = x_Seq_dict[(int(N),ins, b)]
+x = {};
+for e in G.edges:
+    for i in range(Len): 
+        if i in xSol:
+            x[(edge[i][0], edge[i][1])]= 1
+        else:
+            x[(edge[i][0], edge[i][1])]= 0
+
+start = time.time()
+obj_val_sol= evalXSol(scens, x, G,b,origin,destination)
+total_time = time.time()-start
+
+with open(directory+'evalSeq.txt', 'a') as the_file:
+    the_file.write(str(N)+":"+str(ins)+";"+str(b)+";"+str(num_cases)+";"+str(total_time)+";"+str(obj_val_sol)+";"+str(xSol)+"\n")
+print(str(N)+":"+str(ins)+";"+str(b)+";"+str(num_cases)+";"+str(total_time)+";"+str(obj_val_sol)+";"+str(xSol)+"\n")
+
+xSol = x_SAA_AP_dict[(int(N),ins, b)]
+x = {};
+for e in G.edges:
+    for i in range(Len): 
+        if i in xSol:
+            x[(edge[i][0], edge[i][1])]= 1
+        else:
+            x[(edge[i][0], edge[i][1])]= 0
+
+start = time.time()
+obj_val_sol= evalXSol(scens, x, G,b,origin,destination)
+total_time = time.time()-start
+
+with open(directory+'evalSAA_AP.txt', 'a') as the_file:
+    the_file.write(str(N)+":"+str(ins)+";"+str(b)+";"+str(num_cases)+";"+str(total_time)+";"+str(obj_val_sol)+";"+str(xSol)+"\n")
+print(str(N)+":"+str(ins)+";"+str(b)+";"+str(num_cases)+";"+str(total_time)+";"+str(obj_val_sol)+";"+str(xSol)+"\n")
