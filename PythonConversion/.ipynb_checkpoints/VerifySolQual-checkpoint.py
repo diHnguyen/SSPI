@@ -8,12 +8,15 @@ import csv;
 import sys;
 import numpy as np
 import time
+import ast
 
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 from functionEvalXSol import evalXSol
-directory = "./PythonConversion/Output/INOC2024/"
-# directory = "./Output/INOC2024/"
+# directory = "./PythonConversion/Output/INOC2024/"
+directory = "./Output/INOC2024/"
+
+generateScens = True
 
 N = sys.argv[1]
 testSet = "N"+str(N)
@@ -104,25 +107,41 @@ print("destination = ", destination);
 # In[5]:
 
 
-scens = [];
-for k in range(num_cases):
-    scen = {};
+
+
+if generateScens == True:
+    scens = [];
+    for k in range(num_cases):
+        scen = {};
+        for e in G.edges:
+            scen[e] = np.random.uniform(G.edges[e]['costLB'],G.edges[e]['costUB']);
+        scens.append(scen);
+    with open(directory+'scens_N'+str(N)+'_'+str(ins)+'.txt', 'w') as the_file:
+        the_file.write(str(scens))
+    print(scens)
+    print(type(scens))
+else:
+    fileName = directory+"scens_N"+str(10)+"_"+str(ins)+".txt"
+    scens = []
+    with open(fileName, newline='\n') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter='\t')
+        for row in spamreader:
+            scens = ast.literal_eval(row[0])
+            print(type(row[0]))
+            
+            
+    xSol = x_lazyDelay_dict[(int(N),ins, b)]
+    x = {};
     for e in G.edges:
-        scen[e] = np.random.uniform(G.edges[e]['costLB'],G.edges[e]['costUB']);
-    scens.append(scen);
+        for i in range(Len): 
+            if i in xSol:
+                x[(edge[i][0], edge[i][1])]= 1
+            else:
+                x[(edge[i][0], edge[i][1])]= 0
 
-xSol = x_lazyDelay_dict[(int(N),ins, b)]
-x = {};
-for e in G.edges:
-    for i in range(Len): 
-        if i in xSol:
-            x[(edge[i][0], edge[i][1])]= 1
-        else:
-            x[(edge[i][0], edge[i][1])]= 0
-
-start = time.time()
-obj_val_sol= evalXSol(scens, x, G,b,origin,destination)
-total_time = time.time()-start
-with open(directory+'evalLazyDelay.txt', 'a') as the_file:
-    the_file.write(str(N)+":"+str(ins)+";"+str(b)+";"+str(num_cases)+";"+str(total_time)+";"+str(obj_val_sol)+";"+str(xSol)+"\n")
-print(str(N)+":"+str(ins)+";"+str(b)+";"+str(num_cases)+";"+str(total_time)+";"+str(obj_val_sol)+";"+str(xSol)+"\n")
+    start = time.time()
+    obj_val_sol= evalXSol(scens, x, G,b,origin,destination)
+    total_time = time.time()-start
+    with open(directory+'evalLazyDelay.txt', 'a') as the_file:
+        the_file.write(str(N)+":"+str(ins)+";"+str(b)+";"+str(num_cases)+";"+str(total_time)+";"+str(obj_val_sol)+";"+str(xSol)+"\n")
+    print(str(N)+":"+str(ins)+";"+str(b)+";"+str(num_cases)+";"+str(total_time)+";"+str(obj_val_sol)+";"+str(xSol)+"\n")
