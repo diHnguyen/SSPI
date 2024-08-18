@@ -151,7 +151,7 @@ x_Seq_dict = {
 
 # networkCSV = './NewCSVFeb24/N10_1.csv'
 num_cases = int(sys.argv[3]) #1000
-b = 2
+b = 20
 np.random.seed(2024)
 
 
