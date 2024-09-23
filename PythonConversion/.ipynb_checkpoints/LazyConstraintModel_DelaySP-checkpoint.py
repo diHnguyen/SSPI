@@ -24,12 +24,13 @@ import math
 # from itertools import combinations
 
 # exec(open('./testInstance.py').read())
-collect_output = False #if True, will write output to file.
+runningTest = True
+printIters = False #if True, will write output to file.
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
-directory = "./PythonConversion/Output/INOC2024/"
+directory = "./"
 # directory = "./Output/INOC2024/"
 Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins)
 # print("cL_orig ", cL_orig)
@@ -44,7 +45,7 @@ M_orig = cU_orig - cL_orig
 delta1 = 1.0
 delta2 = 2.0
 # b = 7
-b=2
+b=10
 print(d)
 # print(edge)
 # exec(open('./testInstance.py').read())
@@ -209,7 +210,8 @@ def lazy(m, where):
         x_index = np.where(x_now > 0)[0]
         # print("p = ", p)
         print("newCell = ", newCell)
-        if collect_output == True:
+        if runningTest == False:
+            if printIters == True:
                 with open(directory+'lazyDelay_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
                     the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(z_now)+";"+str(x_index)+"\n")
                     
@@ -258,7 +260,7 @@ def lazy(m, where):
             for k in range(newCell+1):
                 # print("k ", k)
                 c_L, c_U, M, c, c_g, Y_k = getCellInfo(k, x_now, "c_g", d, df_cell)
-                print("Y_k = ", np.where(Y_k > 0.5)[0], "\t", ((Y_k == P_set).all(1).any()))
+                # print("Y_k = ", np.where(Y_k > 0.5)[0], "\t", ((Y_k == P_set).all(1).any()))
                 if ((Y_k == P_set).all(1).any()) == False:
                     P_set = np.concatenate((P_set, [Y_k]), axis=0)
                 Pk,Pk_cost,SP = getPathCost(P_set,c,c_g,k)
@@ -540,8 +542,11 @@ print('Final optimal obj: %g' % m.ObjVal)
 print("z_now ", z.X   )  
 # for v in m.getVars():
 #     print('%s %g' % (v.VarName, v.X))
-if collect_output == True:
-    with open(directory+'lazyDelay_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+if runningTest == True:
+    with open(directory+'./Sep2024_Output/lazyDelay_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+        the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(m.ObjVal)+";"+str(z_now)+";"+str(x_index)+"\n")
+else:
+    with open(directory+'./Sep2024_Output/lazyDelay_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(m.ObjVal)+";"+str(z_now)+";"+str(x_index)+"\n")
 # vals = m.getAttr('X', x)
 

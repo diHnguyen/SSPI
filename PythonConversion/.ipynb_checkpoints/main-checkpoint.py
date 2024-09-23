@@ -9,15 +9,17 @@ from gurobipy import GRB
 import sys
 import math
 
-
+# test = "True"
+runningTest = True
+printIters = False
 # exec(open('testInstance.py').read())
-collect_output = True #if True, will write output to file.
+# collect_output = True #if True, will write output to file.
 
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
-directory = "./PythonConversion/Output/INOC2024/"
+directory = "./"
 #directory = "./Output/INOC2024/"
 Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins)
 # print("cL_orig ", cL_orig)
@@ -32,7 +34,7 @@ M_orig = cU_orig - cL_orig
 delta1 = 1.0
 delta2 = 2.0
 # b = 7
-b=20
+b=10
 print(d)
 
 # Getting args from command line: int(sys.argv[1])
@@ -61,7 +63,7 @@ from functionGetCellInfo import getCellInfo
 # newCell = 2
 k=1
 A1=0
-A3=1
+A3=1 
 
 # Calculate c values
 c = (cU_orig + cL_orig) / 2
@@ -253,9 +255,10 @@ while not terminate_cond:
             print("==========================================================")
             x_index = np.where(x_now > 0)[0]
             print("x = ", x_index)
-            if collect_output == True:
-                with open(directory+'main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                    the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
+            if runningTest == False:
+                if printIters == True:
+                    with open(directory+'main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
                     
             # print(df_cell)
             # print("z = ", z_now[0:(newCell+1)])
@@ -499,8 +502,11 @@ while not terminate_cond:
     
 # Optimize the model
 m.optimize()
-if collect_output == True:
-    with open(directory+'main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+if runningTest == True:
+    with open(directory+'./Sep2024_Output/test_main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+        the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
+else:
+    with open(directory+'./Sep2024_Output/main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
         
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
