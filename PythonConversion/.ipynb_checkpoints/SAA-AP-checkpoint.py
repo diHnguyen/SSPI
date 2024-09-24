@@ -17,7 +17,7 @@ import time
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 
-directory = "./PythonConversion/Output/INOC2024/"
+directory = "./"
 
 testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
@@ -36,7 +36,7 @@ from functionFindCluster import findCluster
 
 # networkCSV = './NewCSVFeb24/N10_1.csv'
 num_cases = int(sys.argv[3]) #1000
-b = 20
+b = 10
 option = 2; #1: conservative refinement; 2: aggressive refinement
 np.random.seed(2024)
 
@@ -226,7 +226,7 @@ for e in G.edges:
 theta = master.addVar(obj=1.0, vtype=GRB.CONTINUOUS, lb = 0, ub = 1e7);
 
 # Add interdiction budget constraint
-master.addConstr(gp.quicksum(x[e] for e in G.edges) <= b);
+master.addConstr(gp.quicksum(x[e] for e in G.edges) == b);
 
 master._x = x
 master._theta = theta
@@ -269,7 +269,7 @@ for e in G.edges:
 # print(edge)
 total_time = time.time() - start
 print(total_time)
-with open(directory+'SAA-AP_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+with open(directory+'Sep2024_Output/SAA-AP_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
     the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+"\n")
 
 print(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+"\n")

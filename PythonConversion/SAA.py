@@ -17,7 +17,7 @@ import time
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 
-directory = "./PythonConversion/Output/INOC2024/"
+directory = "./"
 
 testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
@@ -33,7 +33,7 @@ Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, in
 
 # networkCSV = './NewCSVFeb24/N10_1.csv'
 num_cases = int(sys.argv[3]) #1000
-b = 20
+b = 10
 np.random.seed(2024)
 
 
@@ -140,7 +140,7 @@ for k in range(num_cases):
     theta[k] = master.addVar(obj=1.0/num_cases, vtype=GRB.CONTINUOUS, lb = 0, ub = 1e7);
 
 # Add interdiction budget constraint
-master.addConstr(gp.quicksum(x[e] for e in G.edges) <= b);
+master.addConstr(gp.quicksum(x[e] for e in G.edges) == b);
 
 master._x = x
 master._theta = theta
@@ -175,5 +175,5 @@ for e in G.edges:
 # print(edge)
 total_time = time.time() - start
 print(total_time)
-with open(directory+'SAA_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+with open(directory+'Sep2024_Output/SAA_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
     the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+"\n")
