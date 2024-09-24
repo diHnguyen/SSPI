@@ -10,7 +10,7 @@ import sys
 import math
 
 # test = "True"
-runningTest = True
+runningTest = False
 printIters = False
 # exec(open('testInstance.py').read())
 # collect_output = True #if True, will write output to file.

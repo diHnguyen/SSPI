@@ -24,7 +24,7 @@ import math
 # from itertools import combinations
 
 # exec(open('./testInstance.py').read())
-runningTest = True
+runningTest = False
 printIters = False #if True, will write output to file.
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
@@ -543,7 +543,7 @@ print("z_now ", z.X   )
 # for v in m.getVars():
 #     print('%s %g' % (v.VarName, v.X))
 if runningTest == True:
-    with open(directory+'./Sep2024_Output/lazyDelay_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'./Sep2024_Output/test_lazyDelay_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(m.ObjVal)+";"+str(z_now)+";"+str(x_index)+"\n")
 else:
     with open(directory+'./Sep2024_Output/lazyDelay_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
