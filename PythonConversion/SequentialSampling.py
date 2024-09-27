@@ -19,7 +19,7 @@ from copy import deepcopy
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 from functionSolveSAASeq import solveSAASeq
-directory = "./PythonConversion/Output/INOC2024/"
+directory = "./"
 print("LN e : ", math.exp(1))
 testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
@@ -78,7 +78,7 @@ opt_gap = 1e6
 scens = []
 cur_SP_cost_all_scens = []
 print("Num scens for k=1 ", num_cases)
-b = 2
+b = 10
 np.random.seed(2024)
 
 
@@ -478,6 +478,6 @@ print("one-sided CI [0, ", ci_right,"]")
 # print(x_sol);
 # print(theta_sol)
 # print("iter ", iter)
-with open(directory+'SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+with open(directory+'Sep2024_Output/SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
     the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(obj_val_sol)+";"+str(x_idx)+";"+para+";"+str(opt_gap)+";"+"[0 "+ str(ci_right)+"]"+"\n")
 print(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(obj_val_sol)+";"+str(x_idx)+";"+para+";"+str(opt_gap)+";"+"[0 "+ str(ci_right)+"]"+"\n")
