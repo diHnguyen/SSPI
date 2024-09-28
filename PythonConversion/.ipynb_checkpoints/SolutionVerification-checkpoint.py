@@ -20,7 +20,7 @@ from functionProcessInputFile import processInputFile
 
 directory = "./"
 
-N = 30
+N = sys.argv[1]
 testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
 
@@ -38,7 +38,7 @@ Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, in
 # numpy.random.seed(2024);
 
 # networkCSV = './NewCSVFeb24/N10_1.csv'
-num_cases = 1000000 #3#int(sys.argv[3]) #1000
+num_cases = 100000 #3#int(sys.argv[3]) #1000
 b = 10
 np.random.seed(20242024) #Use a new seed so SAA algs don't see these yet
 
@@ -65,7 +65,7 @@ for filename in os.listdir(dir):
         df = pd.read_csv(dir+filename, sep=';', names=['iiter','total_time','b','ObjVal','x_sol'], header=None)
         xSAA_AP = df['x_sol'][0]
     if filename.startswith("SeqSampling_N"+str(N)+"_"+str(ins)+".txt"):
-        df = pd.read_csv(dir+filename, sep=';', names=['iiter','total_time','b','ObjVal','x_sol'], header=None)
+        df = pd.read_csv(dir+filename, sep=';', names=['numcases','total_time','b','ObjVal','x_sol','para','optgap','ciRight'], header=None)
         xSeq = df['x_sol'][0]
 print("xMain ",xMain)
 print("xLazy ",xLazy)
