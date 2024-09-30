@@ -52,7 +52,7 @@ dir = "./Sep2024_Output/"
 for filename in os.listdir(dir):
     if filename.startswith("main_N"+str(N)+"_"+str(ins)+".txt"):
         df = pd.read_csv(dir+filename, sep=';', names=['iiter','total_time','b','ObjVal','x_sol'], header=None)
-        print(df)
+        # print(df)
         xMain = df['x_sol'][0]
         print(filename)
     if filename.startswith("lazyDelay_N"+str(N)+"_"+str(ins)+".txt"):
@@ -127,7 +127,7 @@ ObjLazy = -1
 ObjSAA = -1
 ObjSAA_AP = -1
 ObjSeq = -1
-for x in [xMain, xLazy, xSAA, xSAA_AP]:
+for x in [xSeq]:#[xMain, xLazy, xSAA, xSAA_AP]:
     xvals = [] #model.cbGetSolution(model._x)
     # print(len(edge))
     # print("x ", x)
@@ -153,14 +153,14 @@ for x in [xMain, xLazy, xSAA, xSAA_AP]:
         spValue = nx.shortest_path_length(G, source=origin, target=destination, weight='tempCost', method='dijkstra')
         SP_costs.append(spValue)
     
-    if x == xMain:
-        ObjMain = sum(SP_costs)/num_cases
-    if x == xLazy:
-        ObjLazy = sum(SP_costs)/num_cases
-    if x == xSAA:
-        ObjSAA = sum(SP_costs)/num_cases
-    if x == xSAA_AP:
-        ObjSAA_AP = sum(SP_costs)/num_cases
+    # if x == xMain:
+    #     ObjMain = sum(SP_costs)/num_cases
+    # if x == xLazy:
+    #     ObjLazy = sum(SP_costs)/num_cases
+    # if x == xSAA:
+    #     ObjSAA = sum(SP_costs)/num_cases
+    # if x == xSAA_AP:
+    #     ObjSAA_AP = sum(SP_costs)/num_cases
     if x == xSeq:
         ObjSeq = sum(SP_costs)/num_cases
         
@@ -191,13 +191,13 @@ print(ObjSeq)
 # total_time = time.time() - start
 # print(total_time)
 with open(directory+'Sep2024_Output/SolutionVerification.csv', 'a') as the_file:
-    if ObjMain > 0:
-        the_file.write(str(N)+";"+str(ins)+";"+"xMain;"+xMain+";"+str(num_cases)+";"+str(b)+";"+str(ObjMain)+"\n")
-    if ObjLazy > 0:
-        the_file.write(str(N)+";"+str(ins)+";"+"xLazy;"+xLazy+";"+str(num_cases)+";"+str(b)+";"+str(ObjLazy)+"\n")
-    if ObjSAA > 0:
-        the_file.write(str(N)+";"+str(ins)+";"+"xSAA;"+xSAA+";"+str(num_cases)+";"+str(b)+";"+str(ObjSAA)+"\n")
-    if ObjSAA_AP > 0:
-        the_file.write(str(N)+";"+str(ins)+";"+"xSAA_AP;"+xSAA_AP+";"+str(num_cases)+";"+str(b)+";"+str(ObjSAA_AP)+"\n")
+    # if ObjMain > 0:
+    #     the_file.write(str(N)+";"+str(ins)+";"+"xMain;"+xMain+";"+str(num_cases)+";"+str(b)+";"+str(ObjMain)+"\n")
+    # if ObjLazy > 0:
+    #     the_file.write(str(N)+";"+str(ins)+";"+"xLazy;"+xLazy+";"+str(num_cases)+";"+str(b)+";"+str(ObjLazy)+"\n")
+    # if ObjSAA > 0:
+    #     the_file.write(str(N)+";"+str(ins)+";"+"xSAA;"+xSAA+";"+str(num_cases)+";"+str(b)+";"+str(ObjSAA)+"\n")
+    # if ObjSAA_AP > 0:
+    #     the_file.write(str(N)+";"+str(ins)+";"+"xSAA_AP;"+xSAA_AP+";"+str(num_cases)+";"+str(b)+";"+str(ObjSAA_AP)+"\n")
     if ObjSeq > 0:
         the_file.write(str(N)+";"+str(ins)+";"+"xSeq;"+xSeq+";"+str(num_cases)+";"+str(b)+";"+str(ObjSeq)+"\n")
