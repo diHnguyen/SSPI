@@ -24,7 +24,9 @@ print("LN e : ", math.exp(1))
 testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
 Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins)
-
+with open(directory+'Sep2024_Output/test_SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+    the_file.write("\nStarting Ins"+testSet+"_"+str(ins)+"\n")
+print("Starting Ins"+testSet+"_"+str(ins)+"\n")
 # x-sequence for N10_4:
 # 1. [4]
 # 2. [4]
@@ -142,6 +144,8 @@ while opt_gap > h_prime*np.sqrt(var)+epsilon_prime:
     # print("Permited gap ", h_prime*np.sqrt(var)+epsilon_prime)
     iter = iter+1
     print("\nIter ", iter)
+    with open(directory+'Sep2024_Output/test_SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+        the_file.write("\nIter " + str(iter))
     # if iter == 1:
     #     num_cases_minus1 = 0
     # else:
@@ -149,10 +153,16 @@ while opt_gap > h_prime*np.sqrt(var)+epsilon_prime:
     num_cases = int(np.ceil(((1/(h-h_prime))**2)*(c_p+2*p*(np.log(iter)**2))))
     
     m_k = 2*num_cases
+    with open(directory+'Sep2024_Output/test_SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+        the_file.write("\nm_k = "+str(m_k) + "; n_k "+str(num_cases))
     x_candidate, obj_val_candidate, _ = solveSAASeq(m_k, G,b,origin,destination)
     # print("num_cases ",num_cases, " m_k ", m_k)
-    
     x_sol, obj_val_sol, scens = solveSAASeq(num_cases, G,b,origin,destination)  
+
+    with open(directory+'Sep2024_Output/test_SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+        the_file.write("\nx_candidate\n" + str([key for key, value in x_candidate.items() if value >0.01]))
+    with open(directory+'Sep2024_Output/test_SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+        the_file.write("\nx_sol\n" + str([key for key, value in x_sol.items() if value >0.01]))
     SP_cost_all_scens_candidate = []
     # print(len(G.edges))
     # print("x_candidate ")
@@ -203,10 +213,14 @@ while opt_gap > h_prime*np.sqrt(var)+epsilon_prime:
     temp_arr = -(np.array(SP_cost_all_scens_candidate)- np.array(cur_SP_cost_all_scens)) #Since we're maximizing
     opt_gap = sum(temp_arr/len(cur_SP_cost_all_scens))
     print("opt_gap ", opt_gap)
+    with open(directory+'Sep2024_Output/test_SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+        the_file.write("\nopt_gap = " + str(opt_gap))
     var = 0
     for i in range(len(temp_arr)):
         var = var+ (temp_arr[i]-opt_gap)**2
     var = var/(len(temp_arr)-1)
+    with open(directory+'Sep2024_Output/test_SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+        the_file.write("\nvar = " +str(var))
     # print("var ", var)
     # print("one-sided CI [0, ", h*np.sqrt(var)+epsilon,"]")
     # print("New Permited gap ", h_prime*np.sqrt(var)+epsilon_prime)
@@ -478,6 +492,6 @@ print("one-sided CI [0, ", ci_right,"]")
 # print(x_sol);
 # print(theta_sol)
 # print("iter ", iter)
-with open(directory+'Sep2024_Output/SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
-    the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(obj_val_sol)+";"+str(x_idx)+";"+para+";"+str(opt_gap)+";"+"[0 "+ str(ci_right)+"]"+"\n")
+with open(directory+'Sep2024_Output/test_SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+    the_file.write("\n"+str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(obj_val_sol)+";"+str(x_idx)+";"+para+";"+str(opt_gap)+";"+"[0 "+ str(ci_right)+"]"+"\n")
 print(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(obj_val_sol)+";"+str(x_idx)+";"+para+";"+str(opt_gap)+";"+"[0 "+ str(ci_right)+"]"+"\n")
