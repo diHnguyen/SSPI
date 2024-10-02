@@ -21,7 +21,7 @@ from functionProcessInputFile import processInputFile
 from functionSolveSAASeq import solveSAASeq
 directory = "./"
 print("LN e : ", math.exp(1))
-testSet = "N"+sys.argv[1]
+testSet = "20_N"+sys.argv[1]
 ins = int(sys.argv[2])
 Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins)
 with open(directory+'Sep2024_Output/test_SeqSampling_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
