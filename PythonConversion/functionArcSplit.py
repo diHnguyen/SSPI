@@ -35,7 +35,8 @@ def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,
             c2 = c.copy()
             c2[arc_split] = c_L[arc_split]
             c2_g = [c2[i] + d[i] * x_now[i] for i in range(Len)]
-            y2, g2, SP2, T2, pred2, label2, path2 = gx_bound(c2, c2_g, edge, origin,destination)
+            # y2, g2, SP2, T2, pred2, label2, path2 = gx_bound(c2, c2_g, edge, origin,destination)
+            y2, g2, SP2, label2, path2 = gx_bound(c2, c2_g, edge, origin,destination)
             y_index = [i for i, val in enumerate(y) if val > 0.9]
             y2_index = [i for i, val in enumerate(y2) if val > 0.9]
             y_cost_c2 = sum(y[i] * (c2[i] + d[i] * x_now[i]) for i in range(Len))
