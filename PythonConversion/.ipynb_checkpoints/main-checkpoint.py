@@ -63,7 +63,7 @@ from functionGetCellInfo import getCellInfo
 # newCell = 2
 k=1
 A1=0
-A3=0 #1 
+A3=1 
 
 # Calculate c values
 c = (cU_orig + cL_orig) / 2
