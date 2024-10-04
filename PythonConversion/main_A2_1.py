@@ -381,7 +381,7 @@ while not terminate_cond:
                         
                         if np.array_equal(newCell_parent_Y, yL) == False:
                             myCounter = partitionCounter
-                            print("!!!!!!! FOUND NEW PATH !!!!!!!")
+                            # print("!!!!!!! FOUND NEW PATH !!!!!!!")
                             
 
                         
