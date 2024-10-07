@@ -49,6 +49,8 @@ xSAA = []
 xSAA_AP = []
 xSeq = []
 dir = "./Sep2024_Output/"
+
+df_xSol = 
 for filename in os.listdir(dir):
     if filename.startswith("main_N"+str(N)+"_"+str(ins)+".txt"):
         df = pd.read_csv(dir+filename, sep=';', names=['iiter','total_time','b','ObjVal','x_sol'], header=None)
