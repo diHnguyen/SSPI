@@ -22,15 +22,17 @@ def selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1):
 
         # Applying Lemma 2
         yW, gW, SPW, _, _ = gx_bound(cW,c_g_W,edge,origin,destination)
+        # print(
         # print("gW ", gW)
         # print("yW ", np.where(yW > 0.5)[0])
+        # print("y ", np.where(y > 0.5)[0])
         M_path = np.abs(y - yW) * M
         
         # print("c_U = ", c_U)
         # print("c_L = ", c_L)
         # print("M_path = ", M_path)
         S_k_W = np.where((M_path == np.max(M_path)) & (M_path > 0))[0]
-        
+        # print("S_k_W ", S_k_W)
         arc_split = S_k_W[0]
         # print("S_k_W ", S_k_W, " ", M[arc_split])
     return arc_split
