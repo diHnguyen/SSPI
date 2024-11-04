@@ -259,7 +259,7 @@ while not terminate_cond:
             print("x = ", x_index)
             if runningTest == False:
                 if printIters == True:
-                    with open(directory+'main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                    with open(directory+'test_main_Strat4_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
                         the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
                     
             # print(df_cell)

@@ -17,7 +17,8 @@ printIters = False
 
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
-testSet = "N"+sys.argv[1]
+N = sys.argv[1]
+testSet = "N"+N
 ins = int(sys.argv[2])
 directory = "./"
 #directory = "./Output/INOC2024/"
@@ -106,6 +107,24 @@ df_cell = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
 # print(df_cell)
 
 
+# #Create a data frame that tracks parent's cell SP
+# # Create and append rows to the DataFrames
+# new_row = {
+#     'CELL': [0],
+#     'ParentCell': [-1],
+#     'ParentY': [-1]
+# }
+
+# # Define data types for each column
+# dtypes = {
+#     'CELL': int,
+#     'ParentCell': int,
+#     'ParentY': object
+# }
+# df_parent = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
+
+
+
 # data = {"cell":1, 
 #         "rhs": SP_init, 
 #         "SP": yy, 
@@ -164,6 +183,7 @@ dtypes = {
     'con': object
 }
 
+
 # print("yy ", yy)
 global df_constraints 
 df_constraints = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
@@ -221,12 +241,32 @@ terminate_cond = False
 # print(df_cell.g)
 # print(df_cell)
 
+df_xSol = pd.read_csv("./Sep2024_Output/xSol_SAA_AP.csv")
+print("N ", N)
+print("ins ", ins)
+# print(df_xSol[(df_xSol.N == int(N))&(df_xSol.Ins == int(ins))])
+warmStart_X = df_xSol.loc[(df_xSol.N == int(N))&(df_xSol.Ins == int(ins)), 'x_sol'].values[0]
+print("warmStart ", type(warmStart_X))
+
+# x_init = np.zeros(Len)
+
+string_array_cleaned = warmStart_X.strip("[]")  # Remove brackets
+string_list = string_array_cleaned.split()
+x_init = np.array(list(map(int, string_list)))
+# print(x_int, type(x_int))
+# for a in x_int:
+#     # print(a)
+#     x_init[a] = 1
+# print(x_init)
+# sys.exit()
+
+
 while not terminate_cond:
     # α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell, LB_w, p, \
     # x_sol, z_sol, α_sol, last_x, x_now, α_now, z_now, terminate_cond, start, set, Ins, density, dataset = \
     #     (global variable values here)
     # print("HERE")
-    
+    # print("K_bar ", K_bar)
     while (len(K_bar)>0):
         
         # print("\n\n@@@@@DF_CELL@@@@@@")
@@ -236,6 +276,11 @@ while not terminate_cond:
         # for k in K_bar:
         #     print(k, ": ", df_constraints.loc[k,'con'])
         iter += 1
+        con1 = m.addConstr(sum(x[a] for a in x_init) == b)
+        if iter > 1:
+            m.remove(con1)
+            
+            
         # m.write("checkModel.lp")
         m.update()
         m.optimize()
@@ -259,7 +304,7 @@ while not terminate_cond:
             print("x = ", x_index)
             if runningTest == False:
                 if printIters == True:
-                    with open(directory+'test_main_Strat4_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                    with open(directory+'test_mainA2_MonsterStrat_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
                         the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
                     
             # print(df_cell)
@@ -277,15 +322,28 @@ while not terminate_cond:
             
 
         O1Flag = True
+        
         O1Flag, K_bar, df_cell, df_constraints = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints)
-        
-        
+        # print("Cells " , len(df_cell))
+
+        # df_parent = df_parent.drop(columns=['ParentY'])
+        # df_parent.loc[:,'ParentCell'] = -1
+        # df_parent = 
+        # df_parent = df_cell[['CELL','Y']]
+        # df_parent['Parent'] = df_parent['CELL']
+        df_parent = pd.DataFrame({
+            'CELL': df_cell.CELL,
+            'Y': df_cell.Y,  # Assuming 'Y' contains arrays
+            'Parent': df_cell.CELL
+        })
+        # print("df_parent ")
+        # print(df_parent)
         # print("O1Flag ", O1Flag)
         # print("K_bar ", K_bar)
         h = np.array(df_cell.h)
         # print(h)
         if O1Flag:
-            print("\tO1Flag: Passed")
+            print("\n\tO1Flag: Passed")
             partitionCounter = 1
             myCounter = 0
             # print("HERE")
@@ -293,23 +351,13 @@ while not terminate_cond:
             
             # print("LB = ", h)
             while myCounter < partitionCounter:
-                myCounter += 1
-                # print("K_bar = ", K_bar)
+                # myCounter += 1
+                
+                # print("\nK_bar = ", K_bar)
                 # print("Cells failing O2Flag")
                 for k in K_bar:
                     # print("Cell ", k)
                     c_L, c_U, M, c, c_g, yK = getCellInfo(k, x_now, "c_g", d, df_cell)
-                    
-
-                    # if newCell > 0:
-                    # Get the CI in place of gx-hx here:
-                    SP_mean, one_sided_CI = getSAABounds(x_now, MP_obj, c_L, c_U,d,edge,origin,destination,delta2)
-                    # gx = SP_mean + one_sided_CI
-                    hx_alt = SP_mean - one_sided_CI
-                    # print("From SAA CI hx = ", hx)
-
-                    # else:
-                    
                     # yL, gL, SPL,_,_, = gx_bound(c, c_g_L, edge,origin,destination)
                     # df_cell.at[k, 'Y_Lk'] = yL
                     # df_cell.at[k, 'gL'] = gL
@@ -321,17 +369,13 @@ while not terminate_cond:
                     #         the_file.write(c_L)
                     #         the_file.write(c_L)
                     #         the_file.write(c_L)
-                            
-                            
-                    #Replace the line below with CI
-                    y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
 
-                    
-                    
-                    
+                    SP_mean, one_sided_CI = getSAABounds(x_now, MP_obj, c_L, c_U,d,edge,origin,destination,delta2)
+                    hx_alt = SP_mean - one_sided_CI        
+
+                    y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
                     # print("y_h = ", y_h)
                     # print("hx = ", hx)
-                    
                     h[k] = hx
                     p_k = df_cell.at[k, 'PROB']
                     # print("Before update hx")
@@ -342,15 +386,12 @@ while not terminate_cond:
                     gx = df_cell.at[k, 'g']
                     # print(k, "gx = ", gx,"; hx = ", hx)
                     # print("hx = ", hx)
-                    # print("Opt gap @ k from SAA : ", one_sided_CI*2)
-                    # if one_sided_CI*2 <= delta2: # 
-                    # print("New bounds: ", hx, "\t", gx)
-                    if (gx - hx_alt <= delta2/2) or (gx - hx <= delta2):
+                    
+                    if gx - hx <= delta2:
                         # print("O2Flag: Passed")
                         K_removed.append(k)
                     else:
                         # print(k, end=": ")
-                        # print("\n",k," New bounds: ",hx,"\t", hx_alt, "\t", gx)
                         newCell += 1
                         # print("2. After update hx")
                         # print(df_cell)
@@ -358,6 +399,20 @@ while not terminate_cond:
                         # print("arc_split ", arc_split)
                         # print(k, ": Added a new cell")
                         # print(df_cell)
+
+                        # df_parent columns: 'CELL','Y','Parent'
+                        # This takes the original parent - not just one level up
+                        newCell_parent = df_parent.loc[k,'Parent']
+                        newCell_parent_Y = df_parent.loc[newCell_parent,'Y']
+                        
+                        df_parent.loc[len(df_parent)] = [newCell,newCell_parent_Y,newCell_parent] #Order: cell number, parent SP, parent cell
+
+                        
+                        if np.array_equal(newCell_parent_Y, yL) == False:
+                            myCounter = partitionCounter
+                            # print("!!!!!!! FOUND NEW PATH !!!!!!!")
+                            
+
                         
                         # df_temp_k = df_constraints[df_constraints.CELL == k]
                         #constraints associated with cell k
@@ -486,7 +541,7 @@ while not terminate_cond:
                             df_constraints = pd.concat([df_constraints,df_new_con], axis=0, ignore_index=True)
                 # print("newCell ", newCell)
                 p = df_cell['PROB'].tolist()
-                
+                h = np.array(df_cell.h)
                 # @objective(m, Max, sum(p[i] * z[i] for i in range(1, len(p) + 1)))
                 
                 # m.setObjective(sum(p[i] * z[i] for i in range(1, len(p) + 1)), sense=GRB.MAXIMIZE)
@@ -524,10 +579,10 @@ while not terminate_cond:
 # Optimize the model
 m.optimize()
 if runningTest == True:
-    with open(directory+'./Sep2024_Output/test_main_Strat4_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'./Sep2024_Output/test_mainA2_1_WarmStart'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
 else:
-    with open(directory+'./Sep2024_Output/main_Strat4_n10000_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'./Sep2024_Output/mainA2_1_WarmStart'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
         
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
