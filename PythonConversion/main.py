@@ -11,7 +11,7 @@ import math
 
 # test = "True"
 runningTest = False
-printIters = False
+printIters = True
 # exec(open('testInstance.py').read())
 # collect_output = True #if True, will write output to file.
 
@@ -257,8 +257,8 @@ while not terminate_cond:
             print("x = ", x_index)
             if runningTest == False:
                 if printIters == True:
-                    with open(directory+'main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
+                    with open(directory+'Sep2024_Output/Iter/main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
                     
             # print(df_cell)
             # print("z = ", z_now[0:(newCell+1)])
@@ -503,10 +503,10 @@ while not terminate_cond:
 # Optimize the model
 m.optimize()
 if runningTest == True:
-    with open(directory+'./Sep2024_Output/test_mainA3_0_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'./Sep2024_Output/test_main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
 else:
-    with open(directory+'./Sep2024_Output/mainA3_0_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'./Sep2024_Output/main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
         
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))

@@ -11,7 +11,7 @@ import math
 
 # test = "True"
 runningTest = False
-printIters = False
+printIters = True
 # exec(open('testInstance.py').read())
 # collect_output = True #if True, will write output to file.
 
@@ -259,7 +259,7 @@ while not terminate_cond:
             print("x = ", x_index)
             if runningTest == False:
                 if printIters == True:
-                    with open(directory+'test_main_Strat4_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                    with open(directory+'Sep2024_Output/Iter/test_main_Strat4_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
                         the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
                     
             # print(df_cell)
@@ -527,7 +527,7 @@ if runningTest == True:
     with open(directory+'./Sep2024_Output/test_main_Strat4_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
 else:
-    with open(directory+'./Sep2024_Output/main_Strat4_n500_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'./Sep2024_Output/main_Strat4_n1000_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
         
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
