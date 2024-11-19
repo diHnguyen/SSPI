@@ -217,6 +217,7 @@ K_removed = []
 cur_time = None
 start = time.time()
 terminate_cond = False
+total_SAA = 0
 # print("df_cell")
 # print(df_cell.g)
 # print(df_cell)
@@ -255,12 +256,13 @@ while not terminate_cond:
             print("\n==========================================================")
             print("Iter : ", iter, " ; MP_obj = ", MP_obj, " ; time ", cur_time, "; ", len(K_bar), "/", newCell+1)
             print("==========================================================")
+            print("total_SAA = ", total_SAA)
             x_index = np.where(x_now > 0)[0]
             print("x = ", x_index)
             if runningTest == False:
                 if printIters == True:
-                    with open(directory+'Sep2024_Output/Iter/test_main_Strat4_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
+                    with open(directory+'Sep2024_Output/Iter/test_main_Strat4_20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+"\n")
                     
             # print(df_cell)
             # print("z = ", z_now[0:(newCell+1)])
@@ -303,7 +305,11 @@ while not terminate_cond:
 
                     # if newCell > 0:
                     # Get the CI in place of gx-hx here:
+                    start_SAA = time.time()
                     SP_mean, one_sided_CI = getSAABounds(x_now, MP_obj, c_L, c_U,d,edge,origin,destination,delta2)
+                    end_SAA = time.time()
+                    total_SAA = total_SAA + (end_SAA-start_SAA)
+                    
                     # gx = SP_mean + one_sided_CI
                     hx_alt = SP_mean - one_sided_CI
                     # print("From SAA CI hx = ", hx)
@@ -524,11 +530,12 @@ while not terminate_cond:
 # Optimize the model
 m.optimize()
 if runningTest == True:
-    with open(directory+'./Sep2024_Output/test_main_Strat4_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
+    print("End of test - Not Printing")
+    # with open(directory+'./Sep2024_Output/test_main_Strat4_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+        # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
 else:
     with open(directory+'./Sep2024_Output/main_Strat4_n1000_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
+        the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+";"+str(total_SAA)+"\n")
         
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
