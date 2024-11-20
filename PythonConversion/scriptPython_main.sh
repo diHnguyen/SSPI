@@ -2,7 +2,7 @@
 
 for N in 30;
 do
-    for i in {11..150};
+    for i in {30 34 37 39 70};
     do
         echo "Running N=$N d=$d i=$i "
         gtimeout -k 5 3600 python main.py $N $i

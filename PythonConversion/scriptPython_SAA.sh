@@ -1,9 +1,9 @@
 #!/bin/bash
-for N in 30 40 50;
+for N in 30;
 do
-    for i in {1..10};
+    for i in {11..150};
     do
-        for num_cases in 500 5000 50000;
+        for num_cases in 5000;
         do
             echo "Running N=$N d=$d i=$i "
             gtimeout -k 5 3600 python SAA.py $N $i $num_cases
