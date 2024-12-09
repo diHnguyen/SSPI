@@ -535,7 +535,7 @@ if runningTest == True:
         # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
 else:
     with open(directory+'./Sep2024_Output/main_Strat4_n1000_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+";"+str(total_SAA)+"\n")
+        the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+";"+str(total_SAA)+"\n")
         
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
