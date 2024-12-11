@@ -17,7 +17,7 @@ printIters = True
 
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
-testSet = "20_N"+sys.argv[1]
+testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
 directory = "./"
 #directory = "./Output/INOC2024/"

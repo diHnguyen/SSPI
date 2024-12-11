@@ -17,7 +17,7 @@ printIters = True
 
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
-testSet = "20_N"+sys.argv[1]
+testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
 directory = "./"
 #directory = "./Output/INOC2024/"
@@ -504,8 +504,8 @@ while not terminate_cond:
 m.optimize()
 if runningTest == True:
     print("End of test - Not Printing")
-    with open(directory+'./Sep2024_Output/test_main_d20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
+    # with open(directory+'./Sep2024_Output/test_main_d20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+        # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
 else:
     with open(directory+'./Sep2024_Output/main_d20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
