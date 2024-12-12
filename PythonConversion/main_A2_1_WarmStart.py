@@ -242,7 +242,7 @@ terminate_cond = False
 df_xSol = pd.read_csv("./Sep2024_Output/xSol_SAA_AP.csv")
 print("N ", N)
 print("ins ", ins)
-# print(df_xSol[(df_xSol.N == int(N))&(df_xSol.Ins == int(ins))])
+print(df_xSol[(df_xSol.N == int(N))&(df_xSol.Ins == int(ins))])
 warmStart_X = df_xSol.loc[(df_xSol.N == int(N))&(df_xSol.Ins == int(ins)), 'x_sol'].values[0]
 print("warmStart ", type(warmStart_X))
 
