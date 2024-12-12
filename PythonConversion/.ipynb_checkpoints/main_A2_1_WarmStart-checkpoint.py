@@ -302,7 +302,7 @@ while not terminate_cond:
             print("x = ", x_index)
             if runningTest == False:
                 if printIters == True:
-                    with open(directory+'test_mainA2_1_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                    with open(directory+'Sep2024_Output/Iter/test_mainA2_1_WarmStart_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
                         the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
                     
             # print(df_cell)
@@ -576,10 +576,11 @@ while not terminate_cond:
 # Optimize the model
 m.optimize()
 if runningTest == True:
-    with open(directory+'./Sep2024_Output/test_mainA2_1_WarmStart'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
+    print("End of test - Not Printing")
+    # with open(directory+'./Sep2024_Output/test_mainA2_1_WarmStart'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    #     the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
 else:
-    with open(directory+'./Sep2024_Output/mainA2_1_WarmStart'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'./Sep2024_Output/mainA2_1_WarmStart_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
         
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
