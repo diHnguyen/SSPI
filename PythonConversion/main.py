@@ -62,8 +62,8 @@ from functionGetCellInfo import getCellInfo
 # x_now = np.zeros(Len)
 # newCell = 2
 k=1
-A1=0
-A3=1 
+A1=0 #A1 = 0: Choose arc using worst cost. Else: Choose arc w largest M
+A3=1 #A3 = 0: Split a selected using SA if possible. Else: Split using mean base cost.
 
 # Calculate c values
 c = (cU_orig + cL_orig) / 2
