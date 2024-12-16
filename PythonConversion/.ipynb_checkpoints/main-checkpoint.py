@@ -62,8 +62,8 @@ from functionGetCellInfo import getCellInfo
 # x_now = np.zeros(Len)
 # newCell = 2
 k=1
-A1=0
-A3=1 
+A1=0 #A1 = 0: Choose arc using worst cost. Else: Choose arc w largest M
+A3=1 #A3 = 0: Split a selected using SA if possible. Else: Split using mean base cost.
 
 # Calculate c values
 c = (cU_orig + cL_orig) / 2
@@ -257,8 +257,8 @@ while not terminate_cond:
             print("x = ", x_index)
             if runningTest == False:
                 if printIters == True:
-                    with open(directory+'Sep2024_Output/Iter/main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                    with open(directory+'Dec2024_Output/Iter/main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
                     
             # print(df_cell)
             # print("z = ", z_now[0:(newCell+1)])
@@ -504,12 +504,14 @@ while not terminate_cond:
 m.optimize()
 if runningTest == True:
     print("End of test - Not Printing")
-    # with open(directory+'./Sep2024_Output/test_main_d20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    # with open(directory+'./Dec2024_Output/test_main_d20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
 else:
-    with open(directory+'./Sep2024_Output/main_d20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
-        
+    with open(directory+'./Dec2024_Output/main_d20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+        # the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
+        the_file.write("-1;"+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+    with open(directory+'Dec2024_Output/Iter/main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                        the_file.write(str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
 # for i in range(newCell+1):
