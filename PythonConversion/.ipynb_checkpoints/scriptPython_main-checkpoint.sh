@@ -1,11 +1,11 @@
 #!/bin/bash
 
-for N in 30;
+for N in 40;
 do
-    for i in {21..30};
+    for i in {1..150};
     do
-        echo "Running N=$N d=$d i=$i "
-        gtimeout -k 5 3600 python main.py $N $i
+        echo "Running N=$N density=$density i=$i "
+        gtimeout -k 5 3600 python main.py $N $i $density
         # gtimeout -k 5 2s sleep $((i*10)) && echo "Hello"
         echo "End of 3600 seconds"
     done

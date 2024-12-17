@@ -8,10 +8,10 @@ import numpy as np
 # edge = np.concatenate((edge, arc), axis=0)
 # print(edge)
 # edge = np.empty([[]])
-def processInputFile(testSet, i):
+def processInputFile(testSet, i, density):
     print("Processing network instance", testSet+"_"+str(i))
     # fileName = "/Users/dinguyen/Desktop/Local Documents/GitHub/Paper5/NewCSVFeb24/"+testSet+"_"+str(i)+".csv"
-    fileName = "./NewCSVDec2024/20_"+testSet+"_"+str(i)+".csv"
+    fileName = "./NewCSVDec2024/"+density+"_"+testSet+"_"+str(i)+".csv"
     # Desktop/Local Documents/GitHub/Paper5/TestInstances/CSV_TestInstances/N25/N25_108.csv
     # N25/N25_108.csv
     with open(fileName, newline='\n') as csvfile:

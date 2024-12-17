@@ -19,9 +19,10 @@ importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
+density = sys.argv[3]
 directory = "./"
 #directory = "./Output/INOC2024/"
-Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins)
+Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins, density)
 # print("cL_orig ", cL_orig)
 # print(cU_orig - cL_orig)
 c_orig = 0.5*(cL_orig+cU_orig)
@@ -257,7 +258,7 @@ while not terminate_cond:
             print("x = ", x_index)
             if runningTest == False:
                 if printIters == True:
-                    with open(directory+'Dec2024_Output/Iter/main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                    with open(directory+'Dec2024_Output/Iter/main_'density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
                         the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
                     
             # print(df_cell)
@@ -507,10 +508,10 @@ if runningTest == True:
     # with open(directory+'./Dec2024_Output/test_main_d20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
 else:
-    with open(directory+'./Dec2024_Output/main_d20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'./Dec2024_Output/'+'main_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
         the_file.write("-1;"+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
-    with open(directory+'Dec2024_Output/Iter/main_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'Dec2024_Output/Iter/main_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
                         the_file.write(str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
