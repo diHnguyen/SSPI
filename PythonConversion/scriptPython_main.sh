@@ -1,5 +1,5 @@
 #!/bin/bash
-
+density = 15;
 for N in 40;
 do
     for i in {1..150};
