@@ -216,6 +216,7 @@ K_removed = []
 cur_time = None
 start = time.time()
 terminate_cond = False
+MIP_GAP = 1/100 #Terminate if MIP gap, i.e., weighted UB- weighted LB, is within 1%
 # print("df_cell")
 # print(df_cell.g)
 # print(df_cell)
@@ -492,6 +493,10 @@ while not terminate_cond:
         print("LB before Partition")
         print("MP_obj = ", MP_obj, " LB ", sum(h[k] * p_val[k] for k in range(len(h)))) 
         LB = sum(h_val[k] * p_val[k] for k in range(newCell+1))
+
+        #Difference compared to Branch 32: Added MIP_GAP
+        if (MP_obj - LB)/MP_obj <= MIP_GAP:
+            terminate_cond = True
         # print("UB ", MP_obj, "; LB ", LB)
         # print("h_val ", h_val)
         # print(df_constraints)
