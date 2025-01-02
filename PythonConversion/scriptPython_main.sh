@@ -1,7 +1,7 @@
 #!/bin/bash
 for density in 15;
 do
-    for N in 40;
+    for N in 50;
     do
         for i in {1..50};
         do
