@@ -517,7 +517,7 @@ else:
         # the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
         the_file.write("-1;"+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
     with open(directory+'Dec2024_Output/Iter/main_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write("-1;"+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                        the_file.write(str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
 # for i in range(newCell+1):
