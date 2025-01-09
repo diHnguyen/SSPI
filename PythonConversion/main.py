@@ -495,8 +495,12 @@ while not terminate_cond:
         LB = sum(h_val[k] * p_val[k] for k in range(newCell+1))
 
         #Difference compared to Branch 32: Added MIP_GAP
+        print("MIP_GAP = ", MIP_GAP)
+        print("MIP GAP ", MP_obj, " ", LB,":", (MP_obj - LB)/MP_obj)
         if (MP_obj - LB)/MP_obj <= MIP_GAP:
             terminate_cond = True
+            K_bar = []
+        print("terminate_cond ", terminate_cond)
         # print("UB ", MP_obj, "; LB ", LB)
         # print("h_val ", h_val)
         # print(df_constraints)
