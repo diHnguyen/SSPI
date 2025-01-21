@@ -11,7 +11,7 @@ import math
 
 # test = "True"
 runningTest = False
-printIters = False
+printIters = True
 # exec(open('testInstance.py').read())
 # collect_output = True #if True, will write output to file.
 
@@ -19,9 +19,10 @@ importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
+density = sys.argv[3]
 directory = "./"
 #directory = "./Output/INOC2024/"
-Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins)
+Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins, density)
 # print("cL_orig ", cL_orig)
 # print(cU_orig - cL_orig)
 c_orig = 0.5*(cL_orig+cU_orig)
@@ -277,8 +278,8 @@ while not terminate_cond:
             print("x = ", x_index)
             if runningTest == False:
                 if printIters == True:
-                    with open(directory+'test_mainA2_1_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
+                    with open(directory+'Dec2024_Output/Iter/main_A2_1_'+density+"_"+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
                     
             # print(df_cell)
             # print("z = ", z_now[0:(newCell+1)])
@@ -559,11 +560,14 @@ while not terminate_cond:
 # Optimize the model
 m.optimize()
 if runningTest == True:
-    with open(directory+'./Sep2024_Output/test_mainA2_1_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
+    print("End of test - Not Printing")
+    # with open(directory+'./Sep2024_Output/test_mainA2_1_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+        # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
 else:
-    with open(directory+'./Sep2024_Output/mainA2_1_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
+    with open(directory+'./Dec2024_Output/main_A2_1_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+        the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+    with open(directory+'Dec2024_Output/Iter/main_A2_1_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                        the_file.write(str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
         
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
