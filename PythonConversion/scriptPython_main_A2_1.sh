@@ -7,7 +7,7 @@
 #5-60min
 #N30: 4 20 83 89 107 166 172 174 200 241
 #N40: 4 8 16 20 27 28 33 36 37 48
-#N50: 18 26 30 46 73 93 98 110 113
+#N50: 18 26 30 46 73 93 98 110 113 122
 
 #>60min
 #N30: 3 35 36 37 52 63 64 150 282 319
@@ -18,7 +18,7 @@ for density in 15;
 do
     for N in 50;
     do
-        for i in 1 3 4 5 8 9 11 12 19 20;
+        for i in 122;
         do
             echo "Running N=$N density=$density i=$i "
             gtimeout -k 5 3600 python main_A3_0.py $N $i $density
