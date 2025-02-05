@@ -7,7 +7,7 @@ from scipy import stats
 importlib.import_module("functionGbound")
 from functionGbound import gx_bound
 
-def getSAABounds(x_now, MP_obj, c_L, c_U,d,edge,origin,destination, delta2):
+def getSAABounds(n,x_now, MP_obj, c_L, c_U,d,edge,origin,destination, delta2):
     # scens=[];
     # for k in range(num_cases):
     #     scen = {};
@@ -22,7 +22,7 @@ def getSAABounds(x_now, MP_obj, c_L, c_U,d,edge,origin,destination, delta2):
     
     ###############################
     #This part is used to find stdev
-    n = 1000
+    # n = 1000
     # c_L,c_U,_,_,_,_ = getCellInfo(k, x_now, "c_g", d,  df_cell) #M, c, c_g, Y_k
     SP_costs = np.zeros(n)
     for i in range(n):

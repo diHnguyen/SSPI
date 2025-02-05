@@ -19,9 +19,11 @@ importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
 testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
+density = sys.argv[3]
+n = sys.argv[4]
 directory = "./"
 #directory = "./Output/INOC2024/"
-Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins)
+Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins, density)
 # print("cL_orig ", cL_orig)
 # print(cU_orig - cL_orig)
 c_orig = 0.5*(cL_orig+cU_orig)
@@ -261,8 +263,8 @@ while not terminate_cond:
             print("x = ", x_index)
             if runningTest == False:
                 if printIters == True:
-                    with open(directory+'Sep2024_Output/Iter/test_main_Strat4_20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+"\n")
+                    with open(directory+'Dec2024_Output/Iter/main_Strat4_'+density+'_'+testSet+'_'+n+'_'+sys.argv[2]+'.txt','a') as the_file:
+                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+"\n")
                     
             # print(df_cell)
             # print("z = ", z_now[0:(newCell+1)])
@@ -306,7 +308,7 @@ while not terminate_cond:
                     # if newCell > 0:
                     # Get the CI in place of gx-hx here:
                     start_SAA = time.time()
-                    SP_mean, one_sided_CI = getSAABounds(x_now, MP_obj, c_L, c_U,d,edge,origin,destination,delta2)
+                    SP_mean, one_sided_CI = getSAABounds(int(n),x_now, MP_obj, c_L, c_U,d,edge,origin,destination,delta2)
                     end_SAA = time.time()
                     total_SAA = total_SAA + (end_SAA-start_SAA)
                     
@@ -534,9 +536,10 @@ if runningTest == True:
     # with open(directory+'./Sep2024_Output/test_main_Strat4_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
 else:
-    with open(directory+'./Sep2024_Output/main_Strat4_n1000_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+";"+str(total_SAA)+"\n")
-        
+    with open(directory+'./Dec2024_Output/main_Strat4_'+density+'_'+testSet+'_'+n+'_'+sys.argv[2]+'.txt','a') as the_file:
+        the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+"\n")
+    with open(directory+'./Dec2024_Output/Iter/main_Strat4_'+density+'_'+testSet+'_'+n+'_'+sys.argv[2]+'.txt','a') as the_file:
+        the_file.write(str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
 # for i in range(newCell+1):
