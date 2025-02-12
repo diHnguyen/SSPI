@@ -19,9 +19,9 @@ for n in 1000;
 do
     for density in 15;
     do
-        for N in 40;
+        for N in 50;
         do
-            for i in 4 8 16 20 27 28 33 36 37 48;
+            for i in 1 3 4 5 8 9 11 12 19 20;
             do
                 echo "Running N=$N density=$density i=$i "
                 gtimeout -k 5 3600 python main_Strat4.py $N $i $density $n
