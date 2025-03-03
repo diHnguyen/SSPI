@@ -8,7 +8,7 @@ from functionArcSplit import arcSplit
 importlib.import_module("functionGbound")
 from functionGbound import gx_bound
 
-def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added):
+def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added,calls_SASplit,actual_SASplit):
     # global K_bar, K_newly_added, d, df_cell
     # global A1, A2, A3, A4, A5
     # print("\t",k,": Partitioning (inside function)")
@@ -20,7 +20,7 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
     label = df_cell.at[k, "PI"]
     
     # Calculate ΔL and ΔU
-    ΔL, ΔU = arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,d,Len,A3)
+    ΔL, ΔU,calls_SASplit,actual_SASplit = arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,d,Len,A3,calls_SASplit,actual_SASplit)
 
     # Create info for the new cell K+1
     cL_newCell = np.copy(c_L)
@@ -109,4 +109,4 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
     ΔU /= 2
     # print("Inside Partition")
     # print(df_cell)
-    return ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell
+    return ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell,calls_SASplit,actual_SASplit

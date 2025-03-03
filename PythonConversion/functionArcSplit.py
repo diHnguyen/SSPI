@@ -1,7 +1,7 @@
 import importlib
 importlib.import_module("functionGbound")
 from functionGbound import gx_bound
-def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,d,Len,A3):
+def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,d,Len,A3,calls_SASplit,actual_SASplit):
     # global A1, A2, A3, A4, A5, edge, destination, d
     # global K_bar, K_newly_added, d, df_cell
 
@@ -11,6 +11,7 @@ def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,
     j = edge[arc_split][1]
 
     if A3 == 0:  # 0=Split using SA if possible
+        calls_SASplit = calls_SASplit+1
         into_j = [index for index, edge in enumerate(edge) if edge[1] == j and edge[0] != i]
         temp_min = 1e6
         to_compare_arc = 0
@@ -47,10 +48,11 @@ def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,
             if (ΔL > 0.0001) and (ΔL < M[arc_split] - 0.0001):
                 mean_split = False
                 ΔU = M[arc_split] - ΔL
-
+    if mean_split == False:
+        actual_SASplit = actual_SASplit+1
     if A3 == 1 or mean_split == True:  # 1=Split at mean base cost - we can always do so
         # print(M[arc_split])
         ΔL = M[arc_split] / 2
         ΔU = ΔL
 
-    return ΔL, ΔU
+    return ΔL, ΔU,calls_SASplit,actual_SASplit
