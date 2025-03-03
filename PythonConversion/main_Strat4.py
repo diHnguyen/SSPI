@@ -220,6 +220,9 @@ cur_time = None
 start = time.time()
 terminate_cond = False
 total_SAA = 0
+MIP_GAP = 1/100 #Terminate if MIP gap, i.e., weighted UB- weighted LB, is within 1%
+SAA_calls = 0
+SAA_enact = 0
 # print("df_cell")
 # print(df_cell.g)
 # print(df_cell)
@@ -308,7 +311,7 @@ while not terminate_cond:
                     # if newCell > 0:
                     # Get the CI in place of gx-hx here:
                     start_SAA = time.time()
-                    SP_mean, one_sided_CI = getSAABounds(int(n),x_now, MP_obj, c_L, c_U,d,edge,origin,destination,delta2)
+                    SP_mean, one_sided_CI,SAA_calls = getSAABounds(int(n),x_now, MP_obj, c_L, c_U,d,edge,origin,destination,delta2, SAA_calls)
                     end_SAA = time.time()
                     total_SAA = total_SAA + (end_SAA-start_SAA)
                     
@@ -355,6 +358,8 @@ while not terminate_cond:
                     # print("New bounds: ", hx, "\t", gx)
                     if (gx - hx_alt <= delta2/2) or (gx - hx <= delta2):
                         # print("O2Flag: Passed")
+                        if gx - hx_alt <= delta2/2 :
+                            SAA_enact = SAA_enact+1
                         K_removed.append(k)
                     else:
                         # print(k, end=": ")
@@ -520,6 +525,12 @@ while not terminate_cond:
         print("LB before Partition")
         print("MP_obj = ", MP_obj, " LB ", sum(h[k] * p_val[k] for k in range(len(h)))) 
         LB = sum(h_val[k] * p_val[k] for k in range(newCell+1))
+
+        print("MIP_GAP = ", MIP_GAP)
+        print("MIP GAP ", MP_obj, " ", LB,":", (MP_obj - LB)/MP_obj)
+        if (MP_obj - LB)/MP_obj <= MIP_GAP:
+            terminate_cond = True
+            K_bar = []
         # print("UB ", MP_obj, "; LB ", LB)
         # print("h_val ", h_val)
         # print(df_constraints)
@@ -537,9 +548,9 @@ if runningTest == True:
         # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
 else:
     with open(directory+'./Dec2024_Output/main_Strat4_'+density+'_'+testSet+'_'+n+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+"\n")
+        the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+";"+str(SAA_calls)+";"+str(SAA_enact)+"\n")
     with open(directory+'./Dec2024_Output/Iter/main_Strat4_'+density+'_'+testSet+'_'+n+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write(str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+"\n")
+        the_file.write(str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+";"+str(SAA_calls)+";"+str(SAA_enact)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
 # for i in range(newCell+1):

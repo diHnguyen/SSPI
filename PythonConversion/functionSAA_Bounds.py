@@ -7,7 +7,8 @@ from scipy import stats
 importlib.import_module("functionGbound")
 from functionGbound import gx_bound
 
-def getSAABounds(n,x_now, MP_obj, c_L, c_U,d,edge,origin,destination, delta2):
+def getSAABounds(n,x_now, MP_obj, c_L, c_U,d,edge,origin,destination, delta2, SAA_calls):
+    SAA_calls = SAA_calls+1
     # scens=[];
     # for k in range(num_cases):
     #     scen = {};
@@ -61,4 +62,4 @@ def getSAABounds(n,x_now, MP_obj, c_L, c_U,d,edge,origin,destination, delta2):
     # [SP_mean - one_sided_CI, gx]
         
     
-    return SP_mean, one_sided_CI
+    return SP_mean, one_sided_CI,SAA_calls
