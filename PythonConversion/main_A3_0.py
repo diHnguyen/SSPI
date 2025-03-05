@@ -64,7 +64,7 @@ from functionGetCellInfo import getCellInfo
 # newCell = 2
 k=1
 A1=0 #A1 = 0: Choose arc using worst cost. Else: Choose arc w largest M
-A3=1 #A3 = 0: Split a selected using SA if possible. Else: Split using mean base cost.
+A3=0 #A3 = 0: Split a selected using SA if possible. Else: Split using mean base cost.
 
 # Calculate c values
 c = (cU_orig + cL_orig) / 2
@@ -262,7 +262,8 @@ while not terminate_cond:
             if runningTest == False:
                 if printIters == True:
                     with open(directory+'Dec2024_Output/Iter/main_A3_0_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+"\n")
+            print("Calls vs actual ",calls_SASplit,"/",actual_SASplit)
                     
             # print(df_cell)
             # print("z = ", z_now[0:(newCell+1)])
