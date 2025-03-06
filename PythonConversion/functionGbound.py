@@ -1,6 +1,6 @@
 import networkx as nx
 import numpy as np
-
+import pandas as pd
 def gx_bound(c, c_g, edge,origin,destination):
     G = nx.DiGraph()
     for _e in range(len(c)):
@@ -9,6 +9,8 @@ def gx_bound(c, c_g, edge,origin,destination):
     # distmx = np.full((no_node, no_node), np.inf)
     # Find the shortest paths and lengths from the source node to all other nodes
     shortest_paths_lengths = nx.single_source_dijkstra_path_length(G, source=origin, weight='weight')
+    # print("len of shortest_paths_lengths ", len(shortest_paths_lengths))
+    # print("len of arcs ", len(edge[:, 1]))
     # print(G)
 #     # Get the list of predecessors for each node
 #     predecessors = nx.predecessor(G, source=origin)
@@ -25,7 +27,17 @@ def gx_bound(c, c_g, edge,origin,destination):
     # Print the results
     # print(shortest_paths_lengths[1])
     label = list(shortest_paths_lengths.values())
-    # print("label ", label)
+    # print(0, "label ", label)
+    nodes = list(shortest_paths_lengths.keys())
+    # print(0, "nodes ", nodes)
+
+    df = pd.DataFrame({
+    "node": nodes,
+    "label": label
+    })
+    df = df.sort_values(by="node")
+    label =np.array(df.label)
+    
     # print(f"Shortest paths from node {origin} to all other nodes:")
     # for node, path_length in shortest_paths_lengths.items():
     #     print(f"To node {node}: Length = {path_length}, Path = {nx.shortest_path(G, source=origin, target=node, weight='weight')}")
@@ -33,7 +45,7 @@ def gx_bound(c, c_g, edge,origin,destination):
     
     y = np.zeros(len(G.edges))
     shortest_path=nx.shortest_path(G, source=origin, target=destination, weight='weight')
-    # print("shortest_path ", shortest_path)
+    # print(0, "shortest_path ", shortest_path)
     for i in range(len(shortest_path) - 1):
         start_node = shortest_path[i]
         end_node = shortest_path[i + 1]
@@ -44,10 +56,10 @@ def gx_bound(c, c_g, edge,origin,destination):
         edge_index = np.where((edge==a).all(1))[0]
         # print("\t edge_index ", edge_index)
         y[edge_index] = 1
-    # print("y = ", y)
+    # print(0, "y = ", y)
     gx = np.sum(np.array(c_g) * y)
     SP = np.sum(np.array(c) * y)
-    
+    # print(0, "shortest_path ", shortest_path, " cost ", gx)
     # T = [1 if pred[edge[i, 1]] == edge[i, 0] else 0 for i in range(no_link)]
 
     return y, gx, SP, label, shortest_path

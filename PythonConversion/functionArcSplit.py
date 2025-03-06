@@ -1,37 +1,60 @@
 import importlib
 importlib.import_module("functionGbound")
 from functionGbound import gx_bound
+import numpy as np
 def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,d,Len,A3,calls_SASplit,actual_SASplit):
     # global A1, A2, A3, A4, A5, edge, destination, d
     # global K_bar, K_newly_added, d, df_cell
-
+    # print("c_L ", c_L)
+    # sp = np.where(y > 0.1)[0]
+    # print("shortest path = ",sp)
+    # print("sp labels ", np.array(label)[edge[sp,1]])
+    
+    # print(edge[sp,:])
     c = (c_L + c_U) / 2
+    # print("costs ", c[sp])
+    # c_g = c + d*x_now
+    # print("c_g[sp] = ", c_g[sp])
     mean_split = True
     i = edge[arc_split][0]
     j = edge[arc_split][1]
-
+    # print("selected arc ", arc_split, "; c_L ", c_L[arc_split], "; c_U ", c_U[arc_split])
+    # print("Arc (i,j) = (", i,  ", " ,j,")")
+    # print("label[i] ", label[i])
+    # print("label[j] ", label[j])
+    # print("label[3] ", label[3])
+    # d_x = np.array([x*y for x,y in zip(d,x_now)])
+    # print("d[sp] ", d_x[sp])
+    # print("d[arc_split] * x_now[arc_split]", d[arc_split] * x_now[arc_split])
     if A3 == 0:  # 0=Split using SA if possible
         calls_SASplit = calls_SASplit+1
         into_j = [index for index, edge in enumerate(edge) if edge[1] == j and edge[0] != i]
+        # print("into_j ", into_j)
+        # print(edge[into_j])
         temp_min = 1e6
         to_compare_arc = 0
-
         if y[arc_split] > 0.9:  # arc_split in y -- looking for labels/costs to replace (i, j)
             for arc_index in into_j:
+                # print("considering arc ", edge[arc_index])
                 out_k = edge[arc_index][0]
+                # print("out_k ", out_k)
+                # print("label[out_k] ", label[out_k])
+                # print("c[arc_index] ", c[arc_index])
                 temp_c = (c[arc_index] + d[arc_index] * x_now[arc_index]) + label[out_k]
-
+                # print("temp_c ", temp_c)
+                # print("d[arc_index] * x_now[arc_index] ", d[arc_index] * x_now[arc_index])
                 if temp_min > temp_c:
                     temp_min = temp_c
                     to_compare_arc = arc_index
-
+            
+            
             max_current_label = (c_U[arc_split] + d[arc_split] * x_now[arc_split]) + label[i]
-
+            # print("max_current_label ", max_current_label)
             if temp_min < max_current_label - 0.0001:
                 ΔU = max_current_label - temp_min
                 ΔL = M[arc_split] - ΔU
                 mean_split = False
-
+        
         else:  # arc_split not in y -- check directly with labels to see when (i, j) is on the shortest path
             c2 = c.copy()
             c2[arc_split] = c_L[arc_split]
@@ -54,5 +77,5 @@ def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,
         # print(M[arc_split])
         ΔL = M[arc_split] / 2
         ΔU = ΔL
-
+    # print("ΔL ",ΔL,"; ΔU ", ΔU)
     return ΔL, ΔU,calls_SASplit,actual_SASplit

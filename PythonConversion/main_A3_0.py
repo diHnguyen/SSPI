@@ -259,6 +259,7 @@ while not terminate_cond:
             print("==========================================================")
             x_index = np.where(x_now > 0)[0]
             print("x = ", x_index)
+            # print("z0 = ", z_now[0], "; z1 = ", z_now[1])
             if runningTest == False:
                 if printIters == True:
                     with open(directory+'Dec2024_Output/Iter/main_A3_0_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
@@ -277,7 +278,8 @@ while not terminate_cond:
             #     m.write("mainModel.lp")
             #     m.write("mainModel.rlp")
             #     m.write("mainModel.mps")
-            
+            # if iter == 3:
+            #     m.write("mainModel.lp")
 
         O1Flag = True
         O1Flag, K_bar, df_cell, df_constraints = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints)
@@ -287,6 +289,7 @@ while not terminate_cond:
         # print("K_bar ", K_bar)
         h = np.array(df_cell.h)
         # print(h)
+        # print(df_constraints)
         if O1Flag:
             print("\tO1Flag: Passed")
             partitionCounter = 1
@@ -346,17 +349,19 @@ while not terminate_cond:
                         # df_temp_k = df_constraints[df_constraints.CELL == k]
                         #constraints associated with cell k
                         # print("Constraints of ", k)
+                        
                         indices = df_constraints.index[df_constraints.CELL == k].tolist()
                         add_yL = True
                         add_yU = True
                         # print("arc_split = ", arc_split)
-                        
+                        # print("indices ", indices)
                         #Iterate over constraints related to k
                         for r in indices: #_, dfRow in df_temp_k.iterrows():
+                            # print("R", r)
                             # Y_k = np.array(dfRow['Y'])
                             # print(np.where(df_constraints.at[r,'Y']>0)[0])
                             Y_k = np.array(df_constraints.at[r,'Y'])
-                            # print("Y_k ", Y_k)
+                            # print("Y_k ", np.where(Y_k>0.1)[0])
                             if np.array_equal(Y_k, yL):
                                 add_yL = False
                             if np.array_equal(Y_k, yU):
@@ -374,12 +379,12 @@ while not terminate_cond:
                                 # print(constr_to_update)
                                 #constraints_dict.loc[constraints_dict.cell ==k, 'cell']
                                 
-                                # print("ΔU = ", ΔU,"; ΔL = ", ΔL)
+                                # print(k,"ΔU = ", ΔU,"; ΔL = ", ΔL)
                                     
-                                newCell_RHS = newCell_RHS + ΔU
+                                newCell_RHS = newCell_RHS + ΔL#ΔU
                                 # print(k, "Before update SP ", df_constraints.loc[r,'SP'])
                                 # dfRow['SP'] = dfRow['SP'] - ΔL
-                                df_constraints.at[r,'SP'] = df_constraints.at[r,'SP'] - ΔL
+                                df_constraints.at[r,'SP'] = df_constraints.at[r,'SP'] - ΔU#- ΔL
                                 # print(k, "After update SP ", df_constraints.loc[r,'SP'])
                                 # print(newCell, "After update SP ", newCell_RHS)
                                 # df_constraints.at[conRef - 1, 'SP'] = dfRow['SP']
@@ -481,16 +486,18 @@ while not terminate_cond:
                 K_bar.extend(K_newly_added)
                 K_newly_added = []
                 K_removed = []
-
+                
                 if not K_bar:
                     myCounter = partitionCounter
                     terminate_cond = True
-
+        # print(df_constraints)
         total_time = time.time() - start
         h_val = df_cell['h']
         
         # print("h_val ", h_val[0])
         p_val = df_cell['PROB']
+        # print(h_val)
+        # print(p_val)
         # print(len(h))
         # print(newCell+1)
         print("LB before Partition")

@@ -21,8 +21,21 @@ def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x
             #     print(k, "; ", np.where(row['Y']>0)[0], "; ",row['SP'] )
             # print("k = ", k)
             c_L, c_U, M, c, c_g, Y_k = getCellInfo(k, x_now, "c_g", d,  df_cell)
-            y, gx, SP, label, path = gx_bound(c, c_g, edge,origin,destination)
             
+            # sp = np.array([0,14,41,91,116])
+            # print("arcs ", sp)
+            # print(edge[sp,:])
+            
+            # print("c[sp] = ", c[sp])
+            # print("c_g[sp] = ", c_g[sp])
+            # print("O1 Flag starts")
+            y, gx, SP, label, path = gx_bound(c, c_g, edge,origin,destination)
+            # print(k, "cost ", gx)
+            # print("nodes " , path)
+            # print("labels ", np.array(label)[np.array(path)])
+            # print("O1 Flag ends")
+            
+            # print("01Flag y ", np.where(y > 0.1)[0])
             # print("k ", k)
             # print("c_L ", repr(c_L))
             # print("c_U ", repr(c_U))
