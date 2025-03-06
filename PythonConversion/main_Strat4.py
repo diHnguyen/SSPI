@@ -262,13 +262,13 @@ while not terminate_cond:
             print("Iter : ", iter, " ; MP_obj = ", MP_obj, " ; time ", cur_time, "; ", len(K_bar), "/", newCell+1)
             print("==========================================================")
             print("total_SAA = ", total_SAA)
+            print("SAA_calls ", SAA_calls)
             x_index = np.where(x_now > 0)[0]
             print("x = ", x_index)
             if runningTest == False:
                 if printIters == True:
                     with open(directory+'Dec2024_Output/Iter/main_Strat4_'+density+'_'+testSet+'_'+n+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+"\n")
-                    
+                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+";"+str(SAA_calls)+"\n")
             # print(df_cell)
             # print("z = ", z_now[0:(newCell+1)])
             # print("p = ", p)
@@ -548,9 +548,9 @@ if runningTest == True:
         # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
 else:
     with open(directory+'./Dec2024_Output/main_Strat4_'+density+'_'+testSet+'_'+n+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+";"+str(SAA_calls)+";"+str(SAA_enact)+"\n")
+        the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+";"+str(SAA_calls)+"\n")
     with open(directory+'./Dec2024_Output/Iter/main_Strat4_'+density+'_'+testSet+'_'+n+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write(str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+";"+str(SAA_calls)+";"+str(SAA_enact)+"\n")
+        the_file.write(str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+";"+str(SAA_calls)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
 # for i in range(newCell+1):
