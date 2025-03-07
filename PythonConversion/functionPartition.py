@@ -19,7 +19,7 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
     
     
     arc_split = selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1)
-    # print("arc_split ", arc_split, edge[arc_split, :])
+    print("arc_split ", arc_split, edge[arc_split, :])
     # print("pre slit cL cU", c_L[arc_split], " ", c_U[arc_split])
     label = df_cell.at[k, "PI"]
     

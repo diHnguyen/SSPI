@@ -6,9 +6,11 @@ def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,
     # global A1, A2, A3, A4, A5, edge, destination, d
     # global K_bar, K_newly_added, d, df_cell
     # print("c_L ", c_L)
-    # sp = np.where(y > 0.1)[0]
-    # print("shortest path = ",sp)
-    # print("sp labels ", np.array(label)[edge[sp,1]])
+    sp = np.where(y > 0.1)[0]
+    # print("\nshortest path = ",sp)
+    # print("edges ", edge[sp,:])
+    # print("labels ", df_label, " " , len(df_label))
+    # print("sp labels ", label[label.node.isin(edge[sp,1])]['label'])
     
     # print(edge[sp,:])
     c = (c_L + c_U) / 2
@@ -20,8 +22,10 @@ def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,
     j = edge[arc_split][1]
     # print("selected arc ", arc_split, "; c_L ", c_L[arc_split], "; c_U ", c_U[arc_split])
     # print("Arc (i,j) = (", i,  ", " ,j,")")
-    # print("label[i] ", label[i])
-    # print("label[j] ", label[j])
+    label_i = np.array(label[label.node==i]['label'])[0]
+    label_j = np.array(label[label.node==j]['label'])[0]
+    # print("label[i] ", label_i, "; label[j] ", label_j)
+    # print()
     # print("label[3] ", label[3])
     # d_x = np.array([x*y for x,y in zip(d,x_now)])
     # print("d[sp] ", d_x[sp])
@@ -38,17 +42,19 @@ def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,
                 # print("considering arc ", edge[arc_index])
                 out_k = edge[arc_index][0]
                 # print("out_k ", out_k)
-                # print("label[out_k] ", label[out_k])
+                label_k = np.array(label[label.node==out_k]['label'])[0]
+                # print("label_k ", label_k)
                 # print("c[arc_index] ", c[arc_index])
-                temp_c = (c[arc_index] + d[arc_index] * x_now[arc_index]) + label[out_k]
+                temp_c = (c[arc_index] + d[arc_index] * x_now[arc_index]) + label_k#label[out_k]
                 # print("temp_c ", temp_c)
+                # print("to_compare_arc ", to_compare_arc)
                 # print("d[arc_index] * x_now[arc_index] ", d[arc_index] * x_now[arc_index])
                 if temp_min > temp_c:
                     temp_min = temp_c
                     to_compare_arc = arc_index
             
             
-            max_current_label = (c_U[arc_split] + d[arc_split] * x_now[arc_split]) + label[i]
+            max_current_label = (c_U[arc_split] + d[arc_split] * x_now[arc_split]) + label_i #label[i]
             # print("max_current_label ", max_current_label)
             if temp_min < max_current_label - 0.0001:
                 ΔU = max_current_label - temp_min
@@ -65,9 +71,10 @@ def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,
             y2_index = [i for i, val in enumerate(y2) if val > 0.9]
             y_cost_c2 = sum(y[i] * (c2[i] + d[i] * x_now[i]) for i in range(Len))
             y2_cost_c2 = sum(y2[i] * (c2[i] + d[i] * x_now[i]) for i in range(Len))
-
+            # print(y_index, "y_cost_c2 ", y_cost_c2)
+            # print(y2_index,"y2_cost_c2 ", y2_cost_c2)
             ΔL = y_cost_c2 - y2_cost_c2
-
+            # print("ΔL ", ΔL)
             if (ΔL > 0.0001) and (ΔL < M[arc_split] - 0.0001):
                 mean_split = False
                 ΔU = M[arc_split] - ΔL
@@ -77,5 +84,6 @@ def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,
         # print(M[arc_split])
         ΔL = M[arc_split] / 2
         ΔU = ΔL
-    # print("ΔL ",ΔL,"; ΔU ", ΔU)
+    print(k, "cL ", c_L[arc_split], "; cU ", c_U[arc_split])
+    print(k, "ΔL ",ΔL,"; ΔU ", ΔU)
     return ΔL, ΔU,calls_SASplit,actual_SASplit

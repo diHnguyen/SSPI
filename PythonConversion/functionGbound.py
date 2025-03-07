@@ -31,13 +31,15 @@ def gx_bound(c, c_g, edge,origin,destination):
     nodes = list(shortest_paths_lengths.keys())
     # print(0, "nodes ", nodes)
 
-    df = pd.DataFrame({
+    df_label = pd.DataFrame({
     "node": nodes,
     "label": label
     })
-    df = df.sort_values(by="node")
-    label =np.array(df.label)
-    
+    df_label = df_label.sort_values(by="node")
+    # print(df_label)
+    # label =np.array(df.label)
+    # print(0, " node ", nodes, len(nodes))
+    # print(0, " label ", label, len(label))
     # print(f"Shortest paths from node {origin} to all other nodes:")
     # for node, path_length in shortest_paths_lengths.items():
     #     print(f"To node {node}: Length = {path_length}, Path = {nx.shortest_path(G, source=origin, target=node, weight='weight')}")
@@ -62,4 +64,4 @@ def gx_bound(c, c_g, edge,origin,destination):
     # print(0, "shortest_path ", shortest_path, " cost ", gx)
     # T = [1 if pred[edge[i, 1]] == edge[i, 0] else 0 for i in range(no_link)]
 
-    return y, gx, SP, label, shortest_path
+    return y, gx, SP, df_label, shortest_path

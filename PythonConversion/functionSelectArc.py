@@ -21,6 +21,8 @@ def selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1):
         c_g_W = cW + d * x_now
 
         # Applying Lemma 2
+        # print("cW ", cW)
+        # print("c_g_W ", c_g_W)
         yW, gW, SPW, _, _ = gx_bound(cW,c_g_W,edge,origin,destination)
         # print(
         # print("gW ", gW)
