@@ -11,7 +11,9 @@ def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,
     # print("edges ", edge[sp,:])
     # print("labels ", df_label, " " , len(df_label))
     # print("sp labels ", label[label.node.isin(edge[sp,1])]['label'])
-    
+
+    # for i in label.node:
+    #     print(label[label.node==i])
     # print(edge[sp,:])
     c = (c_L + c_U) / 2
     # print("costs ", c[sp])
@@ -42,7 +44,10 @@ def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,
                 # print("considering arc ", edge[arc_index])
                 out_k = edge[arc_index][0]
                 # print("out_k ", out_k)
-                label_k = np.array(label[label.node==out_k]['label'])[0]
+                if len(np.array(label[label.node==out_k]['label'])) > 0:
+                    label_k = np.array(label[label.node==out_k]['label'])[0]
+                else:
+                    lalel_k = 1e6
                 # print("label_k ", label_k)
                 # print("c[arc_index] ", c[arc_index])
                 temp_c = (c[arc_index] + d[arc_index] * x_now[arc_index]) + label_k#label[out_k]
