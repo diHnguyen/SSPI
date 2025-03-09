@@ -6,7 +6,7 @@ def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,
     # global A1, A2, A3, A4, A5, edge, destination, d
     # global K_bar, K_newly_added, d, df_cell
     # print("c_L ", c_L)
-    sp = np.where(y > 0.1)[0]
+    # sp = np.where(y > 0.1)[0]
     # print("\nshortest path = ",sp)
     # print("edges ", edge[sp,:])
     # print("labels ", df_label, " " , len(df_label))
@@ -84,6 +84,6 @@ def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,
         # print(M[arc_split])
         ΔL = M[arc_split] / 2
         ΔU = ΔL
-    print(k, "cL ", c_L[arc_split], "; cU ", c_U[arc_split])
-    print(k, "ΔL ",ΔL,"; ΔU ", ΔU)
+    # print(k, "cL ", c_L[arc_split], "; cU ", c_U[arc_split])
+    # print(k, "ΔL ",ΔL,"; ΔU ", ΔU)
     return ΔL, ΔU,calls_SASplit,actual_SASplit
