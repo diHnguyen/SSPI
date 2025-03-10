@@ -10,15 +10,15 @@
 #N50: 18 26 30 46 73 93 98 110 113 122 xxx
 
 #>60min
-#N30: 3 35 36 37 52 63 64 150 282 319
-#N40: 2 14 18 22 24 38 39 40 56 76
-#N50: 1 3 4 5 8 9 11 12 19 20
+#N30: 3 35 36 37 52 63 64 150 282 319 xxx
+#N40: 2 14 18 22 24 38 39 40 56 76 xxx
+#N50: 1 3 4 5 8 9 11 12 19 20 xxx
 
 for density in 15;
 do
     for N in 30;
     do
-        for i in 1 2 5 6 7 8 9 10 11 12;
+        for i in 3 35 36 37 52 63 64 150 282 319;
         do
             echo "Running N=$N density=$density i=$i "
             gtimeout -k 5 3600 python main_A3_0.py $N $i $density
@@ -28,7 +28,7 @@ do
     done
     for N in 40;
     do
-        for i in 1 3 5 6 7 9 10 11 12 13;
+        for i in 2 14 18 22 24 38 39 40 56 76;
         do
             echo "Running N=$N density=$density i=$i "
             gtimeout -k 5 3600 python main_A3_0.py $N $i $density
@@ -38,7 +38,7 @@ do
     done
     for N in 50;
     do
-        for i in 2 6 7 10 13 14 15 16 17 21;
+        for i in 1 3 4 5 8 9 11 12 19 20;
         do
             echo "Running N=$N density=$density i=$i "
             gtimeout -k 5 3600 python main_A3_0.py $N $i $density
