@@ -47,7 +47,7 @@ def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,
                 if len(np.array(label[label.node==out_k]['label'])) > 0:
                     label_k = np.array(label[label.node==out_k]['label'])[0]
                 else:
-                    lalel_k = 1e6
+                    label_k = 1e6
                 # print("label_k ", label_k)
                 # print("c[arc_index] ", c[arc_index])
                 temp_c = (c[arc_index] + d[arc_index] * x_now[arc_index]) + label_k#label[out_k]
