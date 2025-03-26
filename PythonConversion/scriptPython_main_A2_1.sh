@@ -16,9 +16,9 @@
 
 for density in 15;
 do
-    for N in 30;
+    for N in 50;
     do
-        for i in 5 172;
+        for i in 3;
         do
             echo "Running N=$N density=$density i=$i "
             gtimeout -k 5 3600 python main_A3_0.py $N $i $density
