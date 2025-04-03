@@ -53,8 +53,8 @@ importlib.import_module("functionArcSplit")
 from functionArcSplit import arcSplit
 importlib.import_module("functionPartition")
 from functionPartition import Partition
-importlib.import_module("functionCheckO1Flag")
-from functionCheckO1Flag import checkO1Flag
+importlib.import_module("functionCheckO1Flag_perc")
+from functionCheckO1Flag_perc import checkO1Flag
 importlib.import_module("functionGetCellInfo")
 from functionGetCellInfo import getCellInfo
 

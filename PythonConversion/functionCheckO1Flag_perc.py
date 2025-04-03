@@ -45,6 +45,7 @@ def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x
             # print("z_now[k]", z_now[k])
             # print("gx ", gx)
             # print("z_now = ", z_now[k])
+            # print("delta1*gx ", delta1*gx)
             if z_now[k] - gx > delta1*gx: #Used to be z_now[k] - gx > delta1
                 # print("Failing O1Flag")
                 # print('y ', np.where(y>0))
