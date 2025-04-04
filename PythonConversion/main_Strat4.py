@@ -1,3 +1,6 @@
+#This version implements delta1 and delta2 as percentage
+#See orig branch 37 for delta1=1 delta2=2
+#This also uses the new convention for marking termination
 #Imports for main 
 import numpy as np
 import pandas as pd
@@ -53,8 +56,8 @@ importlib.import_module("functionArcSplit")
 from functionArcSplit import arcSplit
 importlib.import_module("functionPartition")
 from functionPartition import Partition
-importlib.import_module("functionCheckO1Flag")
-from functionCheckO1Flag import checkO1Flag
+importlib.import_module("unctionCheckO1Flag_perc")
+from unctionCheckO1Flag_perc import checkO1Flag
 importlib.import_module("functionGetCellInfo")
 from functionGetCellInfo import getCellInfo
 
@@ -356,9 +359,9 @@ while not terminate_cond:
                     # print("Opt gap @ k from SAA : ", one_sided_CI*2)
                     # if one_sided_CI*2 <= delta2: # 
                     # print("New bounds: ", hx, "\t", gx)
-                    if (gx - hx_alt <= delta2/2) or (gx - hx <= delta2):
+                    if (gx - hx_alt <= delta2/2*gx) or (gx - hx <= delta2*gx):
                         # print("O2Flag: Passed")
-                        if gx - hx_alt <= delta2/2 :
+                        if gx - hx_alt <= delta2/2*gx :
                             SAA_enact = SAA_enact+1
                         K_removed.append(k)
                     else:
