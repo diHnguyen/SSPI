@@ -1,8 +1,9 @@
 import numpy as np
 
-def getPathCost(P_set,c,c_g,k):#,origin,destination
+def getPathCost(P_set,x_now,d,c,k):#,origin,destination
     Pk = []
     Pk_cost = 10e6
+    c_g = c + np.array(d)*np.array(x_now)
     for P in P_set:
         P_arcs = np.where(P > 0.5)[0]
         # print("P_arcs = ", P_arcs)

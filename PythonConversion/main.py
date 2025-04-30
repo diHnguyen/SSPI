@@ -490,7 +490,7 @@ while not terminate_cond:
         p_val = df_cell['PROB']
         # print(len(h))
         # print(newCell+1)
-        print("LB before Partition")
+        # print("LB before Partition")
         print("MP_obj = ", MP_obj, " LB ", sum(h_val[k] * p_val[k] for k in range(len(h)))) 
         LB = sum(h_val[k] * p_val[k] for k in range(newCell+1))
 

@@ -7,6 +7,7 @@ def selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1):
     # print("A1 ", A1)
     # print("M ", M)
     if A1 == 1:
+        # print("M ", M)
         S_k_W = np.where(M == np.max(M))[0]
         # print("S_k_W ", S_k_W)
         arc_split = S_k_W[0]
@@ -33,6 +34,7 @@ def selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1):
         # print("M_path = ", M_path)
         S_k_W = np.where((M_path == np.max(M_path)) & (M_path > 0))[0]
         # print("S_k_W ", S_k_W)
+        # if len(S_k_W) == 0: 
         arc_split = S_k_W[0]
         # print("S_k_W ", S_k_W, " ", M[arc_split])
     return arc_split

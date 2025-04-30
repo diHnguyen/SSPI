@@ -39,14 +39,14 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
     #####Replace this:
     ##### yL, gL, SP_L, label_L, path_L = gx_bound(cL_avg, cL_avg + d * x_now, edge, origin,destination)
     #####With this:
-    yL,gL,SP_L = getPathCost(P_set,x_now, cL_avg, k)
+    yL,gL,SP_L = getPathCost(P_set,x_now, cL_avg,d, k)
     ###################################
     
     ###################################
     #####Replace this:
     #####yU, gU, SP_U, label_U, path_U = gx_bound(cU_avg, cU_avg + d * x_now, edge, origin,destination)
     #####With this:
-    yU,gU,SP_U = getPathCost(P_set,x_now, cU_avg, k)
+    yU,gU,SP_U = getPathCost(P_set,x_now, cU_avg,d, k)
     ###################################
 
     current_p = df_cell.loc[k, "PROB"]
