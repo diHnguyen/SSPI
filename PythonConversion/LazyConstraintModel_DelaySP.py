@@ -17,6 +17,7 @@ import pandas as pd
 pd.set_option('display.max_columns', 500)
 import importlib
 import time
+from time import strftime, localtime
 import gurobipy as gp
 from gurobipy import GRB
 import sys
@@ -28,7 +29,7 @@ runningTest = False
 printIters = True #if True, will write output to file.
 importlib.import_module("functionProcessInputFile")
 from functionProcessInputFile import processInputFile
-print(time.time())
+print(strftime('%Y-%m-%d %H:%M:%S', localtime(time.time())))
 testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
 density = sys.argv[3]
@@ -64,12 +65,12 @@ importlib.import_module("functionGbound")
 from functionGbound import gx_bound
 importlib.import_module("functionHbound")
 from functionHbound import hx_bound
-importlib.import_module("functionSelectArc")
-from functionSelectArc import selectArc
+importlib.import_module("functionSelectArc_DelaySP")
+from functionSelectArc_DelaySP import selectArc_DelaySP
 importlib.import_module("functionArcSplit")
 from functionArcSplit import arcSplit
-importlib.import_module("functionPartition")
-from functionPartition import Partition
+importlib.import_module("functionPartition_DelaySP")
+from functionPartition_DelaySP import Partition_DelaySP
 # importlib.import_module("functionCheckO1Flag_lazy")
 # from functionCheckO1Flag import checkO1Flag
 importlib.import_module("functionCheckO1Flag_lazy")
@@ -87,8 +88,9 @@ from functionGetPathCost import getPathCost
 # x_now = np.zeros(Len)
 # newCell = 2
 k=1
-A1=0
-A3=1 ###!!!Do not use A3=0 when running LazyConstraintModel_DelayedPartition
+A1=0 #A1 = 0: Choose arc using worst cost. Else: Choose arc w largest M
+A3=1 #A3 = 0: Split a selected using SA if possible. Else: Split using mean base cost.
+###!!!Do not use A3=0 when running LazyConstraintModel_DelayedPartition
 
 # Calculate c values
 c = (cU_orig + cL_orig) / 2
@@ -197,6 +199,7 @@ def lazy(m, where):
     # while not terminate_cond:
     if where == GRB.Callback.MIPSOL:
         m._iter += 1
+        
         last_x = m._last_x
         df_cell = m._df_cell
         df_lazy = m._df_lazy
@@ -217,12 +220,12 @@ def lazy(m, where):
         MP_cur = m.cbGet(gp.GRB.Callback.MIPSOL_OBJ)
         # print("\nPaths in P_set ", len(P_set))
         # print("P_set ", P_set)
-        # for i in P_set:
-        #     print(np.where(i > 0.5)[0])
+        for i in P_set:
+            print(np.where(i > 0.5)[0])
         print("con_num ", con_num)
         # print(df_lazy)
         # print(range(1,con_num+1))
-        if len(df_lazy) > 1:
+        if len(df_lazy) > 1: #Adding previous lazy constraints to new node
             for cons_ind in range(1,con_num):
                 # print("cons_ind ", cons_ind)
                 coef_x = df_lazy.at[cons_ind, 'coef']
@@ -243,6 +246,9 @@ def lazy(m, where):
         x_index = np.where(x_now > 0)[0]
         # print("p = ", p)
         print("newCell = ", newCell)
+
+        if iter > 3:
+            sys.exit()
         if runningTest == False:
             if printIters == True:
                 with open(directory+'Dec2024_Output/Iter/lazyDelay_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
@@ -297,9 +303,11 @@ def lazy(m, where):
                 # print("k ", k)
                 c_L, c_U, M, c, c_g, Y_k = getCellInfo(k, x_now, "c_g", d, df_cell)
                 
-                y_, g_, SP_,_,_, = gx_bound(c, c_g, edge,origin,destination)
+                # y_, g_, SP_,_,_, = gx_bound(c, c_g, edge,origin,destination)
+                # df_cell.at[k, 'g'] = g_
+                # print("k = ", k)
                 # print("0. g_ ", g_)
-                # print("0. y_ ", y_)
+                # print("0. y_ ", np.where(y_>0.5)[0])
                 # if iter == 15:
                 
                     
@@ -308,6 +316,16 @@ def lazy(m, where):
                 if ((Y_k == P_set).all(1).any()) == False:
                     P_set = np.concatenate((P_set, [Y_k]), axis=0)
                 Pk,Pk_cost,SP = getPathCost(P_set,x_now,c,d,k)
+                # print("\n",k, " - ", np.where(df_cell.at[k,'Y']>0.5)[0], " vs ", np.where(Pk>0.5)[0])
+                # print(Pk_cost,  " ", df_cell.at[k,'g'])   
+                # for a in np.where(Pk > 0.5)[0]:
+                #     print(a, " costs ",c_g[a], " x_now[a] ", x_now[a])
+                #     print(a, " costs ",c[a], " x_now[a] ", x_now[a])
+                # if np.array_equal(df_cell.at[k,'Y'],Pk)==False:
+                #     print("not the same") 
+                df_cell.at[k,'Y'] = Pk
+                df_cell.at[k,'g'] = Pk_cost
+                # print("\t",Pk_cost,  " ", df_cell.at[k,'g'])  
                 coef_x = coef_x + p[k]*np.array([a*b for a,b in zip(Pk,d)])
                 constant_SP = constant_SP +  p[k]*sum(c[i]*Pk[i] for i in range(Len))
                 #In the regular model: z_now[k] - gx > delta1*gx: 
@@ -405,24 +423,24 @@ def lazy(m, where):
                         y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
                         
                         # if iter == 15:
-                        # if iter == 13:
-                        #     print("\nCell ", k)
-                        #     print("gx = ", df_cell.at[k, 'g'], end=" ")
-                        # if (iter == 15) & (k == 10):
-                        #     print("\nCell ", k)
-                        #     # print("y = ", yK)
-                        #     # print("CELL ", df_cell.at[k, 'CELL'])
-                        #     print("gx = ", df_cell.at[k, 'g'], end=" ")
-                        #     print("hx = ", hx)
-                        #     c_with_x = c + np.array(d)*np.array(x_now)
+                        if iter == 3:
+                            print("\nCell ", k)
+                            print("gx = ", df_cell.at[k, 'g'], end=" ")
+                        if (iter == 3) & (k == 3):
+                            print("\nCell ", k)
+                            # print("y = ", yK)
+                            # print("CELL ", df_cell.at[k, 'CELL'])
+                            print("gx = ", df_cell.at[k, 'g'], end=" ")
+                            print("hx = ", hx)
+                            c_with_x = c + np.array(d)*np.array(x_now)
                             
-                        #     y_, g_, SP_,_,_, = gx_bound(c, c_with_x, edge,origin,destination)
-                        #     print("g_ ", g_)
-                        #     print(np.where(y_ > 0)[0])
-                        #     for P in P_set:
-                        #         myY = np.where(P > 0)[0]
-                        #         print("\t", myY, end=" ")
-                        #         print(sum(c_with_x[a] for a in myY))
+                            y_, g_, SP_,_,_, = gx_bound(c, c_with_x, edge,origin,destination)
+                            print("g_ ", g_)
+                            print(np.where(y_ > 0)[0])
+                            for P in P_set:
+                                myY = np.where(P > 0)[0]
+                                print("\t", myY, end=" ")
+                                print(sum(c_with_x[a] for a in myY))
                             
                         # print("y_h = ", y_h)
                         # print("hx = ", hx)
@@ -431,14 +449,14 @@ def lazy(m, where):
                         # print(df_cell)
                         df_cell.at[k, 'h'] = hx
                         gx = df_cell.at[k, 'g']
-                        # print(k, " gx ", gx, " hx ", hx)
+                        print(k, " gx ", gx, " hx ", hx)
                         if gx - hx <= delta2*gx:
                             # print("Remove ", k, ": ", delta2*gx)
                         # if gx - hx <= delta2:
                             K_removed.append(k)
                         else:
                             newCell += 1
-                            ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added)
+                            ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition_DelaySP(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added, P_set)
                             # print("df_cell ", len(df_cell))
                             # sys.exit()
                             # print(k, ": Added a new cell")
