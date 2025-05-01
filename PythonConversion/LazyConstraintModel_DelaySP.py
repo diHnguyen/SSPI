@@ -626,6 +626,7 @@ cRefNum = 2000000
 
 m = gp.Model()
 m.setParam(GRB.Param.OutputFlag, 0)
+m.setParam(GRB.Param.MIPGap, 0.01)
 # m.setParam(GRB.Param.Threads,1)
 x = m.addVars(range(Len), vtype=GRB.BINARY, name="x")
 z = m.addVar(lb=0, ub=1e6, name="z")
