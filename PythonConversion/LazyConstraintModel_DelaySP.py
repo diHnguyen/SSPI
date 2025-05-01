@@ -220,8 +220,8 @@ def lazy(m, where):
         MP_cur = m.cbGet(gp.GRB.Callback.MIPSOL_OBJ)
         # print("\nPaths in P_set ", len(P_set))
         # print("P_set ", P_set)
-        for i in P_set:
-            print(np.where(i > 0.5)[0])
+        # for i in P_set:
+        #     print(np.where(i > 0.5)[0])
         print("con_num ", con_num)
         # print(df_lazy)
         # print(range(1,con_num+1))
@@ -247,8 +247,8 @@ def lazy(m, where):
         # print("p = ", p)
         print("newCell = ", newCell)
 
-        if iter > 3:
-            sys.exit()
+        # if iter > 3:
+        #     sys.exit()
         if runningTest == False:
             if printIters == True:
                 with open(directory+'Dec2024_Output/Iter/lazyDelay_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
@@ -423,24 +423,24 @@ def lazy(m, where):
                         y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
                         
                         # if iter == 15:
-                        if iter == 3:
-                            print("\nCell ", k)
-                            print("gx = ", df_cell.at[k, 'g'], end=" ")
-                        if (iter == 3) & (k == 3):
-                            print("\nCell ", k)
-                            # print("y = ", yK)
-                            # print("CELL ", df_cell.at[k, 'CELL'])
-                            print("gx = ", df_cell.at[k, 'g'], end=" ")
-                            print("hx = ", hx)
-                            c_with_x = c + np.array(d)*np.array(x_now)
+                        # if iter == 3:
+                        #     print("\nCell ", k)
+                        #     print("gx = ", df_cell.at[k, 'g'], end=" ")
+                        # if (iter == 3) & (k == 3):
+                        #     print("\nCell ", k)
+                        #     # print("y = ", yK)
+                        #     # print("CELL ", df_cell.at[k, 'CELL'])
+                        #     print("gx = ", df_cell.at[k, 'g'], end=" ")
+                        #     print("hx = ", hx)
+                        #     c_with_x = c + np.array(d)*np.array(x_now)
                             
-                            y_, g_, SP_,_,_, = gx_bound(c, c_with_x, edge,origin,destination)
-                            print("g_ ", g_)
-                            print(np.where(y_ > 0)[0])
-                            for P in P_set:
-                                myY = np.where(P > 0)[0]
-                                print("\t", myY, end=" ")
-                                print(sum(c_with_x[a] for a in myY))
+                        #     y_, g_, SP_,_,_, = gx_bound(c, c_with_x, edge,origin,destination)
+                        #     print("g_ ", g_)
+                        #     print(np.where(y_ > 0)[0])
+                        #     for P in P_set:
+                        #         myY = np.where(P > 0)[0]
+                        #         print("\t", myY, end=" ")
+                        #         print(sum(c_with_x[a] for a in myY))
                             
                         # print("y_h = ", y_h)
                         # print("hx = ", hx)
@@ -449,7 +449,7 @@ def lazy(m, where):
                         # print(df_cell)
                         df_cell.at[k, 'h'] = hx
                         gx = df_cell.at[k, 'g']
-                        print(k, " gx ", gx, " hx ", hx)
+                        # print(k, " gx ", gx, " hx ", hx)
                         if gx - hx <= delta2*gx:
                             # print("Remove ", k, ": ", delta2*gx)
                         # if gx - hx <= delta2:
@@ -545,7 +545,7 @@ def lazy(m, where):
                     g_val = df_cell['g']
                     UB = sum(g_val[k] * p_val[k] for k in range(newCell+1))
                     LB = sum(h_val[k] * p_val[k] for k in range(newCell+1))
-                    print("UB = ", UB, "; LB = ", LB, "/", newCell)
+                    # print("UB = ", UB, "; LB = ", LB, "/", newCell)
 
                     
                     if (UB - LB)/UB <= MIP_GAP:
