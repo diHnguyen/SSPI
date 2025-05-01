@@ -247,7 +247,7 @@ def lazy(m, where):
         # print("p = ", p)
         print("newCell = ", newCell)
 
-        # if iter > 3:
+        # if iter > 1:
         #     sys.exit()
         if runningTest == False:
             if printIters == True:
@@ -426,7 +426,7 @@ def lazy(m, where):
                         # if iter == 3:
                         #     print("\nCell ", k)
                         #     print("gx = ", df_cell.at[k, 'g'], end=" ")
-                        # if (iter == 3) & (k == 3):
+                        # if (iter == 3) & (k == 1):
                         #     print("\nCell ", k)
                         #     # print("y = ", yK)
                         #     # print("CELL ", df_cell.at[k, 'CELL'])
@@ -455,8 +455,9 @@ def lazy(m, where):
                         # if gx - hx <= delta2:
                             K_removed.append(k)
                         else:
+                            # print("k ", k)
                             newCell += 1
-                            ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition_DelaySP(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added, P_set)
+                            ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell,newCell = Partition_DelaySP(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added, P_set)
                             # print("df_cell ", len(df_cell))
                             # sys.exit()
                             # print(k, ": Added a new cell")

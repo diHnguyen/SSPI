@@ -4,13 +4,15 @@ import numpy as np
 import pandas as pd
 import importlib
 importlib.import_module("functionSelectArc_DelaySP")
-from functionSelectArc import selectArc
+from functionSelectArc_DelaySP import selectArc_DelaySP
 importlib.import_module("functionArcSplit")
 from functionArcSplit import arcSplit
 importlib.import_module("functionGbound")
 from functionGbound import gx_bound
 importlib.import_module("functionGetPathCost")
 from functionGetPathCost import getPathCost
+importlib.import_module("functionGetCellInfo")
+from functionGetCellInfo import getCellInfo
 
 def Partition_DelaySP(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added, P_set):
     # global K_bar, K_newly_added, d, df_cell
@@ -19,13 +21,27 @@ def Partition_DelaySP(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destina
     # print("\tNewCell = ", newCell)
     # Selecting the arc to split
     # print("M ", M)
-    arc_split = selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1)
+    # print("cell ", k)
+    # print("len df ", len(df_cell), " vs " , newCell)
+    # print(df_cell)
+    arc_split = selectArc_DelaySP(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1)
     # print("arc_split ", arc_split)
     if arc_split == -1:
+        newCell = newCell -1
+        c_L, c_U, M, c, c_g, Y_k = getCellInfo(k, x_now, "c_g", d, df_cell)
         Y_k, gx, SPL,_,_, = gx_bound(c, c_g, edge,origin,destination)
         df_cell.at[k,'Y'] = Y_k
         df_cell.at[k,'g'] = gx
         P_set = np.concatenate((P_set, [Y_k]), axis=0)
+        ΔL = None
+        ΔU = None
+        yL = None
+        yU = None 
+        gL = None 
+        gU = None
+        SP_L = None
+        SP_U = None
+
     else:
 
         label = df_cell.at[k, "PI"]
@@ -135,4 +151,4 @@ def Partition_DelaySP(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destina
         ΔU /= 2
     # print("Inside Partition")
     # print(df_cell)
-    return ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell
+    return ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell, newCell
