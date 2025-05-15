@@ -12,6 +12,7 @@ def selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1):
         # print("S_k_W ", S_k_W)
         arc_split = S_k_W[0]
     else:
+        print("y in selectArc ", )
         arcs = np.where(y>0)[0]
         # print("\nMULTIPLY")
         # print("arcs ", arcs)

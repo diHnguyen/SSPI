@@ -13,6 +13,10 @@ def getCellInfo(k, x_now, c_or_cL, d, df_cell):
     M = c_U - c_L
     c = (c_U + c_L)/2  
     # print("M ", M)
+    # print("cL ", c_L)
+    # print("cU ", c_U)
+    # print("d ", d)
+    # print("x_now ", )
     if c_or_cL == "c_g":
         c_with_x = c + np.array(d)*np.array(x_now)
         # print("2. c_g = ", c_with_x)

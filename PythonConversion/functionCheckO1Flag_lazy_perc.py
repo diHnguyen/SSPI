@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import importlib
 
 importlib.import_module("functionGetCellInfo")
@@ -6,41 +7,45 @@ from functionGetCellInfo import getCellInfo
 importlib.import_module("functionGbound")
 from functionGbound import gx_bound
 
-def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints):
-    if not np.array_equal(last_x, x_now):
-        K_bar = list(range(newCell+1))
-        # print("checkO1Flag/ K_bar = ", K_bar)
-        last_x = x_now
-        for k in K_bar:
-            # print("k = ", k)
-            c_L, c_U, M, c, c_g, y = getCellInfo(k, x_now, "c_g", d,  df_cell)
-            y, gx, SP, label, path = gx_bound(c, c_g, edge,origin,destination)
-            # print("k ", k)
-            # print("y = ", y)
-            # print("c-bar = ", c)
-            # print("c_g = ", c_g)
-            # print("gx = ", gx)
-            df_cell.at[k, 'g'] = gx
-            # t = np.array(df_cell.loc[df_cell.CELL==k, 'Y'])
-            # print("Y ", np.array(df_cell.loc[df_cell.CELL==k]['Y'][0]))
-            # print("y ", np.array(y))
-            # print("df_cell.loc[df_cell.CELL==k, 'Y'] ",df_cell.loc[df_cell.CELL==k, 'Y'])
-            # print("Before: ", df_cell)
-            df_cell.at[k,'Y'] = y
-            df_cell.at[k, 'PI'] = label
-            # print("After: ", df_cell)
-            # print("z_now[k]", z_now[k])
-            # print("gx ", gx)
-            if z_now[k] - gx > delta1*gx: #Used to be z_now[k] - gx > delta1:
-                # con_num += 1
+def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,x_now,d, z_now,df_cell):
+    print("In function checkO1Flag")
+    df_constraints_added = pd.DataFrame()
+    # print("last_x ", last_x)
+    print("x_now ", x_now)
+    # if not np.array_equal(last_x, x_now):
+    K_bar = list(range(newCell+1))
+    # print("checkO1Flag/ K_bar = ", K_bar)
+    last_x = x_now
+    for k in K_bar:
+        # print("k = ", k)
+        c_L, c_U, M, c, c_g, y = getCellInfo(k, x_now, "c_g", d,  df_cell)
+        y, gx, SP, label, path = gx_bound(c, c_g, edge,origin,destination)
+        # print("k ", k)
+        print(k, "y = ", y)
+        # print("c-bar = ", c)
+        # print("c_g = ", c_g)
+        # print("gx = ", gx)
+        df_cell.at[k, 'g'] = gx
+        # t = np.array(df_cell.loc[df_cell.CELL==k, 'Y'])
+        # print("Y ", np.array(df_cell.loc[df_cell.CELL==k]['Y'][0]))
+        # print("y ", np.array(y))
+        # print("df_cell.loc[df_cell.CELL==k, 'Y'] ",df_cell.loc[df_cell.CELL==k, 'Y'])
+        # print("Before: ", df_cell)
+        df_cell.at[k,'Y'] = [y]
+        df_cell.at[k, 'PI'] = label
+        # print("After: ", df_cell)
+        # print("z_now[k]", z_now[k])
+        # print("gx ", gx)
+        if z_now[k] - gx > delta1*gx: #Used to be z_now[k] - gx > delta1:
+            # con_num += 1
 #                 constraints_dict
 #                 # key = current_cell k
 #                 # Retrieve the record for the specified key
 #                 target_key = str(k)
 #                 target_record = constraints_dict[target_key]
-                
+            
 #                 print(constraints_dict)
-                
+            
 #                 # Access the constraints and values for the retrieved record
 #                 target_cons = target_record["cons"]
 #                 target_info = target_record["info"]
@@ -53,31 +58,32 @@ def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x
 #                 print("Values:")
 #                 for key, value in target_info.items():
 #                     print(f"  {key}: {value}")
-                dtypes = {
-                    'CELL': int,
-                    'Y': object,
-                    'SP': object,  # Assuming 'Y' contains arrays
-                    'con': object
-                }    
-                new_row_data = {
-                                'CELL': k,
-                                'Y': Y_k,
-                                'SP':newCell_RHS,
-                                'con': m.cbLazy(z[k] <= sum(d[i] * m._x[i] * y[i] for i in range(Len)) + SP)
-                            }
-                # model.cbLazy(gp.quicksum(model._vars[i, j] for i, j in combinations(tour, 2))<= len(tour)-1)
+            dtypes = {
+                'CELL': int,
+                'Y': object,
+                'SP': object  # Assuming 'Y' contains arrays
+                # 'con': object
+            }    
+            new_row_data = {
+                            'CELL': k,
+                            'Y': [y], #Y_k,
+                            'SP':SP, #newCell_RHS,
+                        }
+            # model.cbLazy(gp.quicksum(model._vars[i, j] for i, j in combinations(tour, 2))<= len(tour)-1)
+        
+            # df_constraints.loc[con_num - 1] = [con_num, newCell, Y_k.tolist(), newCell_RHS]
             
-                # df_constraints.loc[con_num - 1] = [con_num, newCell, Y_k.tolist(), newCell_RHS]
-                
-                df_new_row = pd.DataFrame(new_row_data, columns=dtypes.keys()).astype(dtypes)
-                df_constraints = pd.concat([df_constraints,df_new_row], axis=0, ignore_index=True)
-                # df_constraints = df_constraints.append(new_row_data, ignore_index=True)
-                # df_constraints.loc[con_num] = [con_num, k, y.tolist(), SP]
-                #Example: m.addConstr(z[1] <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))
-                # constr[con_num] = m.addConstr(m, z[k] <= sum(d[i] * y[i] * x[i] for i in range(1, Len + 1)) + SP)
-                # print("Len ", Len)
-                # print("d ", len(d))
-                
-                # m.addConstr(z[k] <= sum(d[i] * y[i] * x[i] for i in range(Len)) + SP)
-                O1Flag = False
-    return O1Flag, K_bar,df_constraints
+            df_new_row = pd.DataFrame(new_row_data, columns=dtypes.keys()).astype(dtypes)
+            df_constraints_added = pd.concat([df_constraints_added,df_new_row], axis=0, ignore_index=True)
+            # df_constraints = df_constraints.append(new_row_data, ignore_index=True)
+            # df_constraints.loc[con_num] = [con_num, k, y.tolist(), SP]
+            #Example: m.addConstr(z[1] <= SP_init + sum(yy[i]*x[i]*d[i] for i in range(Len)))
+            # constr[con_num] = m.addConstr(m, z[k] <= sum(d[i] * y[i] * x[i] for i in range(1, Len + 1)) + SP)
+            # print("Len ", Len)
+            # print("d ", len(d))
+            
+            # m.addConstr(z[k] <= sum(d[i] * y[i] * x[i] for i in range(Len)) + SP)
+            O1Flag = False
+    print("O1Flag ", O1Flag)
+    print("df_constraints_added ", df_constraints_added)
+    return O1Flag, df_constraints_added

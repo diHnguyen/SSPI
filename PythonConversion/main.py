@@ -1,3 +1,6 @@
+#This version implements delta1 and delta2 as percentage
+#See orig branch 33 for delta1=1 delta2=2
+#This also uses the new convention for marking termination
 #Imports for main 
 import numpy as np
 import pandas as pd
@@ -32,8 +35,8 @@ c_orig = 0.5*(cL_orig+cU_orig)
 # for i = 1:Len
 p = [1.0]
 M_orig = cU_orig - cL_orig
-delta1 = 1.0
-delta2 = 2.0
+delta1 = 0.5/100 #Old: 1.0
+delta2 = 1/100 #Old: 2.0
 # b = 7
 b=10
 print(d)
@@ -50,8 +53,8 @@ importlib.import_module("functionArcSplit")
 from functionArcSplit import arcSplit
 importlib.import_module("functionPartition")
 from functionPartition import Partition
-importlib.import_module("functionCheckO1Flag")
-from functionCheckO1Flag import checkO1Flag
+importlib.import_module("functionCheckO1Flag_perc")
+from functionCheckO1Flag_perc import checkO1Flag
 importlib.import_module("functionGetCellInfo")
 from functionGetCellInfo import getCellInfo
 
@@ -260,7 +263,7 @@ while not terminate_cond:
             if runningTest == False:
                 if printIters == True:
                     with open(directory+'Dec2024_Output/Iter/main_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                        the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
                     
             # print(df_cell)
             # print("z = ", z_now[0:(newCell+1)])
@@ -285,7 +288,7 @@ while not terminate_cond:
         h = np.array(df_cell.h)
         # print(h)
         if O1Flag:
-            print("\tO1Flag: Passed")
+            print("\tO1Flag: Passed ", len(K_bar), "/", newCell+1)
             partitionCounter = 1
             myCounter = 0
             # print("HERE")
@@ -327,7 +330,7 @@ while not terminate_cond:
                     # print(k, "gx = ", gx,"; hx = ", hx)
                     # print("hx = ", hx)
                     
-                    if gx - hx <= delta2:
+                    if gx - hx <= delta2*gx: #Used to be gx - hx <= delta2:
                         # print("O2Flag: Passed")
                         K_removed.append(k)
                     else:
@@ -490,8 +493,8 @@ while not terminate_cond:
         p_val = df_cell['PROB']
         # print(len(h))
         # print(newCell+1)
-        # print("LB before Partition")
-        print("MP_obj = ", MP_obj, " LB ", sum(h_val[k] * p_val[k] for k in range(len(h)))) 
+        print("LB before Partition")
+        print("MP_obj = ", MP_obj, " LB ", sum(h[k] * p_val[k] for k in range(len(h)))) 
         LB = sum(h_val[k] * p_val[k] for k in range(newCell+1))
 
         #Difference compared to Branch 32: Added MIP_GAP
@@ -519,9 +522,9 @@ if runningTest == True:
 else:
     with open(directory+'./Dec2024_Output/'+'main_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
-        the_file.write("-1;"+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
     with open(directory+'Dec2024_Output/Iter/main_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write(str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
 # for i in range(newCell+1):
