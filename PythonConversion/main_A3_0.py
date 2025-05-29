@@ -32,8 +32,8 @@ c_orig = 0.5*(cL_orig+cU_orig)
 # for i = 1:Len
 p = [1.0]
 M_orig = cU_orig - cL_orig
-delta1 = 1.0
-delta2 = 2.0
+delta1 = 0.5/100 #Old: 1.0
+delta2 = 1/100 #Old: 2.0
 # b = 7
 b=10
 print(d)
@@ -48,10 +48,10 @@ importlib.import_module("functionSelectArc")
 from functionSelectArc import selectArc
 importlib.import_module("functionArcSplit")
 from functionArcSplit import arcSplit
-importlib.import_module("functionPartition")
-from functionPartition import Partition
-importlib.import_module("functionCheckO1Flag")
-from functionCheckO1Flag import checkO1Flag
+importlib.import_module("functionPartition_SA")
+from functionPartition_SA import Partition
+importlib.import_module("functionCheckO1Flag_perc")
+from functionCheckO1Flag_perc import checkO1Flag
 importlib.import_module("functionGetCellInfo")
 from functionGetCellInfo import getCellInfo
 
@@ -219,6 +219,7 @@ terminate_cond = False
 MIP_GAP = 1/100 #Terminate if MIP gap, i.e., weighted UB- weighted LB, is within 1%
 calls_SASplit = 0
 actual_SASplit = 0
+SA_time = 0
 # print("df_cell")
 # print(df_cell.g)
 # print(df_cell)
@@ -263,7 +264,7 @@ while not terminate_cond:
             if runningTest == False:
                 if printIters == True:
                     with open(directory+'Dec2024_Output/Iter/main_A3_0_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+"\n")
+                        the_file.write("I;" +str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
             print("Calls vs actual ",calls_SASplit,"/",actual_SASplit)
                     
             # print(df_cell)
@@ -333,7 +334,7 @@ while not terminate_cond:
                     # print(k, "gx = ", gx,"; hx = ", hx)
                     # print("hx = ", hx)
                     
-                    if gx - hx <= delta2:
+                    if gx - hx <= delta2*gx: #Used to be gx - hx <= delta2:
                         # print("O2Flag: Passed")
                         K_removed.append(k)
                     else:
@@ -341,7 +342,7 @@ while not terminate_cond:
                         newCell += 1
                         # print("2. After update hx")
                         # print(df_cell)
-                        ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell,calls_SASplit,actual_SASplit = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added,calls_SASplit,actual_SASplit)
+                        ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell,calls_SASplit,actual_SASplit, SA_time = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added,calls_SASplit,actual_SASplit, SA_time)
                         # print("arc_split ", arc_split)
                         # print(k, ": Added a new cell")
                         # print(df_cell)
@@ -501,9 +502,9 @@ while not terminate_cond:
         # print(len(h))
         # print(newCell+1)
         print("LB before Partition")
-        print("MP_obj = ", MP_obj, " LB ", sum(h_val[k] * p_val[k] for k in range(len(h)))) 
+        
         LB = sum(h_val[k] * p_val[k] for k in range(newCell+1))
-
+        # print("MP_obj = ", MP_obj, " LB ", LB) 
         #Difference compared to Branch 32: Added MIP_GAP
         print("MIP_GAP = ", MIP_GAP)
         print("MIP GAP ", MP_obj, " ", LB,":", (MP_obj - LB)/MP_obj)
@@ -527,11 +528,11 @@ if runningTest == True:
     # with open(directory+'./Dec2024_Output/test_main_d20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
 else:
-    with open(directory+'./Dec2024_Output/'+'main_A3_0_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'./Dec2024_Output/main_A3_0_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
-        the_file.write("-1;"+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+"\n")
+        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
     with open(directory+'Dec2024_Output/Iter/main_A3_0_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write(str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+"\n")
+                        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 # calls_SAASplit,actual_SAASplit
 # for i in range(newCell+1):

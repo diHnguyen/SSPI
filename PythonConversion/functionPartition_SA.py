@@ -7,8 +7,9 @@ importlib.import_module("functionArcSplit")
 from functionArcSplit import arcSplit
 importlib.import_module("functionGbound")
 from functionGbound import gx_bound
+import time
 
-def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added,calls_SASplit,actual_SASplit):
+def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added,calls_SASplit,actual_SASplit, SA_time):
     # global K_bar, K_newly_added, d, df_cell
     # global A1, A2, A3, A4, A5
     # print("\t",k,": Partitioning (inside function)")
@@ -17,8 +18,12 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
     # print("M ", M)
     # print(0, " cL = ", c_L)
     
-    
+    now = time.time()
+    # print("now ", now)
     arc_split = selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1)
+    # print("time ", time.time())
+    SA_time = SA_time + (time.time()-now)
+    # print("SA_time ", SA_time)
     # print("arc_split ", arc_split, edge[arc_split, :])
     # print("pre slit cL cU", c_L[arc_split], " ", c_U[arc_split])
     label = df_cell.at[k, "PI"]
@@ -140,4 +145,4 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
     ΔU /= 2
     # print("Inside Partition")
     # print(df_cell)
-    return ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell,calls_SASplit,actual_SASplit
+    return ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell,calls_SASplit,actual_SASplit, SA_time
