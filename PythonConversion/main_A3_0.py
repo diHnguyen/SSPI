@@ -512,6 +512,7 @@ while not terminate_cond:
             terminate_cond = True
             K_bar = []
         print("terminate_cond ", terminate_cond)
+        print("SA_time ", SA_time)
         # print("UB ", MP_obj, "; LB ", LB)
         # print("h_val ", h_val)
         # print(df_constraints)
