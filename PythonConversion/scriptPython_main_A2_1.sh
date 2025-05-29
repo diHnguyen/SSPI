@@ -16,19 +16,9 @@
 
 for density in 15;
 do
-    for N in 30;
-    do
-        for i in 3 35 36 37 52 63 64 150 282 319; 
-        do
-            echo "Running N=$N density=$density i=$i "
-            gtimeout -k 5 3600 python main_A2_1.py $N $i $density
-            # gtimeout -k 5 2s sleep $((i*10)) && echo "Hello"
-            echo "End of 3600 seconds"
-        done
-    done
     for N in 40;
     do
-        for i in 2 14 18 22 24 38 39 40 56 76; 
+        for i in 14 18 22 24 38 39 40 56 76; 
         do
             echo "Running N=$N density=$density i=$i "
             gtimeout -k 5 3600 python main_A2_1.py $N $i $density
