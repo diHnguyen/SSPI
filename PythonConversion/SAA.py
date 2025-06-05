@@ -21,7 +21,8 @@ directory = "./"
 
 testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
-Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins)
+density = sys.argv[3]
+Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins, density)
 
 # In[2]:
 
@@ -32,7 +33,7 @@ Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, in
 # numpy.random.seed(2024);
 
 # networkCSV = './NewCSVFeb24/N10_1.csv'
-num_cases = int(sys.argv[3]) #1000
+num_cases = int(sys.argv[4]) #1000 
 b = 10
 np.random.seed(2024)
 
@@ -175,5 +176,5 @@ for e in G.edges:
 # print(edge)
 total_time = time.time() - start
 print(total_time)
-with open(directory+'Sep2024_Output/SAA_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
+with open(directory+'Dec2024_Output/SAA_'+str(num_cases)+'_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt', 'a') as the_file:
     the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+"\n")
