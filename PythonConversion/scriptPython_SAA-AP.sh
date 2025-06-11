@@ -1,7 +1,7 @@
 #!/bin/bash
 #<5min
 #N30: 1 2 5 6 7 8 9 10 11 12
-#N40: 1 3 5 6 7 9 19 11 12 13
+#N40: 1 3 5 6 7 9 10 11 12 13
 #N50: 2 6 7 10 13 14 15 16 17 21
 
 #5-60min
@@ -16,9 +16,9 @@
 
 for density in 15;
 do
-    for N in 50;
+    for N in 40;
     do
-        for i in 122; 
+        for i in 10; 
         do
             for num_cases in 5000;
             do
