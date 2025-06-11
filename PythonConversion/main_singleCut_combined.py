@@ -228,6 +228,23 @@ SA_time = 0
 # print("df_cell")
 # print(df_cell.g)
 # print(df_cell)
+import os
+print(os.getcwd())
+df_xSol = pd.read_csv("xSol_SAA_5000_15_"+str(testSet)+".csv")
+print(testSet, "_", ins)
+# print("ins ", ins)
+# print(df_xSol[(df_xSol.N == int(sys.argv[1]))&(df_xSol.Ins == int(ins))])
+warmStart_X = df_xSol.loc[(df_xSol.N == int(sys.argv[1]))&(df_xSol.Ins == int(ins)), 'x_sol'].values[0]
+# print("warmStart ", type(warmStart_X))
+
+
+# x_init = np.zeros(Len)
+
+string_array_cleaned = warmStart_X.strip("[]")  # Remove brackets
+string_list = string_array_cleaned.split()
+x_init = np.array(list(map(int, string_list)))
+print(x_init)
+# sys.exit()
 
 while not terminate_cond:
     # α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell, LB_w, p, \
@@ -244,6 +261,11 @@ while not terminate_cond:
         # for k in K_bar:
         #     print(k, ": ", df_constraints.loc[k,'con'])
         iter += 1
+        if iter == 1:
+            con1 = m.addConstr(sum(x[a] for a in x_init) == b)
+            
+        if iter == 2:
+            m.remove(con1)
         # m.write("checkModel.lp")
         m.update()
         m.optimize()
@@ -272,31 +294,35 @@ while not terminate_cond:
                         the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
 
         O1Flag = True
+        # if iter > 1:
         O1Flag, K_bar = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell)
-        
+        if iter == 1:
+            O1Flag = True
         df_parent = pd.DataFrame({
             'CELL': df_cell.CELL,
             'Y': df_cell.Y,  # Assuming 'Y' contains arrays
             'Parent': df_cell.CELL
         })
-        # print("O1Flag ", O1Flag)
+            # print("O1Flag ", O1Flag)
         # print("K_bar ", K_bar)
+        # print(df_cell)
         h = np.array(df_cell.h)
         # print(h)
         if O1Flag:
             print("\tO1Flag: Passed ", len(K_bar), "/", newCell+1)
             partitionCounter = 1
             myCounter = 0
-            # print("HERE")
+            # print("HERE") [  1  46  73  74  85  81 102 119 125 113]
             # print("myCounter ", myCounter)
             
             # print("LB = ", h)
             while myCounter < partitionCounter:
                 # myCounter += 1
-                # print("K_bar = ", K_bar)
+                print("K_bar = ", K_bar)
+                h = np.array(df_cell.h)
                 # print("Cells failing O2Flag")
                 for k in K_bar:
-                    # print("Cell ", k)
+                    print("Cell ", k)
                     c_L, c_U, M, c, c_g, yK = getCellInfo(k, x_now, "c_g", d, df_cell)
                     y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
                     # print("y_h = ", y_h)
@@ -308,7 +334,8 @@ while not terminate_cond:
                     df_cell.at[k, 'h'] = hx
                     gx = df_cell.at[k, 'g']
                     # print(np.where(df_cell.at[k,'Y']>0.5))
-                    # print(k, "\tgx ", gx, " \thx ", hx, "\t", gx - hx, " vs ", delta2*gx)
+                    if iter == 1:
+                        print(k, "\tgx ", gx, " \thx ", hx, "\t", gx - hx, " vs ", delta2*gx)
                     if gx - hx <= delta2*gx: #Used to be gx - hx <= delta2:
                         # print("O2Flag: Passed")
                         K_removed.append(k)
@@ -316,8 +343,11 @@ while not terminate_cond:
                         # print(k, end=": ")
                         newCell += 1
                         # print("Partitioned, now have ", newCell+1, " cells")
+                        print(df_cell[['g','h']])
                         ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell,calls_SASplit,actual_SASplit, SA_time = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added,calls_SASplit,actual_SASplit, SA_time)
+                        print(df_cell[['g','h']])
                         newCell_parent = df_parent.loc[k,'Parent']
+                        # print("newCell_parent ",newCell_parent)
                         newCell_parent_Y = df_parent.loc[newCell_parent,'Y']
                         
                         df_parent.loc[len(df_parent)] = [newCell,newCell_parent_Y,newCell_parent] #Order: cell number, parent SP, parent cell
@@ -325,9 +355,11 @@ while not terminate_cond:
                     # print(k, ". ", np.where(yL>0.5))
                     # print(k, ". ", np.where(yU>0.5))
                     if np.array_equal(newCell_parent_Y, yL) == False:
-                        myCounter = partitionCounter
+                        if iter > 1:
+                            myCounter = partitionCounter
                     if np.array_equal(newCell_parent_Y, yU) == False:
-                        myCounter = partitionCounter
+                        if iter > 1:
+                            myCounter = partitionCounter
                 coef_x = [0]*Len
                 constant_SP = 0
                 p = df_cell['PROB']
