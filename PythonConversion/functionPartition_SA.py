@@ -17,7 +17,8 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
     # Selecting the arc to split
     # print("M ", M)
     # print(0, " cL = ", c_L)
-    
+    # if k == 1:
+        # print("2. ", df_cell['CELL'])
     now = time.time()
     # print("now ", now)
     arc_split = selectArc(x_now, c_L, c_U, M, y,d,edge,origin,destination,A1)
@@ -26,6 +27,8 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
     # print("SA_time ", SA_time)
     # print("arc_split ", arc_split, edge[arc_split, :])
     # print("pre slit cL cU", c_L[arc_split], " ", c_U[arc_split])
+    # print("df_cell.at[k, PI] ")
+    # print(df_cell.at[k, "PI"])
     label = df_cell.at[k, "PI"]
     
     # Calculate ΔL and ΔU
@@ -112,6 +115,7 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
     # print("NEW ROW")
 #     print(pd.DataFrame(new_row))
     df_cell = pd.concat([df_cell,df_new_row], axis=0, ignore_index=True)
+    df_cell.at[newCell, 'PI'] = label_U
     # print(df_cell)
     # print("2.3")
     # print(df_cell)
@@ -137,6 +141,8 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
     df_cell.at[k,'h'] = 0
     df_cell.at[k,'PROB'] = current_p * (ΔL / M[arc_split])
     df_cell.at[k,'PI'] = label_L
+    # print("2. df_cell.at[k,'PI'] ")
+    # print(df_cell.at[k,'PI'])
     # print("After update df_cell")
     # print(df_cell)
     K_newly_added.append(newCell)
