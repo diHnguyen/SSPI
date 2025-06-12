@@ -23,6 +23,7 @@ from functionProcessInputFile import processInputFile
 testSet = "N"+sys.argv[1]
 ins = int(sys.argv[2])
 density = sys.argv[3]
+n = sys.argv[4]
 directory = "./"
 #directory = "./Output/INOC2024/"
 Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, ins, density)
@@ -48,6 +49,8 @@ importlib.import_module("functionGbound")
 from functionGbound import gx_bound
 importlib.import_module("functionHbound")
 from functionHbound import hx_bound
+importlib.import_module("functionSAA_Bounds")
+from functionSAA_Bounds import getSAABounds
 importlib.import_module("functionSelectArc")
 from functionSelectArc import selectArc
 importlib.import_module("functionArcSplit")
@@ -75,6 +78,7 @@ c = (cU_orig + cL_orig) / 2
 
 # Call the gx_bound function (assuming you have it defined elsewhere)
 yy, SP_init, SP_init, label, path = gx_bound(c, c, edge, origin,destination)
+# print("0. label", label)
 # print("yy = ", np.where(yy > 0.5)[0])
 # print("SP_init = ", SP_init)
 # Create and append rows to the DataFrames
@@ -106,9 +110,10 @@ dtypes = {
 }
 # df_cell = pd.DataFrame(new_row)
 df_cell = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
+df_cell.at[0, 'PI'] = label
 # print(df_cell)
 
-
+# print("0.", df_cell.at[0,'PI'])
 # data = {"cell":1, 
 #         "rhs": SP_init, 
 #         "SP": yy, 
@@ -225,6 +230,9 @@ MIP_GAP = 1/100 #Terminate if MIP gap, i.e., weighted UB- weighted LB, is within
 calls_SASplit = 0
 actual_SASplit = 0
 SA_time = 0
+total_SAA = 0
+SAA_calls = 0
+SAA_enact = 0
 # print("df_cell")
 # print(df_cell.g)
 # print(df_cell)
@@ -290,8 +298,8 @@ while not terminate_cond:
             print("z = ", z_now)
             if runningTest == False:
                 if printIters == True:
-                    with open(directory+'Dec2024_Output/Iter/main_singleCut_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                    with open(directory+'Dec2024_Output/Iter/main_singleCut_combined_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                        the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
 
         O1Flag = True
         # if iter > 1:
@@ -303,11 +311,12 @@ while not terminate_cond:
             'Y': df_cell.Y,  # Assuming 'Y' contains arrays
             'Parent': df_cell.CELL
         })
-            # print("O1Flag ", O1Flag)
+        print("O1Flag ", O1Flag)
         # print("K_bar ", K_bar)
         # print(df_cell)
         h = np.array(df_cell.h)
         # print(h)
+        
         if O1Flag:
             print("\tO1Flag: Passed ", len(K_bar), "/", newCell+1)
             partitionCounter = 1
@@ -318,12 +327,20 @@ while not terminate_cond:
             # print("LB = ", h)
             while myCounter < partitionCounter:
                 # myCounter += 1
-                print("K_bar = ", K_bar)
+                # print("K_bar = ", K_bar)
                 h = np.array(df_cell.h)
                 # print("Cells failing O2Flag")
                 for k in K_bar:
-                    print("Cell ", k)
+                    # print("\n_Cell ", k)
                     c_L, c_U, M, c, c_g, yK = getCellInfo(k, x_now, "c_g", d, df_cell)
+                    
+                    start_SAA = time.time()
+                    SP_mean, one_sided_CI,SAA_calls = getSAABounds(int(n),x_now, MP_obj, c_L, c_U,d,edge,origin,destination,delta2, SAA_calls)
+                    end_SAA = time.time()
+                    total_SAA = total_SAA + (end_SAA-start_SAA)
+
+                    hx_alt = SP_mean - one_sided_CI
+                    
                     y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
                     # print("y_h = ", y_h)
                     # print("hx = ", hx)
@@ -334,18 +351,21 @@ while not terminate_cond:
                     df_cell.at[k, 'h'] = hx
                     gx = df_cell.at[k, 'g']
                     # print(np.where(df_cell.at[k,'Y']>0.5))
-                    if iter == 1:
-                        print(k, "\tgx ", gx, " \thx ", hx, "\t", gx - hx, " vs ", delta2*gx)
-                    if gx - hx <= delta2*gx: #Used to be gx - hx <= delta2:
+                    # if iter == 1:
+                    #     print(k, "\tgx ", gx, " \thx ", hx, "\t", gx - hx, " vs ", delta2*gx)
+                    if (gx - hx_alt <= delta2/2) or (gx - hx <= delta2):#if gx - hx <= delta2*gx: #Used to be gx - hx <= delta2:
                         # print("O2Flag: Passed")
                         K_removed.append(k)
                     else:
                         # print(k, end=": ")
                         newCell += 1
-                        # print("Partitioned, now have ", newCell+1, " cells")
-                        print(df_cell[['g','h']])
+                        # print("Partitioning to have ", newCell+1, " cells")
+                        
+                        # print(df_cell[['g','h']])
                         ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell,calls_SASplit,actual_SASplit, SA_time = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added,calls_SASplit,actual_SASplit, SA_time)
-                        print(df_cell[['g','h']])
+                        # print("len df ", len(df_cell))
+                        # print(df_cell[['g','h']])
+                        # print("!!!",k," ", df_cell.at[k,'PI'])
                         newCell_parent = df_parent.loc[k,'Parent']
                         # print("newCell_parent ",newCell_parent)
                         newCell_parent_Y = df_parent.loc[newCell_parent,'Y']
@@ -412,10 +432,25 @@ while not terminate_cond:
         #     sys.exit()
         #Difference compared to Branch 32: Added MIP_GAP
         print("MIP_GAP = ", MIP_GAP)
-        print("MIP GAP ", MP_obj, " ", LB,":", (MP_obj - LB)/MP_obj)
-        if (MP_obj - LB)/MP_obj <= MIP_GAP:
-            terminate_cond = True
-            K_bar = []
+        # if (MP_obj - LB)/MP_obj <= MIP_GAP:
+        #     terminate_cond = True
+        #     K_bar = []
+        if iter == 1:
+            print("newCell ", newCell)
+            # print(np.array(range(4)))
+            g = df_cell['g']
+            UB = sum(g[k] * p[k] for k in range(len(g)))
+            if (UB - LB)/UB <= MIP_GAP:
+                terminate_cond = True
+            K_bar = np.array(range(newCell+1))
+            print("MIP GAP ", UB, " ", LB,":", (UB - LB)/UB)
+        else:
+            if (MP_obj - LB)/MP_obj <= MIP_GAP:
+                terminate_cond = True
+                K_bar = []
+            
+            print("MIP GAP ", MP_obj, " ", LB,":", (MP_obj - LB)/MP_obj)
+            # K_bar = np.array(range(newCell))
         # print("terminate_cond ", terminate_cond)
         # print("UB ", MP_obj, "; LB ", LB)
         # print("h_val ", h_val)
@@ -435,11 +470,11 @@ if runningTest == True:
     # with open(directory+'./Dec2024_Output/test_main_d20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
 else:
-    with open(directory+'./Dec2024_Output/'+'main_singleCut_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'./Dec2024_Output/'+'main_singleCut_combined_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
-        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
-    with open(directory+'Dec2024_Output/Iter/main_singleCut_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
+    with open(directory+'Dec2024_Output/Iter/main_singleCut_combined_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
 # for i in range(newCell+1):
