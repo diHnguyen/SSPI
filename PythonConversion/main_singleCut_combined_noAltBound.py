@@ -363,6 +363,7 @@ while not terminate_cond:
                         # print("len df ", len(df_cell))
                         # print(df_cell[['g','h']])
                         # print("!!!",k," ", df_cell.at[k,'PI'])
+                        
                         newCell_parent = df_parent.loc[k,'Parent']
                         # print("newCell_parent ",newCell_parent)
                         newCell_parent_Y = df_parent.loc[newCell_parent,'Y']
@@ -371,12 +372,12 @@ while not terminate_cond:
 
                     # print(k, ". ", np.where(yL>0.5))
                     # print(k, ". ", np.where(yU>0.5))
-                    if np.array_equal(newCell_parent_Y, yL) == False:
-                        if iter > 1:
-                            myCounter = partitionCounter
-                    if np.array_equal(newCell_parent_Y, yU) == False:
-                        if iter > 1:
-                            myCounter = partitionCounter
+                        if np.array_equal(newCell_parent_Y, yL) == False:
+                            if iter > 1:
+                                myCounter = partitionCounter
+                        if np.array_equal(newCell_parent_Y, yU) == False:
+                            if iter > 1:
+                                myCounter = partitionCounter
                 coef_x = [0]*Len
                 constant_SP = 0
                 p = df_cell['PROB']
