@@ -1,6 +1,8 @@
 #This version implements delta1 and delta2 as percentage
 #See orig branch 33 for delta1=1 delta2=2
 #This also uses the new convention for marking termination
+#yes: warm start sol. 1st iter (warm start sol) splits until OC2 is satisfied
+#no: alt h-bound : only regular h bound
 #Imports for main 
 import numpy as np
 import pandas as pd
