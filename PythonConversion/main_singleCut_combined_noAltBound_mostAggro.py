@@ -475,7 +475,7 @@ if runningTest == True:
     # with open(directory+'./Dec2024_Output/test_main_d20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
 else:
-    with open(directory+'./Dec2024_Output/'+'main_singleCut_combined_noAltBond_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'./Dec2024_Output/'+'main_singleCut_combined_noAltBond_mostAggro_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
         the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
     with open(directory+'Dec2024_Output/Iter/main_singleCut_combined_noAltBond_mostAggro_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
