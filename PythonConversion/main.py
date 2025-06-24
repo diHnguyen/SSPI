@@ -317,19 +317,24 @@ while not terminate_cond:
                     #         the_file.write(c_L)
                     #         the_file.write(c_L)
                             
-                            
-
-                    y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
-                    # print("y_h = ", y_h)
-                    # print("hx = ", hx)
-                    h[k] = hx
                     p_k = df_cell.at[k, 'PROB']
-                    # print("Before update hx")
-                    # print(df_cell)
-                    df_cell.at[k, 'h'] = hx
+                    if not np.array_equal(last_x, x_now):
+                        # print("0.")
+                        y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+                        # print("y_h = ", y_h)
+                        # print("hx = ", hx)
+                        # h[k] = hx
+                        
+                        # print("Before update hx")
+                        # print(df_cell)
+                        df_cell.at[k, 'h'] = hx
+                    else:
+                        # print("1.")
+                        hx = df_cell.at[k, 'h']
                     # print("After update hx")
                     # print(df_cell)
                     gx = df_cell.at[k, 'g']
+                    
                     # print(k, "gx = ", gx,"; hx = ", hx)
                     # print("hx = ", hx)
                     
@@ -517,7 +522,7 @@ while not terminate_cond:
         #Difference compared to Branch 32: Added MIP_GAP
         
         # print("MIP GAP ", MP_obj, " ", LB,":", (MP_obj - LB)/MP_obj)
-        if (MP_obj - LB)/MP_obj <= MIP_GAP:
+        if (MP_obj - LB_global)/MP_obj <= MIP_GAP:
             # print("1.")
             terminate_cond = True
             K_bar = []
