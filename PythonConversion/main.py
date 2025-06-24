@@ -57,6 +57,8 @@ importlib.import_module("functionCheckO1Flag_perc")
 from functionCheckO1Flag_perc import checkO1Flag
 importlib.import_module("functionGetCellInfo")
 from functionGetCellInfo import getCellInfo
+importlib.import_module("functionCalcHBoundAfterPartition")
+from functionCalcHBoundAfterPartition import calcHBoundAfterPartition
 
 #python main.py -> #f1 #a23 as parameters
 # c_L = cL_orig
@@ -220,6 +222,7 @@ cur_time = None
 start = time.time()
 terminate_cond = False
 MIP_GAP = 1/100 #Terminate if MIP gap, i.e., weighted UB- weighted LB, is within 1%
+LB_global = 0
 # print("df_cell")
 # print(df_cell.g)
 # print(df_cell)
@@ -280,10 +283,10 @@ while not terminate_cond:
             
 
         O1Flag = True
-        O1Flag, K_bar, df_cell, df_constraints = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints)
+        O1Flag, K_bar, df_cell, df_constraints = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints, K_bar)
         
         
-        # print("O1Flag ", O1Flag)
+        print("O1Flag ", O1Flag)
         # print("K_bar ", K_bar)
         h = np.array(df_cell.h)
         # print(h)
@@ -339,6 +342,16 @@ while not terminate_cond:
                         # print("2. After update hx")
                         # print(df_cell)
                         ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added)
+                        
+                        #Calculate h-bound for partitioned cells:
+                        yk, hk = calcHBoundAfterPartition(k, x_now, d, df_cell,edge,origin,destination)
+                        df_cell.at[k,'h'] = hk
+                        
+                        ynewCell, hnewCell = calcHBoundAfterPartition(newCell, x_now, d, df_cell,edge,origin,destination)
+                        df_cell.at[newCell,'h'] = hnewCell
+                        
+                        
+                        
                         # print("arc_split ", arc_split)
                         # print(k, ": Added a new cell")
                         # print(df_cell)
@@ -481,7 +494,7 @@ while not terminate_cond:
                 K_bar.extend(K_newly_added)
                 K_newly_added = []
                 K_removed = []
-
+                # print("0. K_bar ", K_bar)
                 if not K_bar:
                     myCounter = partitionCounter
                     terminate_cond = True
@@ -493,17 +506,23 @@ while not terminate_cond:
         p_val = df_cell['PROB']
         # print(len(h))
         # print(newCell+1)
-        print("LB before Partition")
-        print("MP_obj = ", MP_obj, " LB ", sum(h[k] * p_val[k] for k in range(len(h)))) 
+        # print("LB before Partition")
         LB = sum(h_val[k] * p_val[k] for k in range(newCell+1))
+        if LB_global < LB:
+            LB_global = LB
+        print("MIP_GAP = ", MIP_GAP)
+        print("MP_obj = ", MP_obj, " LB ", LB,":", (MP_obj - LB)/MP_obj)
+        print("LB_global = ", LB_global,":",  (MP_obj - LB_global)/MP_obj)
 
         #Difference compared to Branch 32: Added MIP_GAP
-        print("MIP_GAP = ", MIP_GAP)
-        print("MIP GAP ", MP_obj, " ", LB,":", (MP_obj - LB)/MP_obj)
+        
+        # print("MIP GAP ", MP_obj, " ", LB,":", (MP_obj - LB)/MP_obj)
         if (MP_obj - LB)/MP_obj <= MIP_GAP:
+            # print("1.")
             terminate_cond = True
             K_bar = []
         print("terminate_cond ", terminate_cond)
+        # print("K_bar ", K_bar)
         last_x = x_now
         # print("UB ", MP_obj, "; LB ", LB)
         # print("h_val ", h_val)
