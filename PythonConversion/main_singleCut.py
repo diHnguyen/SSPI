@@ -58,7 +58,8 @@ importlib.import_module("functionCheckO1Flag_mainSingleCut_perc")
 from functionCheckO1Flag_mainSingleCut_perc import checkO1Flag
 importlib.import_module("functionGetCellInfo")
 from functionGetCellInfo import getCellInfo
-
+importlib.import_module("functionCalcHBoundAfterPartition")
+from functionCalcHBoundAfterPartition import calcHBoundAfterPartition
 #python main.py -> #f1 #a23 as parameters
 # c_L = cL_orig
 # c_U = cU_orig
@@ -222,6 +223,8 @@ cur_time = None
 start = time.time()
 terminate_cond = False
 MIP_GAP = 1/100 #Terminate if MIP gap, i.e., weighted UB- weighted LB, is within 1%
+LB_global = 0
+recalc_h = True
 # print("df_cell")
 # print(df_cell.g)
 # print(df_cell)
@@ -269,9 +272,12 @@ while not terminate_cond:
                         the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
 
         O1Flag = True
-        O1Flag, K_bar = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell)
-        
-        
+        O1Flag, K_bar = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell, K_bar)
+
+        print("O1Flag ", O1Flag)
+        if (O1Flag == False) or (not np.array_equal(last_x, x_now)):
+            recalc_h = True
+        # print("0. recalc_h ", recalc_h)
         # print("O1Flag ", O1Flag)
         # print("K_bar ", K_bar)
         h = np.array(df_cell.h)
@@ -291,16 +297,32 @@ while not terminate_cond:
                 for k in K_bar:
                     # print("Cell ", k)
                     c_L, c_U, M, c, c_g, yK = getCellInfo(k, x_now, "c_g", d, df_cell)
-                    y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+                    # y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
                     # print("y_h = ", y_h)
                     # print("hx = ", hx)
-                    h[k] = hx
+                    # h[k] = hx
                     p_k = df_cell.at[k, 'PROB']
+                    # print("1. recalc_h ", recalc_h)
+                    if recalc_h == True:
+                    # if not np.array_equal(last_x, x_now):
+                        # print("0.")
+                        y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+                        # print("y_h = ", y_h)
+                        # print("hx = ", hx)
+                        # h[k] = hx
+
+                        # print("Before update hx")
+                        # print(df_cell)
+                        df_cell.at[k, 'h'] = hx
+                    else:
+                        # print("1.")
+                        hx = df_cell.at[k, 'h']
+                    y_test, h_test = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
                     # print("Before update hx")
                     # print(df_cell)
-                    df_cell.at[k, 'h'] = hx
                     gx = df_cell.at[k, 'g']
-                    # print(k, "\tgx ", gx, " \thx ", hx, "\t", gx - hx, " vs ", delta2*gx)
+                    
+                    # print(k, "\tgx ", gx, " \thx ", hx, " \t_test ", h_test, "\t", gx - hx, " vs ", delta2*gx)
                     if gx - hx <= delta2*gx: #Used to be gx - hx <= delta2:
                         # print("O2Flag: Passed")
                         K_removed.append(k)
@@ -309,7 +331,15 @@ while not terminate_cond:
                         newCell += 1
                         # print("Partitioned, now have ", newCell+1, " cells")
                         ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added)
-                
+
+                        #Calculate h-bound for partitioned cells:
+                        yk, hk = calcHBoundAfterPartition(k, x_now, d, df_cell,edge,origin,destination)
+                        df_cell.at[k,'h'] = hk
+        
+                        ynewCell, hnewCell = calcHBoundAfterPartition(newCell, x_now, d, df_cell,edge,origin,destination)
+                        df_cell.at[newCell,'h'] = hnewCell
+                        if k == K_bar[-1]:
+                            recalc_h = False
                 coef_x = [0]*Len
                 constant_SP = 0
                 p = df_cell['PROB']
@@ -343,27 +373,31 @@ while not terminate_cond:
                     terminate_cond = True
 
         total_time = time.time() - start
-        h = df_cell['h']
+        h_val = df_cell['h']
         
         # print("h_val ", h.tolist())
-        p = df_cell['PROB']
+        p_val = df_cell['PROB']
         # print(len(h))
         # print(newCell+1)
         # print("p = ", p.tolist())
-        print("LB after Partition")
+        # print("LB after Partition")
         # LB = sum(h[k] * p_val[k] for k in range(newCell+1))
         # for k in range(newCell + 1):
         #     print(h_val[k], " ",p_val[k], " ", h_val[k] * p_val[k])
         # print("len_h ", len(h), " vs ", newCell)
-        LB = sum(h[k] * p[k] for k in range(len(h)))
-        print("MP_obj = ", MP_obj, " LB ", LB) 
+        LB = sum(h_val[k] * p_val[k] for k in range(newCell+1))
+        if LB_global < LB:
+            LB_global = LB
+        print("MIP_GAP = ", MIP_GAP)
+        print("MP_obj = ", MP_obj, " LB ", LB,":", (MP_obj - LB)/MP_obj)
+        print("LB_global = ", LB_global,":",  (MP_obj - LB_global)/MP_obj)
         
         # if iter == 8:
         #     sys.exit()
         #Difference compared to Branch 32: Added MIP_GAP
-        print("MIP_GAP = ", MIP_GAP)
-        print("MIP GAP ", MP_obj, " ", LB,":", (MP_obj - LB)/MP_obj)
-        if (MP_obj - LB)/MP_obj <= MIP_GAP:
+        # print("MIP_GAP = ", MIP_GAP)
+        # print("MIP GAP ", MP_obj, " ", LB,":", (MP_obj - LB)/MP_obj)
+        if (MP_obj - LB_global)/MP_obj <= MIP_GAP:
             terminate_cond = True
             K_bar = []
         last_x = x_now
