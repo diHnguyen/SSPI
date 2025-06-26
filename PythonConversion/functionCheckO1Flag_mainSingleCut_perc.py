@@ -8,28 +8,49 @@ from functionGetCellInfo import getCellInfo
 importlib.import_module("functionGbound")
 from functionGbound import gx_bound
 
-def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell):
+def checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell, K_bar):
     if not np.array_equal(last_x, x_now):
         K_bar = list(range(newCell+1))
+        # print("Different x")
         # print("checkO1Flag/ K_bar = ", K_bar)
-        last_x = x_now
+        # last_x = x_now
         # print("Running O1Flag", K_bar)
     coef_x = [0]*Len
     constant_SP = 0
+    
     p = df_cell['PROB']
-    for k in K_bar:
+    # print("p len ", len(p), "; newCell ", newCell)
+    # print(sum(p[k] for k in range(newCell+1)))
+    for k in range(newCell+1):#K_bar:
+        # print("1. ", k)
         c_L, c_U, M, c, c_g, Y_k = getCellInfo(k, x_now, "c_g", d,  df_cell)
-        y, gx, SP, label, path = gx_bound(c, c_g, edge,origin,destination)
+        if k in K_bar:
+            # print("Check")
+            y, gx, SP, label, path = gx_bound(c, c_g, edge,origin,destination)
+            df_cell.at[k, 'g'] = gx
+            df_cell.at[k,'Y'] = y
+            df_cell.at[k, 'PI'] = label
+        else:
+            gx = df_cell.at[k, 'g']
+            y = df_cell.at[k,'Y'] 
+        # print(k, "\ty ", np.where(y>0.5)[0])
+        # print(k, "\tgx ", gx, end ="\t")
         coef_x = coef_x + p[k]*np.array([a*b for a,b in zip(y,d)])
-        constant_SP = constant_SP +  p[k]*sum(c[i]*y[i] for i in range(Len))
         
-        df_cell.at[k, 'g'] = gx
-        df_cell.at[k,'Y'] = y
-        df_cell.at[k, 'PI'] = label
-
+        constant_SP = constant_SP +  p[k]*sum(c[i]*y[i] for i in range(Len))
+        # print("Len ", Len)
+        # print(d[np.where(x_now>0.5)[0]])
+        # print(sum(c[i]*y[i] for i in range(Len)), "\t",sum((c[i]+d[i]*x_now[i])*y[i] for i in range(Len)) ,"\t", p[k])
+        # temp = np.where(coef_x >0.01)[0]
+        # print("coef_x ", temp, " \t ", coef_x[temp], "\t", d[np.where(y >0.01)[0]])
+        
+    # print("z_now ", z_now)
+    # print("constant_SP ", constant_SP)
+    # print(sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP)
     if z_now > sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP + 10**(-4):
         m.addConstr(z <= sum(coef_x[i]*x[i] for i in range(Len)) + constant_SP)
         # found_cut = True
+        # print(z <= sum(coef_x[i]*x[i] for i in range(Len)) + constant_SP)
         O1Flag = False
                 
             # if z_now[k] - gx > delta1*gx: #Used to be z_now[k] - gx > delta1
