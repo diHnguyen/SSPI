@@ -366,6 +366,7 @@ while not terminate_cond:
         if (MP_obj - LB)/MP_obj <= MIP_GAP:
             terminate_cond = True
             K_bar = []
+        last_x = x_now
         # print("terminate_cond ", terminate_cond)
         # print("UB ", MP_obj, "; LB ", LB)
         # print("h_val ", h_val)
