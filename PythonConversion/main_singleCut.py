@@ -317,7 +317,7 @@ while not terminate_cond:
                     else:
                         # print("1.")
                         hx = df_cell.at[k, 'h']
-                    y_test, h_test = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+                    # y_test, h_test = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
                     # print("Before update hx")
                     # print(df_cell)
                     gx = df_cell.at[k, 'g']
