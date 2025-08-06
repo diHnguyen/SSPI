@@ -208,6 +208,7 @@ x_now = []
 α_now = 0
 z_now = []
 last_x = np.zeros(Len)
+last_O1Flag = None
 con_num = 1
 
 total_time = 0.0
@@ -266,7 +267,7 @@ while not terminate_cond:
             if runningTest == False:
                 if printIters == True:
                     with open(directory+'Dec2024_Output/Iter/main_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                        the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
                     
             # print(df_cell)
             # print("z = ", z_now[0:(newCell+1)])
@@ -318,8 +319,9 @@ while not terminate_cond:
                     #         the_file.write(c_L)
                             
                     p_k = df_cell.at[k, 'PROB']
-                    if not np.array_equal(last_x, x_now):
+                    if (not np.array_equal(last_x, x_now)) or (last_O1Flag == False):
                         # print("0.")
+                        
                         y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
                         # print("y_h = ", y_h)
                         # print("hx = ", hx)
@@ -334,8 +336,8 @@ while not terminate_cond:
                     # print("After update hx")
                     # print(df_cell)
                     gx = df_cell.at[k, 'g']
+
                     
-                    # print(k, "gx = ", gx,"; hx = ", hx)
                     # print("hx = ", hx)
                     
                     if gx - hx <= delta2*gx: #Used to be gx - hx <= delta2:
@@ -346,6 +348,11 @@ while not terminate_cond:
                         newCell += 1
                         # print("2. After update hx")
                         # print(df_cell)
+                        # if k == 44:
+                        #     print(k, "gx = ", gx,"; hx = ", hx)
+                        #     y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+                        #     y, gx, SP, label, path = gx_bound(c, c_g, edge,origin,destination)
+                        #     print(k, "gx = ", gx,"; hx = ", hx)
                         ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added)
                         
                         #Calculate h-bound for partitioned cells:
@@ -529,6 +536,7 @@ while not terminate_cond:
         print("terminate_cond ", terminate_cond)
         # print("K_bar ", K_bar)
         last_x = x_now
+        last_O1Flag = O1Flag
         # print("UB ", MP_obj, "; LB ", LB)
         # print("h_val ", h_val)
         # print(df_constraints)
@@ -547,9 +555,9 @@ if runningTest == True:
 else:
     with open(directory+'./Dec2024_Output/'+'main_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
-        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
     with open(directory+'Dec2024_Output/Iter/main_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
 # for i in range(newCell+1):
