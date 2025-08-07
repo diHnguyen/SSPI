@@ -51,8 +51,8 @@ importlib.import_module("functionSelectArc")
 from functionSelectArc import selectArc
 importlib.import_module("functionArcSplit")
 from functionArcSplit import arcSplit
-importlib.import_module("functionPartition")
-from functionPartition import Partition
+importlib.import_module("functionPartition_SA")
+from functionPartition_SA import Partition
 importlib.import_module("functionCheckO1Flag_perc")
 from functionCheckO1Flag_perc import checkO1Flag
 importlib.import_module("functionGetCellInfo")
@@ -69,7 +69,7 @@ from functionCalcHBoundAfterPartition import calcHBoundAfterPartition
 # newCell = 2
 k=1
 A1=0 #A1 = 0: Choose arc using worst cost. Else: Choose arc w largest M
-A3=1 #A3 = 0: Split a selected using SA if possible. Else: Split using mean base cost.
+A3=0 #A3 = 0: Split a selected using SA if possible. Else: Split using mean base cost.
 
 # Calculate c values
 c = (cU_orig + cL_orig) / 2
@@ -227,6 +227,9 @@ LB_global = 0
 # print("df_cell")
 # print(df_cell.g)
 # print(df_cell)
+calls_SASplit = 0
+actual_SASplit = 0
+SA_time = 0
 
 while not terminate_cond:
     # α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell, LB_w, p, \
@@ -258,16 +261,33 @@ while not terminate_cond:
                 x_now[i] = x[i].X #m.getAttr('x', x[i].X) #m.getAttr('X', vars)
             for i in range(zNum):
                 z_now[i] = z[i].X
+            
+            # print(m)
             cur_time = time.time() - start
             print("\n==========================================================")
             print("Iter : ", iter, " ; MP_obj = ", MP_obj, " ; time ", cur_time, "; ", len(K_bar), "/", newCell+1)
             print("==========================================================")
             x_index = np.where(x_now > 0)[0]
             print("x = ", x_index)
+            # print("z_now ", z_now[0:2])
             if runningTest == False:
                 if printIters == True:
                     with open(directory+'Dec2024_Output/Iter/main_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                        the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
+
+            # print("df_constraints")
+            # for i in range(len(df_constraints)):
+            #     # print(df_constraints.loc[i,:])
+            #     print("Constraint ", i)
+            #     mcell = df_constraints['CELL'][i]
+            #     print("Cell ", mcell)
+            #     c_L, c_U, M, c, c_g, Y_k = getCellInfo(mcell, x_now, "c_g", d,  df_cell)
+            #     marc =np.where(np.array(df_constraints['Y'][i])>0)[0]
+            #     print("Y ", marc)
+            #     print("SP ", df_constraints['SP'][i])
+            #     cost = sum(c[a] + d[a]*x_now[a] for a in marc)
+            #     print("\t",cost)
+            
                     
             # print(df_cell)
             # print("z = ", z_now[0:(newCell+1)])
@@ -353,7 +373,7 @@ while not terminate_cond:
                         #     y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
                         #     y, gx, SP, label, path = gx_bound(c, c_g, edge,origin,destination)
                         #     print(k, "gx = ", gx,"; hx = ", hx)
-                        ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added)
+                        ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell,calls_SASplit,actual_SASplit, SA_time = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added,calls_SASplit,actual_SASplit, SA_time)
                         
                         #Calculate h-bound for partitioned cells:
                         yk, hk = calcHBoundAfterPartition(k, x_now, d, df_cell,edge,origin,destination)
@@ -375,11 +395,13 @@ while not terminate_cond:
                         add_yL = True
                         add_yU = True
                         # print("arc_split = ", arc_split)
-                        
+                        _, _, _, c, _, _ = getCellInfo(k, x_now, "c_g", d,  df_cell)
+                        _, _, _, c_newCell, _, _ = getCellInfo(newCell, x_now, "c_g", d,  df_cell)
                         #Iterate over constraints related to k
                         for r in indices: #_, dfRow in df_temp_k.iterrows():
                             # Y_k = np.array(dfRow['Y'])
                             # print(np.where(df_constraints.at[r,'Y']>0)[0])
+                            # print("Checking constraint ", r, " cell ", k)
                             Y_k = np.array(df_constraints.at[r,'Y'])
                             # print("Y_k ", Y_k)
                             if np.array_equal(Y_k, yL):
@@ -392,6 +414,8 @@ while not terminate_cond:
                             # print("arc_split ", arc_split)
                             # print("Y_k ", Y_k)
                             #If current constraint (correspond to row)
+                            # print("Y_k ", np.where(Y_k>0)[0])
+                            marc = np.where(Y_k >0)[0]
                             if Y_k[arc_split] == 1:
                                 # conRef = dfRow['NUM']
                                 # constr_to_update = dfRow['con'] 
@@ -401,15 +425,30 @@ while not terminate_cond:
                                 
                                 # print("ΔU = ", ΔU,"; ΔL = ", ΔL)
                                     
-                                newCell_RHS = newCell_RHS + ΔU
+                                # newCell_RHS = newCell_RHS + ΔU 
+                                newCell_RHS = sum(c_newCell[a] for a in marc)
                                 # print(k, "Before update SP ", df_constraints.loc[r,'SP'])
                                 # dfRow['SP'] = dfRow['SP'] - ΔL
-                                df_constraints.at[r,'SP'] = df_constraints.at[r,'SP'] - ΔL
+                                # print(df_constraints.loc[r,:])
+                                # print("ΔU " ,ΔU, "; ΔL " , ΔL)
+                                # print("0.df_constraints.at[r,'SP'] ", df_constraints.at[r,'SP'])
+                                curCell_RHS = sum(c[a] for a in marc)
+                                df_constraints.at[r,'SP'] = curCell_RHS
+                                # df_constraints.at[r,'SP'] = df_constraints.at[r,'SP'] - ΔL
+                                # print("1.df_constraints.at[r,'SP'] ", df_constraints.at[r,'SP'])
+                                # print("newCell_RHS " , newCell_RHS)
+                                # print("current Cell RHS ", df_constraints.at[r,'SP'])
+
+                           
+                                # for a in np.where(Y_k >0)[0]:
+                                #     print(d[a], " " , x_now[a], " ", c[a])
                                 # print(k, "After update SP ", df_constraints.loc[r,'SP'])
                                 # print(newCell, "After update SP ", newCell_RHS)
                                 # df_constraints.at[conRef - 1, 'SP'] = dfRow['SP']
                                 # set_normalized_rhs(constr[conRef], dfRow['SP'])
                                 constr_to_update.setAttr(GRB.Attr.RHS, df_constraints.loc[r,'SP'])
+
+                                
                                 
                             # con_num += 1
                             
@@ -421,7 +460,8 @@ while not terminate_cond:
                                 'SP':[newCell_RHS],
                                 'con': [m.addConstr(z[newCell] <= sum(d[i] * x[i] * Y_k[i] for i in range(Len)) + newCell_RHS)]
                             }
-
+                            
+                            # print(z[newCell] <= sum(d[i] * x[i] * Y_k[i] for i in range(Len)) + newCell_RHS)
                             dtypes = {
                                 'CELL': int,
                                 'Y': object,  # Assuming 'Y' contains arrays
@@ -444,7 +484,10 @@ while not terminate_cond:
                                 'SP':[SP_L],
                                 'con': [m.addConstr(z[k] <= sum(d[i] * x[i] * yL[i] for i in range(Len)) + SP_L)]
                             }
-
+                            # print("k = ", k)
+                            # print(np.where(yL >0)[0])
+                            # for a in np.where(yL >0)[0]:
+                            #     print(d[a], " " , x_now[a], " ", c[a])
                             dtypes = {
                                 'CELL': int,
                                 'Y': object,  # Assuming 'Y' contains arrays
@@ -499,6 +542,7 @@ while not terminate_cond:
                 # @objective(m, Max, sum(p[i] * z[i] for i in range(1, len(p) + 1)))
                 
                 # m.setObjective(sum(p[i] * z[i] for i in range(1, len(p) + 1)), sense=GRB.MAXIMIZE)
+                # print("",sum(p[i] * z[i] for i in range(newCell+1)))
                 m.setObjective(sum(p[i] * z[i] for i in range(newCell+1)),sense=GRB.MAXIMIZE)
                 m.update()
                 
@@ -555,9 +599,9 @@ if runningTest == True:
 else:
     with open(directory+'./Dec2024_Output/'+'main_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
-        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(newCell+1)+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
     with open(directory+'Dec2024_Output/Iter/main_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(newCell+1)+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
 # for i in range(newCell+1):
