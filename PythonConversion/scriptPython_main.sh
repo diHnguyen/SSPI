@@ -39,7 +39,7 @@ do
     done
     for N in 50;
     do
-        for i in 1 4 5 9 11 20;
+        for i in 4 5 8 9 11 12 19 20;
         do
             echo "Running N=$N density=$density i=$i "
             gtimeout -k 5 3600 python main.py $N $i $density
