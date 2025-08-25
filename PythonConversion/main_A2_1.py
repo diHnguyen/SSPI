@@ -301,7 +301,7 @@ while not terminate_cond:
 
         O1Flag = True
         
-        O1Flag, K_bar, df_cell, df_constraints = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints)
+        O1Flag, K_bar, df_cell, df_constraints = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints, K_bar)
         # print("Cells " , len(df_cell))
 
         # df_parent = df_parent.drop(columns=['ParentY'])
