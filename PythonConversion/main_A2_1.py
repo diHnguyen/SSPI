@@ -54,6 +54,8 @@ importlib.import_module("functionCheckO1Flag_perc")
 from functionCheckO1Flag_perc import checkO1Flag
 importlib.import_module("functionGetCellInfo")
 from functionGetCellInfo import getCellInfo
+importlib.import_module("functionCalcHBoundAfterPartition")
+from functionCalcHBoundAfterPartition import calcHBoundAfterPartition
 
 #python main.py -> #f1 #a23 as parameters
 # c_L = cL_orig
@@ -222,6 +224,7 @@ x_now = []
 α_now = 0
 z_now = []
 last_x = np.zeros(Len)
+last_O1Flag = None
 con_num = 1
 
 total_time = 0.0
@@ -236,6 +239,7 @@ cur_time = None
 start = time.time()
 terminate_cond = False
 MIP_GAP = 1/100 #Terminate if MIP gap, i.e., weighted UB- weighted LB, is within 1%
+LB_global = 0
 # print("df_cell")
 # print(df_cell.g)
 # print(df_cell)
@@ -279,7 +283,7 @@ while not terminate_cond:
             if runningTest == False:
                 if printIters == True:
                     with open(directory+'Dec2024_Output/Iter/main_A2_1_'+density+"_"+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                        the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
                     
             # print(df_cell)
             # print("z = ", z_now[0:(newCell+1)])
@@ -317,7 +321,7 @@ while not terminate_cond:
         h = np.array(df_cell.h)
         # print(h)
         if O1Flag:
-            print("\n\tO1Flag: Passed")
+            print("\tO1Flag: Passed ", len(K_bar), "/", newCell+1)
             partitionCounter = 1
             myCounter = 0
             # print("HERE")
@@ -346,14 +350,30 @@ while not terminate_cond:
                             
                             
 
-                    y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
-                    # print("y_h = ", y_h)
-                    # print("hx = ", hx)
-                    h[k] = hx
+                    # y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+                    # # print("y_h = ", y_h)
+                    # # print("hx = ", hx)
+                    # h[k] = hx
                     p_k = df_cell.at[k, 'PROB']
-                    # print("Before update hx")
-                    # print(df_cell)
-                    df_cell.at[k, 'h'] = hx
+
+                    if (not np.array_equal(last_x, x_now)) or (last_O1Flag == False):
+                        # print("0.")
+                        
+                        y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+                        # print("y_h = ", y_h)
+                        # print("hx = ", hx)
+                        # h[k] = hx
+                        
+                        # print("Before update hx")
+                        # print(df_cell)
+                        df_cell.at[k, 'h'] = hx
+                    else:
+                        # print("1.")
+                        hx = df_cell.at[k, 'h']
+                        
+                    # # print("Before update hx")
+                    # # print(df_cell)
+                    # df_cell.at[k, 'h'] = hx
                     # print("After update hx")
                     # print(df_cell)
                     gx = df_cell.at[k, 'g']
@@ -369,6 +389,12 @@ while not terminate_cond:
                         # print("2. After update hx")
                         # print(df_cell)
                         ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added)
+
+                        yk, hk = calcHBoundAfterPartition(k, x_now, d, df_cell,edge,origin,destination)
+                        df_cell.at[k,'h'] = hk
+                        
+                        ynewCell, hnewCell = calcHBoundAfterPartition(newCell, x_now, d, df_cell,edge,origin,destination)
+                        df_cell.at[newCell,'h'] = hnewCell
                         # print("arc_split ", arc_split)
                         # print(k, ": Added a new cell")
                         # print(df_cell)
@@ -384,6 +410,7 @@ while not terminate_cond:
                         if np.array_equal(newCell_parent_Y, yL) == False:
                             myCounter = partitionCounter
                             # print("!!!!!!! FOUND NEW PATH !!!!!!!")
+
                             
 
                         
@@ -514,7 +541,7 @@ while not terminate_cond:
                             df_constraints = pd.concat([df_constraints,df_new_con], axis=0, ignore_index=True)
                 # print("newCell ", newCell)
                 p = df_cell['PROB'].tolist()
-                h = np.array(df_cell.h)
+                # h = np.array(df_cell.h)
                 # @objective(m, Max, sum(p[i] * z[i] for i in range(1, len(p) + 1)))
                 
                 # m.setObjective(sum(p[i] * z[i] for i in range(1, len(p) + 1)), sense=GRB.MAXIMIZE)
@@ -537,16 +564,27 @@ while not terminate_cond:
         p_val = df_cell['PROB']
         # print(len(h))
         # print(newCell+1)
-        print("LB before Partition")
+        # print("LB before Partition")
         print("MP_obj = ", MP_obj, " LB ", sum(h_val[k] * p_val[k] for k in range(len(h)))) 
         LB = sum(h_val[k] * p_val[k] for k in range(newCell+1))
+        if LB_global < LB:
+            LB_global = LB
+        print("MIP_GAP = ", MIP_GAP)
+        print("MP_obj = ", MP_obj, " LB ", LB,":", (MP_obj - LB)/MP_obj)
+        print("LB_global = ", LB_global,":",  (MP_obj - LB_global)/MP_obj)
 
+        #Think thru this: What about cells that is in an iteration of aggr split
+        last_x = x_now
+        last_O1Flag = O1Flag
+        
         #Difference compared to Branch 32: Added MIP_GAP
         print("MIP_GAP = ", MIP_GAP)
-        print("MIP GAP ", MP_obj, " ", LB,":", (MP_obj - LB)/MP_obj)
-        if (MP_obj - LB)/MP_obj <= MIP_GAP:
+        # print("MIP GAP ", MP_obj, " ", LB,":", (MP_obj - LB)/MP_obj)
+        if (MP_obj - LB_global)/MP_obj <= MIP_GAP:
+            # print("1.")
             terminate_cond = True
             K_bar = []
+        print("terminate_cond ", terminate_cond)
             
         # print("UB ", MP_obj, "; LB ", LB)
         # print("h_val ", h_val)
@@ -564,10 +602,10 @@ if runningTest == True:
     # with open(directory+'./Sep2024_Output/test_mainA2_1_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
 else:
-    with open(directory+'./Dec2024_Output/main_A2_1_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write("C;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+    with open(directory+'./Dec2024_Output/'+'main_A2_1_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
     with open(directory+'Dec2024_Output/Iter/main_A2_1_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
         
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
