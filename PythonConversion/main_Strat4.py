@@ -36,7 +36,7 @@ c_orig = 0.5*(cL_orig+cU_orig)
 # for i = 1:Len
 p = [1.0]
 M_orig = cU_orig - cL_orig
-delta1 = 0.5/100 #Old: 1.0
+delta1 = 1/10000 #0.5/100 #Old: 1.0
 delta2 = 1/100 #Old: 2.0
 # b = 7
 b=10
@@ -60,6 +60,8 @@ importlib.import_module("functionCheckO1Flag_perc")
 from functionCheckO1Flag_perc import checkO1Flag
 importlib.import_module("functionGetCellInfo")
 from functionGetCellInfo import getCellInfo
+importlib.import_module("functionCalcHBoundAfterPartition")
+from functionCalcHBoundAfterPartition import calcHBoundAfterPartition
 
 #python main.py -> #f1 #a23 as parameters
 # c_L = cL_orig
@@ -69,8 +71,8 @@ from functionGetCellInfo import getCellInfo
 # x_now = np.zeros(Len)
 # newCell = 2
 k=1
-A1=0
-A3=1 
+A1=0 #A1 = 0: Choose arc using worst cost. Else: Choose arc w largest M
+A3=1 #A3 = 0: Split a selected using SA if possible. Else: Split using mean base cost. 
 
 # Calculate c values
 c = (cU_orig + cL_orig) / 2
@@ -209,6 +211,7 @@ x_now = []
 α_now = 0
 z_now = []
 last_x = np.zeros(Len)
+last_O1Flag = None
 con_num = 1
 
 total_time = 0.0
@@ -224,6 +227,7 @@ start = time.time()
 terminate_cond = False
 total_SAA = 0
 MIP_GAP = 1/100 #Terminate if MIP gap, i.e., weighted UB- weighted LB, is within 1%
+LB_global = 0
 SAA_calls = 0
 SAA_enact = 0
 # print("df_cell")
@@ -271,7 +275,7 @@ while not terminate_cond:
             if runningTest == False:
                 if printIters == True:
                     with open(directory+'Dec2024_Output/Iter/main_Strat4_'+density+'_'+testSet+'_'+n+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write(str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+";"+str(SAA_calls)+"\n")
+                        the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+";"+str(SAA_calls)+"\n")
             # print(df_cell)
             # print("z = ", z_now[0:(newCell+1)])
             # print("p = ", p)
@@ -287,10 +291,10 @@ while not terminate_cond:
             
 
         O1Flag = True
-        O1Flag, K_bar, df_cell, df_constraints = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints)
+        O1Flag, K_bar, df_cell, df_constraints = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell,df_constraints, K_bar)
         
         
-        # print("O1Flag ", O1Flag)
+        print("O1Flag ", O1Flag)
         # print("K_bar ", K_bar)
         h = np.array(df_cell.h)
         # print(h)
@@ -338,7 +342,7 @@ while not terminate_cond:
                             
                             
                     #Replace the line below with CI
-                    y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+                    # y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
 
                     
                     
@@ -346,8 +350,22 @@ while not terminate_cond:
                     # print("y_h = ", y_h)
                     # print("hx = ", hx)
                     
-                    h[k] = hx
+                    # h[k] = hx
                     p_k = df_cell.at[k, 'PROB']
+                    if (not np.array_equal(last_x, x_now)) or (last_O1Flag == False):
+                        # print("0.")
+                        
+                        y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+                        # print("y_h = ", y_h)
+                        # print("hx = ", hx)
+                        # h[k] = hx
+                        
+                        # print("Before update hx")
+                        # print(df_cell)
+                        df_cell.at[k, 'h'] = hx
+                    else:
+                        # print("1.")
+                        hx = df_cell.at[k, 'h']
                     # print("Before update hx")
                     # print(df_cell)
                     df_cell.at[k, 'h'] = hx
@@ -376,7 +394,14 @@ while not terminate_cond:
                         # print("arc_split ", arc_split)
                         # print(k, ": Added a new cell")
                         # print(df_cell)
+
+                        #Calculate h-bound for partitioned cells:
+                        yk, hk = calcHBoundAfterPartition(k, x_now, d, df_cell,edge,origin,destination)
+                        df_cell.at[k,'h'] = hk
                         
+                        ynewCell, hnewCell = calcHBoundAfterPartition(newCell, x_now, d, df_cell,edge,origin,destination)
+                        df_cell.at[newCell,'h'] = hnewCell
+
                         # df_temp_k = df_constraints[df_constraints.CELL == k]
                         #constraints associated with cell k
                         # print("Constraints of ", k)
@@ -527,15 +552,26 @@ while not terminate_cond:
         p_val = df_cell['PROB']
         # print(len(h))
         # print(newCell+1)
-        print("LB before Partition")
-        print("MP_obj = ", MP_obj, " LB ", sum(h[k] * p_val[k] for k in range(len(h)))) 
+        # print("LB before Partition")
+        # print("MP_obj = ", MP_obj, " LB ", sum(h[k] * p_val[k] for k in range(len(h)))) 
         LB = sum(h_val[k] * p_val[k] for k in range(newCell+1))
 
+        if LB_global < LB:
+            LB_global = LB
+
         print("MIP_GAP = ", MIP_GAP)
-        print("MIP GAP ", MP_obj, " ", LB,":", (MP_obj - LB)/MP_obj)
-        if (MP_obj - LB)/MP_obj <= MIP_GAP:
+
+        print("MP_obj = ", MP_obj, " LB ", LB,":", (MP_obj - LB)/MP_obj)
+        print("LB_global = ", LB_global,":",  (MP_obj - LB_global)/MP_obj)
+        # print("MIP GAP ", MP_obj, " ", LB,":", (MP_obj - LB)/MP_obj)
+        if (MP_obj - LB_global)/MP_obj <= MIP_GAP:
+            # print("1.")
             terminate_cond = True
             K_bar = []
+        print("terminate_cond ", terminate_cond)
+        # print("K_bar ", K_bar)
+        last_x = x_now
+        last_O1Flag = O1Flag
         # print("UB ", MP_obj, "; LB ", LB)
         # print("h_val ", h_val)
         # print(df_constraints)
@@ -553,9 +589,9 @@ if runningTest == True:
         # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+"\n")
 else:
     with open(directory+'./Dec2024_Output/main_Strat4_'+density+'_'+testSet+'_'+n+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+";"+str(SAA_calls)+"\n")
+        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+";"+str(SAA_calls)+"\n")
     with open(directory+'./Dec2024_Output/Iter/main_Strat4_'+density+'_'+testSet+'_'+n+'_'+sys.argv[2]+'.txt','a') as the_file:
-        the_file.write(str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+";"+str(SAA_calls)+"\n")
+        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(total_SAA)+";"+str(SAA_calls)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
 # for i in range(newCell+1):
