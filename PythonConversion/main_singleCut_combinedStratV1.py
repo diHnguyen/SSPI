@@ -270,15 +270,34 @@ while not terminate_cond:
             print("z = ", z_now)
             if runningTest == False:
                 if printIters == True:
-                    with open(directory+'Dec2024_Output/Iter/main_singleCut_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                    with open(directory+'Dec2024_Output/Iter/main_singleCut_combinedStratV1_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                        the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
 
         O1Flag = True
         O1Flag, K_bar = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell, K_bar)
 
         print("O1Flag ", O1Flag)
-        if (O1Flag == False) or (not np.array_equal(last_x, x_now)):
+
+        # if iter > 50:
+        #     sys.out()
+        # else: 
+        #     print("SP k = 1 ", np.where(np.array(df_cell.at[0, 'Y'])>0.5)[0])
+        
+        # if (O1Flag == False) or (not np.array_equal(last_x, x_now)):
+        if (not np.array_equal(last_x, x_now)): #Only this condition is needed in singleCut - Except for the first time partition occurs, the Partition function generates new shortest paths after splitting cells, so the only case where O1Flag is false, i.e., new SPs are still being discovered, is if x-sol changes. Before that, shortest paths are continuously found with different x-solutions until all shortest-paths are found for cell k=1.
             recalc_h = True
+
+        # df_parent = df_parent.drop(columns=['ParentY'])
+        # df_parent.loc[:,'ParentCell'] = -1
+        # df_parent = 
+        # df_parent = df_cell[['CELL','Y']]
+        # df_parent['Parent'] = df_parent['CELL']
+        df_parent = pd.DataFrame({
+            'CELL': df_cell.CELL,
+            'Y': df_cell.Y,  # Assuming 'Y' contains arrays
+            'Parent': df_cell.CELL
+        })
+        
         # print("0. recalc_h ", recalc_h)
         # print("O1Flag ", O1Flag)
         # print("K_bar ", K_bar)
@@ -293,7 +312,7 @@ while not terminate_cond:
             
             # print("LB = ", h)
             while myCounter < partitionCounter:
-                myCounter += 1
+                # myCounter += 1 #We're doing Aggro Split in this combined strat -- so no increment yet
                 # print("K_bar = ", K_bar)
                 # print("Cells failing O2Flag")
                 for k in K_bar:
@@ -340,6 +359,19 @@ while not terminate_cond:
         
                         ynewCell, hnewCell = calcHBoundAfterPartition(newCell, x_now, d, df_cell,edge,origin,destination)
                         df_cell.at[newCell,'h'] = hnewCell
+
+                        # df_parent columns: 'CELL','Y','Parent'
+                        # This takes the original parent - not just one level up
+                        newCell_parent = df_parent.loc[k,'Parent']
+                        newCell_parent_Y = df_parent.loc[newCell_parent,'Y']
+
+                        df_parent.loc[len(df_parent)] = [newCell,newCell_parent_Y,newCell_parent] #Order: cell number, parent SP, parent cell
+
+                        
+                        if np.array_equal(newCell_parent_Y, yL) == False:
+                            myCounter = partitionCounter
+                            # print("!!!!!!! FOUND NEW PATH !!!!!!!")
+
                         if k == K_bar[-1]:
                             recalc_h = False
                 coef_x = [0]*Len
@@ -387,6 +419,7 @@ while not terminate_cond:
         # for k in range(newCell + 1):
         #     print(h_val[k], " ",p_val[k], " ", h_val[k] * p_val[k])
         # print("len_h ", len(h), " vs ", newCell)
+        print("MP_obj = ", MP_obj, " LB (current h) ", sum(h_val[k] * p_val[k] for k in range(len(h)))) 
         LB = sum(h_val[k] * p_val[k] for k in range(newCell+1))
         if LB_global < LB:
             LB_global = LB
@@ -422,11 +455,11 @@ if runningTest == True:
     # with open(directory+'./Dec2024_Output/test_main_d20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
 else:
-    with open(directory+'./Dec2024_Output/'+'main_singleCut_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'./Dec2024_Output/'+'main_singleCut_combinedStratV1_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
-        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
-    with open(directory+'Dec2024_Output/Iter/main_singleCut_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
+    with open(directory+'Dec2024_Output/Iter/main_singleCut_combinedStratV1_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
 # for i in range(newCell+1):
