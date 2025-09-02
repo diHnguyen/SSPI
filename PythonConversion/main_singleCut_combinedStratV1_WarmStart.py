@@ -386,10 +386,10 @@ while not terminate_cond:
                         #Calculate h-bound for partitioned cells:
                         yk, hk = calcHBoundAfterPartition(k, x_now, d, df_cell,edge,origin,destination)
                         df_cell.at[k,'h'] = hk
-                        print(k, ". : \\", hk)
+                        # print(k, ". : \\", hk)
                         ynewCell, hnewCell = calcHBoundAfterPartition(newCell, x_now, d, df_cell,edge,origin,destination)
                         df_cell.at[newCell,'h'] = hnewCell
-                        print(newCell, ". : \\", hnewCell)
+                        # print(newCell, ". : \\", hnewCell)
                         # df_parent columns: 'CELL','Y','Parent'
                         # This takes the original parent - not just one level up
                         newCell_parent = df_parent.loc[k,'Parent']
@@ -461,7 +461,7 @@ while not terminate_cond:
         print("p = ", sum(p_val[k] for k in range(newCell+1)))
         gb = 0
         hb = 0
-        if iter > 10:
+        if iter > 45:
             sys.out()
         for k in range(newCell+1):
             c_L, c_U, M, c, c_g, yK = getCellInfo(k, x_now, "c_g", d, df_cell)
@@ -471,8 +471,8 @@ while not terminate_cond:
             hb = hb + hx*p[k]
             # if hx != h_val[k]:
             #     print(k, ". gx = ",gx, "; gk = ", h_val[k])
-            if hx != h_val[k]:
-                print(k, ". hx = ",hx, "; hk = ", h_val[k])
+            # if hx != h_val[k]:
+            #     print(k, ". hx = ",hx, "; hk = ", h_val[k])
         print("gb = ", gb, "; hb = ", hb)    
         if LB_global < LB:
             LB_global = LB
