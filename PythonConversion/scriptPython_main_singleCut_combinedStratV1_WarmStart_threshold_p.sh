@@ -21,14 +21,14 @@ do
         for i in ;
         do
             echo "Running N=$N density=$density i=$i "
-            gtimeout -k 5 3600 python main_singleCut_combinedStratV1_WarmStart.py $N $i $density
+            gtimeout -k 5 3600 python main_singleCut_combinedStratV1_WarmStart_threshold_p.py $N $i $density
             # gtimeout -k 5 2s sleep $((i*10)) && echo "Hello"
             echo "End of 3600 seconds"
         done
     done
     for N in 40;
     do
-        for i in 14 22 24 39 40 56 76 2 18 38;
+        for i in  64 68 ;
         do
             echo "Running N=$N density=$density i=$i "
             gtimeout -k 5 3600 python main_singleCut_combinedStratV1_WarmStart_threshold_p.py $N $i $density
