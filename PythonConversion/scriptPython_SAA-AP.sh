@@ -18,7 +18,7 @@ for density in 15;
 do
     for N in 40;
     do
-        for i in 10; 
+        for i in 64 68; 
         do
             for num_cases in 5000;
             do
