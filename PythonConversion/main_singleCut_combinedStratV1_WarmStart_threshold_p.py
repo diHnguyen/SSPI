@@ -255,6 +255,7 @@ print("x_init = ", x_init)
 # print(x_init)
 # sys.exit()
 isWarmStart = False
+x_consecutive = 0
 while not terminate_cond:
     # α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell, LB_w, p, \
     # x_sol, z_sol, α_sol, last_x, x_now, α_now, z_now, terminate_cond, start, set, Ins, density, dataset = \
@@ -295,6 +296,8 @@ while not terminate_cond:
             print("x_init = ", x_init)
             print(set(x_index) == set(x_init))
             if set(x_index) == set(x_init):
+                x_consecutive = x_consecutive +1
+            if x_consecutive >= 5:
                 isWarmStart = True
             # if iter > 20:
             #     sys.out()
