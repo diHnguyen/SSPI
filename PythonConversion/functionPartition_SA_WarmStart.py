@@ -10,6 +10,7 @@ from functionGbound import gx_bound
 # importlib.import_module("functionGetCellInfo")
 # from functionGetCellInfo import getCellInfo
 import time
+import random
 
 def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added,calls_SASplit,actual_SASplit, SA_time, isWarmStart):
     # global K_bar, K_newly_added, d, df_cell
@@ -55,6 +56,13 @@ def Partition(x_now, newCell, k, p, c_L, c_U, M, y,d,edge,origin,destination,Len
     # print("d[116] ", d[116])
     # print("d[20] ", d[20])
     now = time.time()
+    randnum = random.uniform(0, 1)
+    # print("Cell ", k)
+    # print("p ", len(p))
+    # print("A3 ", A3, " randnum ", randnum, " p[k] ", p)
+    if randnum > p:
+        A3 = 1
+    # print("A3 ", A3)
     ΔL, ΔU,calls_SASplit,actual_SASplit = arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,d,Len,A3,calls_SASplit,actual_SASplit,isWarmStart)
     SA_time = SA_time + (time.time()-now)
     # print("arc split info " ,arc_split)
