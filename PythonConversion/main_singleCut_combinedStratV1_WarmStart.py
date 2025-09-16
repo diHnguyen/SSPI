@@ -386,10 +386,10 @@ while not terminate_cond:
                         #Calculate h-bound for partitioned cells:
                         yk, hk = calcHBoundAfterPartition(k, x_now, d, df_cell,edge,origin,destination)
                         df_cell.at[k,'h'] = hk
-                        # print(k, ". : \\", hk)
+        
                         ynewCell, hnewCell = calcHBoundAfterPartition(newCell, x_now, d, df_cell,edge,origin,destination)
                         df_cell.at[newCell,'h'] = hnewCell
-                        # print(newCell, ". : \\", hnewCell)
+
                         # df_parent columns: 'CELL','Y','Parent'
                         # This takes the original parent - not just one level up
                         newCell_parent = df_parent.loc[k,'Parent']
@@ -409,7 +409,6 @@ while not terminate_cond:
                 coef_x = [0]*Len
                 constant_SP = 0
                 p = df_cell['PROB']
-
                 
                 for k in range(newCell+1):
                     c_L, c_U, M, c, c_g, Y_k = getCellInfo(k, x_now, "c_g", d,  df_cell)
@@ -441,12 +440,9 @@ while not terminate_cond:
 
         total_time = time.time() - start
         h_val = df_cell['h']
-        # print(df_cell['h'])
-        # print("h_val ", h_val.tolist())
         
+        # print("h_val ", h.tolist())
         p_val = df_cell['PROB']
-        # print("p_val ", p_val.tolist())
-        # print(df_cell)
         # print(len(h))
         # print(newCell+1)
         # print("p = ", p.tolist())
@@ -455,25 +451,8 @@ while not terminate_cond:
         # for k in range(newCell + 1):
         #     print(h_val[k], " ",p_val[k], " ", h_val[k] * p_val[k])
         # print("len_h ", len(h), " vs ", newCell)
-        print("MP_obj = ", MP_obj, " LB (current h) ", sum(h_val[k] * p_val[k] for k in range(newCell+1))) 
+        print("MP_obj = ", MP_obj, " LB (current h) ", sum(h_val[k] * p_val[k] for k in range(len(h)))) 
         LB = sum(h_val[k] * p_val[k] for k in range(newCell+1))
-
-        print("p = ", sum(p_val[k] for k in range(newCell+1)))
-        gb = 0
-        hb = 0
-        if iter > 45:
-            sys.out()
-        for k in range(newCell+1):
-            c_L, c_U, M, c, c_g, yK = getCellInfo(k, x_now, "c_g", d, df_cell)
-            y, gx, SP, label, path = gx_bound(c, c_g, edge,origin,destination)
-            y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
-            gb = gb + gx*p[k]
-            hb = hb + hx*p[k]
-            # if hx != h_val[k]:
-            #     print(k, ". gx = ",gx, "; gk = ", h_val[k])
-            # if hx != h_val[k]:
-            #     print(k, ". hx = ",hx, "; hk = ", h_val[k])
-        print("gb = ", gb, "; hb = ", hb)    
         if LB_global < LB:
             LB_global = LB
         print("MIP_GAP = ", MIP_GAP)
