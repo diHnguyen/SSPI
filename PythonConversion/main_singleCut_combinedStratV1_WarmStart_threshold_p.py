@@ -297,7 +297,7 @@ while not terminate_cond:
             print(set(x_index) == set(x_init))
             if set(x_index) == set(x_init):
                 x_consecutive = x_consecutive +1
-            if x_consecutive >= 5:
+            if x_consecutive >= 3:
                 isWarmStart = True
             # if iter > 20:
             #     sys.out()
