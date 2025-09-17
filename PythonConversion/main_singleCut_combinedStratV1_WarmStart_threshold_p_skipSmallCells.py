@@ -259,6 +259,7 @@ print("x_init = ", x_init)
 # sys.exit()
 isWarmStart = False
 x_consecutive = 0
+# x_repeat_nonopt = 0
 numCells_skipped = 0
 while not terminate_cond:
     # α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell, LB_w, p, \
@@ -298,6 +299,24 @@ while not terminate_cond:
             print("x = ", x_index)
             print("z = ", z_now)
             print("x_init = ", x_init)
+            
+
+
+            ###########Calculate weighted gap###########
+            # p_val = np.array(df_cell['PROB'])
+            # h_val = np.array(df_cell['h'])
+            # g_val = np.array(df_cell['g'])
+            df_cell['w'] = df_cell['PROB']*(df_cell['g'] - df_cell['h'])
+            median_weight = df_cell['w'].median()
+            print("median ", median_weight)
+            # weighted_sum = p_val*(g_val-h_val)
+            
+            # print("weighted_sum = ", weighted_sum)
+            ############################################
+            if iter > 15:
+                sys.out()
+
+            
             print(set(x_index) == set(x_init))
             if set(x_index) == set(x_init):
                 x_consecutive = x_consecutive +1
@@ -386,7 +405,7 @@ while not terminate_cond:
                     gx = df_cell.at[k, 'g']
                     
                     # print(k, "\tgx ", gx, " \thx ", hx, " \t_test ", h_test, "\t", gx - hx, " vs ", delta2*gx)
-                    # print(k, ": ", p_k*(gx-hx), " ", MIP_abs)
+                    print(k, ": ", p_k*(gx-hx), " ", median_weight)
                     # if iter == 34:
                     #     print(k, ": ", p_k*(gx-hx), " ", MIP_abs, " myCounter ", myCounter)
                     if gx - hx <= delta2*gx: #Used to be gx - hx <= delta2:
@@ -394,7 +413,7 @@ while not terminate_cond:
                         K_removed.append(k)
                     else:
                         # if p_k*(gx-
-                        if p_k*(gx-hx) > MIP_abs:
+                        if p_k*(gx-hx) > median_weight:
                             # print("woulda skipped but partition in old version")
                         # print(k, end=": ")
                             # if iter == 34:
