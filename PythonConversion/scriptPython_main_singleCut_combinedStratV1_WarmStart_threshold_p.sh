@@ -28,7 +28,7 @@ do
     done
     for N in 40;
     do
-        for i in  64 68 ;
+        for i in ;
         do
             echo "Running N=$N density=$density i=$i "
             gtimeout -k 5 3600 python main_singleCut_combinedStratV1_WarmStart_threshold_p.py $N $i $density
@@ -38,7 +38,7 @@ do
     done
     for N in 50;
     do
-        for i in ;
+        for i in 18 26 46 73 93 98 110 113 122 124  ;
         do
             echo "Running N=$N density=$density i=$i "
             gtimeout -k 5 3600 python main_singleCut_combinedStratV1_WarmStart_threshold_p.py $N $i $density
