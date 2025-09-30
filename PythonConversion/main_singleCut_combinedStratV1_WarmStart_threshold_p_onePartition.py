@@ -319,8 +319,8 @@ while not terminate_cond:
         #     print("SP k = 1 ", np.where(np.array(df_cell.at[0, 'Y'])>0.5)[0])
         
         # if (O1Flag == False) or (not np.array_equal(last_x, x_now)):
-        if (not np.array_equal(last_x, x_now)): #Only this condition is needed in singleCut - Except for the first time partition occurs, the Partition function generates new shortest paths after splitting cells, so the only case where O1Flag is false, i.e., new SPs are still being discovered, is if x-sol changes. Before that, shortest paths are continuously found with different x-solutions until all shortest-paths are found for cell k=1.
-            recalc_h = True
+        #if (not np.array_equal(last_x, x_now)): #Only this condition is needed in singleCut - Except for the first time partition occurs, the Partition function generates new shortest paths after splitting cells, so the only case where O1Flag is false, i.e., new SPs are still being discovered, is if x-sol changes. Before that, shortest paths are continuously found with different x-solutions until all shortest-paths are found for cell k=1.
+        #    recalc_h = True #recalc_h is always true when we split one cell / partition round
 
         # df_parent = df_parent.drop(columns=['ParentY'])
         # df_parent.loc[:,'ParentCell'] = -1
@@ -350,9 +350,9 @@ while not terminate_cond:
             
             # print("LB = ", h)
             while myCounter < partitionCounter:
-                if iter > 339:
+                #if iter > 339:
                 #     print("In while loop")
-                    print("K_removed = ", K_removed)
+                #    print("K_removed = ", K_removed)
                 # myCounter += 1 #We're doing Aggro Split in this combined strat -- so no increment yet
                 # print("K_bar = ", K_bar)
                 # print("Cells failing O2Flag")
@@ -365,8 +365,8 @@ while not terminate_cond:
                 # print(df_cell_temp)
                 weight_max = df_cell_temp['weights'].max()
                 K_w = np.array(df_cell_temp.loc[df_cell_temp['weights']==weight_max, 'CELL'])
-                if iter > 339:
-                    print(K_w)
+                #if iter > 339:
+                #    print(K_w)
                 # if iter > 340:
                 #     sys.out()
                 # get max p_k and the assoc cells k
@@ -420,8 +420,8 @@ while not terminate_cond:
                     # print("Before update hx")
                     # print(df_cell)
                     gx = df_cell.at[k, 'g']
-                    if iter > 339:
-                        print(k, "\tgx ", gx, " \thx ", hx)#, " \t_test ", h_test, "\t", gx - hx, " vs ", delta2*gx)
+                    #if iter > 339:
+                    #    print(k, "\tgx ", gx, " \thx ", hx)#, " \t_test ", h_test, "\t", gx - hx, " vs ", delta2*gx)
                     if gx - hx <= delta2*gx: #Used to be gx - hx <= delta2:
                         
                         K_removed.append(k)
@@ -469,8 +469,8 @@ while not terminate_cond:
                             #     print("!!!!!!!DID NOT FIND NEW PATH - Partition again!!!!!!!")
                         ####################################################
                         # print("isWarmStart ", isWarmStart)
-                        if k == K_bar[-1]:
-                            recalc_h = False
+                        #if k == K_bar[-1]:
+                        #    recalc_h = False #Recalc_h is true when we split 1 cell per partition
                 coef_x = [0]*Len
                 constant_SP = 0
                 p = df_cell['PROB']
