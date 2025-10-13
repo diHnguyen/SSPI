@@ -305,7 +305,7 @@ while not terminate_cond:
             #     sys.out()
             if runningTest == False:
                 if printIters == True:
-                    with open(directory+'Dec2024_Output/Iter/main_singleCut_combinedStratV1_WarmStart_threshold_p_adaptivegap_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                    with open(directory+'Dec2024_Output/Iter/main_singleCut_combinedStratV1_threshold_p_adaptivegap_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
                         the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
 
         O1Flag = True
@@ -534,10 +534,10 @@ if runningTest == True:
     # with open(directory+'./Dec2024_Output/test_main_d20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
 else:
-    with open(directory+'./Dec2024_Output/'+'main_singleCut_combinedStratV1_WarmStart_threshold_p_adaptivegap_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'./Dec2024_Output/'+'main_singleCut_combinedStratV1_threshold_p_adaptivegap_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
         the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
-    with open(directory+'Dec2024_Output/Iter/main_singleCut_combinedStratV1_WarmStart_threshold_p_adaptivegap_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'Dec2024_Output/Iter/main_singleCut_combinedStratV1_threshold_p_adaptivegap_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
                         the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
