@@ -362,8 +362,8 @@ while not terminate_cond:
             while myCounter < partitionCounter:
                 sum_weight = 0
                 K_bar = np.array(df_temp.CELL)
-                print("K_bar ", K_bar)
-                print("K_bar[-1] ", K_bar[-1])
+                # print("K_bar ", K_bar)
+                # print("K_bar[-1] ", K_bar[-1])
                 # myCounter += 1 #We're doing Aggro Split in this combined strat -- so no increment yet
                 
                 # if iter > 30:
