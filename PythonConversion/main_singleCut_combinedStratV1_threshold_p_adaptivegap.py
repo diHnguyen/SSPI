@@ -362,7 +362,8 @@ while not terminate_cond:
             while myCounter < partitionCounter:
                 sum_weight = 0
                 K_bar = np.array(df_temp.CELL)
-                # print("K_bar ", K_bar)
+                print("K_bar ", K_bar)
+                print("K_bar[-1] ", K_bar[-1])
                 # myCounter += 1 #We're doing Aggro Split in this combined strat -- so no increment yet
                 
                 # if iter > 30:
@@ -469,6 +470,8 @@ while not terminate_cond:
                 m.update()
                 # print("K_removed ", K_removed)
                 # print("K_bar ", K_bar)
+                if k == K_bar[-1]:
+                    myCounter = partitionCounter+1
                 K_bar = list(set(K_bar) - set(K_removed))
                 K_bar.extend(K_newly_added)
                 K_newly_added = []
@@ -483,8 +486,7 @@ while not terminate_cond:
                 #     # if (isWarmStart == False) & (newPath_Flag == True):
                 #     if newPath_Flag == True:
                 #         myCounter = partitionCounter+1
-                if k == K_bar[-1]:
-                    myCounter = partitionCounter+1
+                
         total_time = time.time() - start
         h_val = df_cell['h']
         
