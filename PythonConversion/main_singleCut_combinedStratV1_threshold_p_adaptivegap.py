@@ -319,6 +319,7 @@ while not terminate_cond:
         #     print("SP k = 1 ", np.where(np.array(df_cell.at[0, 'Y'])>0.5)[0])
         
         # if (O1Flag == False) or (not np.array_equal(last_x, x_now)):
+        # recalc_h = False
         if (not np.array_equal(last_x, x_now)): #Only this condition is needed in singleCut - Except for the first time partition occurs, the Partition function generates new shortest paths after splitting cells, so the only case where O1Flag is false, i.e., new SPs are still being discovered, is if x-sol changes. Before that, shortest paths are continuously found with different x-solutions until all shortest-paths are found for cell k=1.
             recalc_h = True
 
@@ -338,6 +339,7 @@ while not terminate_cond:
         # print("K_bar ", K_bar)
         h = np.array(df_cell.h)
         # print(h)
+        recalc_h = True
         if O1Flag:
             print("\tO1Flag: Passed ", len(K_bar), "/", newCell+1)
             partitionCounter = 1
@@ -347,16 +349,17 @@ while not terminate_cond:
             
             # print("LB = ", h)
 
-            df_temp = df_cell[df_cell.g > df_cell.h-1e-6]
+            df_temp = df_cell#[df_cell.g > df_cell.h-1e-6]
             # gx - hx <= delta2*gx
             df_temp['weight'] = (df_temp.g - df_temp.h)*df_temp.PROB #gx - hx <= delta2*gx
             # df_temp[''] = 
             df_temp = df_temp.sort_values(by="weight", ascending=False)
             # if iter > 11:
             #     print("df_temp")
-            #     print(df_temp)
+            # print(df_temp)
                 # sys.out()
             # print(df_temp[['CELL','g','h','PROB','weight']])
+            # print(df_cell[['CELL','g','h','PROB']])
             gap_global = MP_obj - LB_global
             gap_to_close = gap_global - (MIP_GAP * MP_obj)#(MP_obj - LB_global)/MP_obj <= MIP_GAP
             while myCounter < partitionCounter:
@@ -372,32 +375,33 @@ while not terminate_cond:
                 # print("Cells failing O2Flag")
                 for k in K_bar:
                     
-                    if myCounter < partitionCounter:
-                        # print("Cell ", k)
-                        c_L, c_U, M, c, c_g, yK = getCellInfo(k, x_now, "c_g", d, df_cell)
-                        # y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+                    # print("Cell ", k)
+                    c_L, c_U, M, c, c_g, yK = getCellInfo(k, x_now, "c_g", d, df_cell)
+                    # y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+                    # print("y_h = ", y_h)
+                    # print("hx = ", hx)
+                    # h[k] = hx
+                    p_k = df_cell.at[k, 'PROB']
+                    # print("1. recalc_h ", recalc_h)
+                    if recalc_h == True:
+                    # if not np.array_equal(last_x, x_now):
+                        # print("0.")
+                        y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
                         # print("y_h = ", y_h)
                         # print("hx = ", hx)
                         # h[k] = hx
-                        p_k = df_cell.at[k, 'PROB']
-                        # print("1. recalc_h ", recalc_h)
-                        if recalc_h == True:
-                        # if not np.array_equal(last_x, x_now):
-                            # print("0.")
-                            y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
-                            # print("y_h = ", y_h)
-                            # print("hx = ", hx)
-                            # h[k] = hx
-    
-                            # print("Before update hx")
-                            # print(df_cell)
-                            df_cell.at[k, 'h'] = hx
-                        else:
-                            # print("1.")
-                            hx = df_cell.at[k, 'h']
+
+                        # print("Before update hx")
+                        # print(df_cell)
+                        df_cell.at[k, 'h'] = hx
+                    else:
+                        # print("1.")
+                        hx = df_cell.at[k, 'h']
                         # y_test, h_test = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
                         # print("Before update hx")
                         # print(df_cell)
+                    # print("!", df_cell.h)
+                    if myCounter < partitionCounter:
                         gx = df_cell.at[k, 'g']
 
                         # print(k, "\tgx ", gx, " \thx ", hx, " \t_test ", h_test, "\t", gx - hx, " vs ", delta2*gx)
@@ -441,8 +445,8 @@ while not terminate_cond:
                             # if isWarmStart == False:
                             #     myCounter = partitionCounter
                             # print("myCounter ", myCounter , " partitionCounter ", partitionCounter)
-                            if k == K_bar[-1]:
-                                recalc_h = False
+                            # if k == K_bar[-1]:
+                            #     recalc_h = False
                             if (sum_weight >= gap_to_close) & (newPath_Flag==True):
                                 myCounter = partitionCounter
                             # print("end k ", k)
@@ -452,6 +456,7 @@ while not terminate_cond:
                 #leave this here bc we reuse k variables later.
                 if k == K_bar[-1]:
                     myCounter = partitionCounter+1
+                # print("k ", k, " K_bar[-1] ", K_bar[-1])
                 ##########    
                 coef_x = [0]*Len
                 constant_SP = 0
@@ -477,9 +482,10 @@ while not terminate_cond:
                 # print("K_removed ", K_removed)
                 # print("K_bar ", K_bar)
                 
-                # print("k ", k, " K_bar[-1] ", K_bar[-1])
+                
                 # print("myCounter ", myCounter, " partitionCounter ", partitionCounter)
                 # print("HERE")
+                
                 K_bar = list(set(K_bar) - set(K_removed))
                 K_bar.extend(K_newly_added)
                 K_newly_added = []
@@ -510,6 +516,18 @@ while not terminate_cond:
         # print("len_h ", len(h), " vs ", newCell)
         print("MP_obj = ", MP_obj, " LB (current h) ", sum(h_val[k] * p_val[k] for k in range(len(h)))) 
         LB = sum(h_val[k] * p_val[k] for k in range(newCell+1))
+
+        # lb_temp = 0
+        # for a_ in range(newCell+1):
+        #     c_L, c_U, M, c, c_g, yK = getCellInfo(a_, x_now, "c_g", d, df_cell)
+        #     y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+        #     print("\t",a_, ". hx ", hx)
+        #     lb_temp = lb_temp+hx*p_val[a_]
+        # print("lb_temp ", lb_temp)
+        # print(h_val)
+        # print(p_val)
+        # print(range(newCell))
+        print("LB = ", LB)
         if LB_global < LB:
             LB_global = LB
         print("MIP_GAP = ", MIP_GAP)
