@@ -412,7 +412,7 @@ while not terminate_cond:
                         else:
                             sum_weight = sum_weight+(gx-hx)*p_k
                             # if iter >= 30:
-                            #     print("k ", k, ", sum_weight ", sum_weight, ", gap_to_close ", gap_to_close)
+                            # print("k ", k, ", sum_weight ", sum_weight, ", gap_to_close ", gap_to_close)
                             # print(k, end=": ")
                             newCell += 1
                             # print("Partitioned, now have ", newCell+1, " cells")
@@ -445,8 +445,14 @@ while not terminate_cond:
                                 recalc_h = False
                             if (sum_weight >= gap_to_close) & (newPath_Flag==True):
                                 myCounter = partitionCounter
+                            # print("end k ", k)
                     # print("myCounter < partitionCounter ", myCounter < partitionCounter)
                             # print("B. myCounter ", myCounter, " partitionCounter ", partitionCounter)
+                ##########
+                #leave this here bc we reuse k variables later.
+                if k == K_bar[-1]:
+                    myCounter = partitionCounter+1
+                ##########    
                 coef_x = [0]*Len
                 constant_SP = 0
                 p = df_cell['PROB']
@@ -470,8 +476,10 @@ while not terminate_cond:
                 m.update()
                 # print("K_removed ", K_removed)
                 # print("K_bar ", K_bar)
-                if k == K_bar[-1]:
-                    myCounter = partitionCounter+1
+                
+                # print("k ", k, " K_bar[-1] ", K_bar[-1])
+                # print("myCounter ", myCounter, " partitionCounter ", partitionCounter)
+                # print("HERE")
                 K_bar = list(set(K_bar) - set(K_removed))
                 K_bar.extend(K_newly_added)
                 K_newly_added = []
