@@ -346,7 +346,7 @@ while not terminate_cond:
             
             # print("LB = ", h)
             print("Check:  ", (MP_obj - LB_global)/MP_obj, " vs ", MIP_GAP*1.5)
-            if (MP_obj - LB_global)/MP_obj > MIP_GAP*1.5:
+            if (MP_obj - LB_global)/MP_obj > MIP_GAP*1.1:
                 print("Partition all cells in K")
                 while myCounter < partitionCounter:
                     # myCounter += 1 #We're doing Aggro Split in this combined strat -- so no increment yet
