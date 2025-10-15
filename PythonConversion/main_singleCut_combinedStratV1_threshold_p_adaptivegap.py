@@ -345,7 +345,7 @@ while not terminate_cond:
             # print("myCounter ", myCounter)
             
             # print("LB = ", h)
-            print("Check:  ", (MP_obj - LB_global)/MP_obj, " vs ", MIP_GAP*1.5)
+            print("Check:  ", (MP_obj - LB_global)/MP_obj, " vs ", MIP_GAP*1.1)
             if (MP_obj - LB_global)/MP_obj > MIP_GAP*1.1:
                 print("Partition all cells in K")
                 while myCounter < partitionCounter:
