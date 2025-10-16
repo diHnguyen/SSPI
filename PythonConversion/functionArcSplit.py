@@ -3,7 +3,7 @@ importlib.import_module("functionGbound")
 from functionGbound import gx_bound
 import numpy as np
 import pandas as pd
-def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,d,Len,A3,calls_SASplit,actual_SASplit):
+def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,d,Len,A3):#,calls_SASplit,actual_SASplit):
     # global A1, A2, A3, A4, A5, edge, destination, d
     # global K_bar, K_newly_added, d, df_cell
     # print("c_L ", c_L)
@@ -42,7 +42,7 @@ def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,
     # print("d[sp] ", d_x[sp])
     # print("d[arc_split] * x_now[arc_split]", d[arc_split] * x_now[arc_split])
     if A3 == 0:  # 0=Split using SA if possible
-        calls_SASplit = calls_SASplit+1
+        # calls_SASplit = calls_SASplit+1
         into_j = [index for index, edge in enumerate(edge) if edge[1] == j and edge[0] != i]
         # print("into_j ", into_j)
         # print(edge[into_j])
@@ -92,12 +92,12 @@ def arcSplit(x_now, arc_split, k, c_L, c_U, M, y, label,edge,origin,destination,
             if (ΔL > 0.0001) and (ΔL < M[arc_split] - 0.0001):
                 mean_split = False
                 ΔU = M[arc_split] - ΔL
-    if mean_split == False:
-        actual_SASplit = actual_SASplit+1
+    # if mean_split == False:
+    #     actual_SASplit = actual_SASplit+1
     if A3 == 1 or mean_split == True:  # 1=Split at mean base cost - we can always do so
         # print(M[arc_split])
         ΔL = M[arc_split] / 2
         ΔU = ΔL
     # print(k, "cL ", c_L[arc_split], "; cU ", c_U[arc_split])
     # print(k, "ΔL ",ΔL,"; ΔU ", ΔU)
-    return ΔL, ΔU,calls_SASplit,actual_SASplit
+    return ΔL, ΔU#,calls_SASplit,actual_SASplit
