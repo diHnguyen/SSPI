@@ -21,7 +21,7 @@ do
         for i in ;
         do
             echo "Running N=$N density=$density i=$i "
-            gtimeout -k 5 3600 python main_singleCut_combinedStratV1_threshold_p_adaptivegap.py $N $i $density
+            gtimeout -k 5 3600 python main_singleCut_combinedStratV1_threshold_p_adaptivegap_noSA.py $N $i $density
             # gtimeout -k 5 2s sleep $((i*10)) && echo "Hello"
             echo "End of 3600 seconds"
         done
@@ -31,7 +31,7 @@ do
         for i in 1 3 5 6 7 9 10 11 12 13  4 8 16 27 33 36 37 48 64 68 2 14 18 22 24 38 39 40 56 76;
         do
             echo "Running N=$N density=$density i=$i "
-            gtimeout -k 5 3600 python main_singleCut_combinedStratV1_threshold_p_adaptivegap.py $N $i $density
+            gtimeout -k 5 3600 python main_singleCut_combinedStratV1_threshold_p_adaptivegap_noSA.py $N $i $density
             # gtimeout -k 5 2s sleep $((i*10)) && echo "Hello"
             echo "End of 3600 seconds"
         done
@@ -41,7 +41,7 @@ do
         for i in  ;
         do
             echo "Running N=$N density=$density i=$i "
-            gtimeout -k 5 3600 python main_singleCut_combinedStratV1_threshold_p_adaptivegap.py $N $i $density
+            gtimeout -k 5 3600 python main_singleCut_combinedStratV1_threshold_p_adaptivegap_noSA.py $N $i $density
             # gtimeout -k 5 2s sleep $((i*10)) && echo "Hello"
             echo "End of 3600 seconds"
         done
