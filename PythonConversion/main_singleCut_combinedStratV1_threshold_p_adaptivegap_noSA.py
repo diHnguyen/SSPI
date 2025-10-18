@@ -50,10 +50,15 @@ importlib.import_module("functionHbound")
 from functionHbound import hx_bound
 importlib.import_module("functionSelectArc")
 from functionSelectArc import selectArc
-importlib.import_module("functionArcSplit_SA_WarmStart") #Use the one specific for SA & WarmStart
-from functionArcSplit_SA_WarmStart import arcSplit
-importlib.import_module("functionPartition_SA_WarmStart")
-from functionPartition_SA_WarmStart import Partition
+
+importlib.import_module("functionArcSplit")
+from functionArcSplit import arcSplit
+importlib.import_module("functionPartition")
+from functionPartition import Partition
+# importlib.import_module("functionArcSplit_SA_WarmStart") #Use the one specific for SA & WarmStart
+# from functionArcSplit_SA_WarmStart import arcSplit
+# importlib.import_module("functionPartition_SA_WarmStart")
+# from functionPartition_SA_WarmStart import Partition
 importlib.import_module("functionCheckO1Flag_mainSingleCut_perc")
 from functionCheckO1Flag_mainSingleCut_perc import checkO1Flag
 importlib.import_module("functionGetCellInfo")
@@ -388,7 +393,7 @@ while not terminate_cond:
                             # print(k, end=": ")
                             newCell += 1
                             # print("Partitioned, now have ", newCell+1, " cells")
-                            ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell,calls_SASplit,actual_SASplit, SA_time = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added,calls_SASplit,actual_SASplit, SA_time,isWarmStart)
+                            ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added)
     
                             #Calculate h-bound for partitioned cells:
                             yk, hk = calcHBoundAfterPartition(k, x_now, d, df_cell,edge,origin,destination)
@@ -524,7 +529,7 @@ while not terminate_cond:
                                 # print(k, end=": ")
                                 newCell += 1
                                 # print("Partitioned, now have ", newCell+1, " cells")
-                                ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell,calls_SASplit,actual_SASplit, SA_time = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added,calls_SASplit,actual_SASplit, SA_time,isWarmStart)
+                                ΔL, ΔU, arc_split, yL, yU, gL, gU, SP_L, SP_U,df_cell = Partition(x_now, newCell, k, p_k, c_L, c_U, M, yK, d,edge,origin,destination,Len,A1,A3,df_cell, K_newly_added)
         
                                 #Calculate h-bound for partitioned cells:
                                 yk, hk = calcHBoundAfterPartition(k, x_now, d, df_cell,edge,origin,destination)
