@@ -309,7 +309,7 @@ while not terminate_cond:
             #     sys.out()
             if runningTest == False:
                 if printIters == True:
-                    with open(directory+'Dec2024_Output/Iter/main_singleCut_combinedStratV1_WarmStart_threshold_p_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                    with open(directory+'Dec2024_Output/Iter/main_singleCut_combinedStratV1_WarmStart_threshold_p_noSA_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
                         the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
 
         O1Flag = True
