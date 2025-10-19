@@ -18,7 +18,7 @@ for density in 15;
 do
     for N in 30;
     do
-        for i in 1 2 5 6 7 8 9 10 11 12 4 20 83 99 107 166 172 174 200 241 3 35 36 37 52 63 64 150 282 319 ;
+        for i in ;
         do
             echo "Running N=$N density=$density i=$i "
             gtimeout -k 5 3600 python main_singleCut_combinedStratV1_threshold_p_adaptivegap_noSA.py $N $i $density
@@ -38,7 +38,7 @@ do
     done
     for N in 50;
     do
-        for i in  2 6 7 10 13 14 15 16 17 21 18 26 46 73 93 98 110 113 122 124 1 3 4 5 8 9 11 12 19 20  ;
+        for i in  ;
         do
             echo "Running N=$N density=$density i=$i "
             gtimeout -k 5 3600 python main_singleCut_combinedStratV1_threshold_p_adaptivegap_noSA.py $N $i $density
