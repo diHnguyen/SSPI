@@ -74,7 +74,7 @@ from functionCalcHBoundAfterPartition import calcHBoundAfterPartition
 # newCell = 2
 k=1
 A1=0 #A1 = 0: Choose arc using worst cost. Else: Choose arc w largest M
-A3=0 #A3 = 0: Split a selected using SA if possible. Else: Split using mean base cost.
+A3=1 #A3 = 0: Split a selected using SA if possible. Else: Split using mean base cost.
 
 # Calculate c values
 c = (cU_orig + cL_orig) / 2
@@ -653,10 +653,10 @@ if runningTest == True:
     # with open(directory+'./Dec2024_Output/test_main_d20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
 else:
-    with open(directory+'./Dec2024_Output/'+'main_singleCut_combinedStratV1_WarmStart_threshold_p_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'./Dec2024_Output/'+'main_singleCut_combinedStratV1_threshold_p_noSA_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
         the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
-    with open(directory+'Dec2024_Output/Iter/main_singleCut_combinedStratV1_WarmStart_threshold_p_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    with open(directory+'Dec2024_Output/Iter/main_singleCut_combinedStratV1_threshold_p_noSA_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
                         the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
