@@ -556,7 +556,7 @@ while not terminate_cond:
                                 # print("myCounter ", myCounter , " partitionCounter ", partitionCounter)
                                 # if k == K_bar[-1]:
                                 #     recalc_h = False
-                                if (sum_weight >= 1.1*gap_to_close) & (newPath_Flag==True):
+                                if (sum_weight >= gap_to_close) & (newPath_Flag==True):
                                     myCounter = partitionCounter
                                 # print("end k ", k)
                         # print("myCounter < partitionCounter ", myCounter < partitionCounter)
