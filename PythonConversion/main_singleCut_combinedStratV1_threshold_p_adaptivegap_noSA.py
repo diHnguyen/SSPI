@@ -472,6 +472,7 @@ while not terminate_cond:
                 gap_to_close = gap_global - (MIP_GAP * MP_obj)#(MP_obj - LB_global)/MP_obj <= MIP_GAP
                 while myCounter < partitionCounter:
                     sum_weight = 0
+                    sum_weight_actual = 0
                     K_bar = np.array(df_temp.CELL)
                     # print("K_bar ", K_bar)
                     # print("K_bar[-1] ", K_bar[-1])
@@ -518,7 +519,7 @@ while not terminate_cond:
                             if gx - hx <= delta2*gx: #Used to be gx - hx <= delta2:
                                 # print("O2Flag: Passed")
                                 K_removed.append(k)
-                                if sum_weight >= gap_to_close:
+                                if sum_weight_actual >= gap_to_close:#if sum_weight >= gap_to_close:
                                     myCounter = partitionCounter
                                 # print("A. myCounter ", myCounter, " partitionCounter ", partitionCounter)
                             else:
@@ -555,7 +556,10 @@ while not terminate_cond:
                                 # print("myCounter ", myCounter , " partitionCounter ", partitionCounter)
                                 # if k == K_bar[-1]:
                                 #     recalc_h = False
-                                if (sum_weight >= gap_to_close) & (newPath_Flag==True):
+                                
+                                #Using p_k/2 bc variable p_k is for original k and is not updated during partition
+                                sum_weight_actual = sum_weight_actual +(p_k/2)*((gL-hk) + (gU-hnewCell))
+                                if (sum_weight_actual >= gap_to_close) & (newPath_Flag==True): #if (sum_weight >= gap_to_close) & (newPath_Flag==True):
                                     myCounter = partitionCounter
                                 # print("end k ", k)
                         # print("myCounter < partitionCounter ", myCounter < partitionCounter)
