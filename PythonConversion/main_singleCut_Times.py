@@ -228,7 +228,7 @@ recalc_h = True
 # print("df_cell")
 # print(df_cell.g)
 # print(df_cell)
-
+_dur_cons = 0
 while not terminate_cond:
     # α, iter, total_time, K_bar, K_newly_added, K_removed, LB, MP_obj, con_num, newCell, LB_w, p, \
     # x_sol, z_sol, α_sol, last_x, x_now, α_now, z_now, terminate_cond, start, set, Ins, density, dataset = \
@@ -244,6 +244,7 @@ while not terminate_cond:
         # for k in K_bar:
         #     print(k, ": ", df_constraints.loc[k,'con'])
         iter += 1
+        _dur_cons = 0
         # m.write("checkModel.lp")
         _start_opt = time.time()
         m.update()
@@ -340,6 +341,8 @@ while not terminate_cond:
                         df_cell.at[newCell,'h'] = hnewCell
                         if k == K_bar[-1]:
                             recalc_h = False
+                
+                _start_cons = time.time()
                 coef_x = [0]*Len
                 constant_SP = 0
                 p = df_cell['PROB']
@@ -353,7 +356,7 @@ while not terminate_cond:
             
                 if z_now > sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP + 10**(-4):
                     m.addConstr(z <= sum(coef_x[i]*x[i] for i in range(Len)) + constant_SP)
-
+                _dur_cons = _dur_cons + time.time() - _start_cons
                 # p = df_cell['PROB'].tolist()
                 
                 # @objective(m, Max, sum(p[i] * z[i] for i in range(1, len(p) + 1)))
@@ -406,7 +409,7 @@ while not terminate_cond:
         if runningTest == False:
                 if printIters == True:
                     with open(directory+'Dec2024_Output/Times/main_singleCut_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write("I;"+str(iter)+";"+str(_end_opt)+";"+str(_end_par)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                        the_file.write("I;"+str(iter)+";"+str(_end_opt)+";"+str(_end_par)+";"+str(_dur_cons)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
         # print("terminate_cond ", terminate_cond)
         # print("UB ", MP_obj, "; LB ", LB)
         # print("h_val ", h_val)
@@ -430,7 +433,7 @@ else:
         # the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
         # the_file.write("C;"+str(iter)+";"+str(_end_opt)+";"+str(_end_par)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
     with open(directory+'Dec2024_Output/Times/main_singleCut_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                        the_file.write("C;"+str(iter)+";"+str(_end_opt)+";"+str(_end_par)+";"+str(_dur_cons)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
 # for i in range(newCell+1):
