@@ -224,6 +224,7 @@ start = time.time()
 terminate_cond = False
 MIP_GAP = 1/100 #Terminate if MIP gap, i.e., weighted UB- weighted LB, is within 1%
 LB_global = 0
+_dur_cons = 0
 # print("df_cell")
 # print(df_cell.g)
 # print(df_cell)
@@ -243,6 +244,7 @@ while not terminate_cond:
         # for k in K_bar:
         #     print(k, ": ", df_constraints.loc[k,'con'])
         iter += 1
+        _dur_cons = 0
         # m.write("checkModel.lp")
         _start_opt = time.time()
         m.update()
@@ -371,6 +373,7 @@ while not terminate_cond:
                         # df_temp_k = df_constraints[df_constraints.CELL == k]
                         #constraints associated with cell k
                         # print("Constraints of ", k)
+                        _start_cons = time.time()
                         indices = df_constraints.index[df_constraints.CELL == k].tolist()
                         add_yL = True
                         add_yU = True
@@ -493,6 +496,7 @@ while not terminate_cond:
                             
                             df_new_con = pd.DataFrame(new_con, columns=dtypes.keys()).astype(dtypes)
                             df_constraints = pd.concat([df_constraints,df_new_con], axis=0, ignore_index=True)
+                        _dur_cons = _dur_cons + time.time() - _start_cons
                 # print("newCell ", newCell)
                 p = df_cell['PROB'].tolist()
                 
@@ -538,7 +542,7 @@ while not terminate_cond:
         if runningTest == False:
             if printIters == True:
                 with open(directory+'Dec2024_Output/Times/main_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                    the_file.write("I;"+str(iter)+";"+str(_end_opt)+";"+str(_end_par)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                    the_file.write("I;"+str(iter)+";"+str(_end_opt)+";"+str(_end_par)+";"+str(_dur_cons)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
         # print("K_bar ", K_bar)
         last_x = x_now
         last_O1Flag = O1Flag
@@ -562,7 +566,7 @@ else:
     #     # the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
     #     the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
     with open(directory+'Dec2024_Output/Times/main_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write("C;"+str(iter)+";"+str(_end_opt)+";"+str(_end_par)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
+                        the_file.write("C;"+str(iter)+";"+str(_end_opt)+";"+str(_end_par)+";"+str(_dur_cons)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
 # for i in range(newCell+1):
