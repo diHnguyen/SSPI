@@ -118,27 +118,34 @@ dtypes = {
 df_cell = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
 # print(df_cell)
 
-new_row = {
-    'x': [],
-    'lastIterSeen': -1
-}
-# Data frame to track x-solution
-dtypes = {
-    'x': object,
-    'lastIterSeen': int
-}
-df_xTrack = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
+# new_row = {
+#     'x': [[]],
+#     'lastIterSeen': [-1]
+# }
+# # Data frame to track x-solution
+# dtypes = {
+#     'x': object,
+#     'lastIterSeen': int
+# }
+# df_xTrack = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
+df_xTrack = pd.DataFrame({
+    "x": pd.Series(dtype="object"),
+    "lastIterSeen": pd.Series(dtype="int")
+})
 
-
-new_row = {
-    'k': [0],
-    'lastPartition': [-1]
-}
-dtypes = {
-    'k': int,
-    'lastPartition': int
-}
-df_kpartition = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
+# new_row = {
+#     'k': [0],
+#     'lastPartition': [-1]
+# }
+# dtypes = {
+#     'k': int,
+#     'lastPartition': int
+# }
+df_kpartition = pd.DataFrame({
+    "k": pd.Series(dtype="object"),
+    "lastPartition": pd.Series(dtype="int")
+})
+# df_kpartition = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
 # data = {"cell":1, 
 #         "rhs": SP_init, 
 #         "SP": yy, 
@@ -261,7 +268,7 @@ newPath_Flag = False
 calls_SASplit = 0
 actual_SASplit = 0
 SA_time = 0
-
+_dur_cons = 0
 fname = "./xSol_SAA_5000_"+density+"_"+testSet+".csv"
 print(fname)
 df_xSol = pd.read_csv(fname)
@@ -301,9 +308,12 @@ while not terminate_cond:
         # for k in K_bar:
         #     print(k, ": ", df_constraints.loc[k,'con'])
         iter += 1
+        _dur_cons = 0
         # m.write("checkModel.lp")
+        _start_opt = time.time()
         m.update()
         m.optimize()
+        _end_opt = time.time() - _start_opt
         # K_bar = []#Remove when done debug 
         # print("STATUS ", m.status)
         # if termination_status(m) == MOI.OPTIMAL:
@@ -322,12 +332,13 @@ while not terminate_cond:
             print("==========================================================")
             x_index = np.where(x_now > 0)[0]
 
-
-            df_xTrack
-            .at[k,'UB'] = cU_k
-
-
-
+            # print("type ", type(x_index))
+            print("set(x_index) " , set(x_index))
+            # df_xTrack.at[k,'x'] = x_index
+            # df_xTrack.at
+            rows = df_xTrack.index[df_xTrack["x"].apply(lambda _x: _x == set(x_index))]
+            # print("rows ", rows)
+            
 
             print("x = ", x_index)
             print("z = ", z_now)
@@ -339,10 +350,7 @@ while not terminate_cond:
                 isWarmStart = True
             # if iter > 20:
             #     sys.out()
-            if runningTest == False:
-                if printIters == True:
-                    with open(directory+'Dec2024_Output/Iter/main_singleCut_combinedStratV1_threshold_p_adaptivegap_noSA_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write("I;"+str(iter)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
+            
 
         O1Flag = True
         O1Flag, K_bar = checkO1Flag(m,x,z,Len,O1Flag,delta1,newCell,edge,origin,destination,last_x,x_now,d, k,z_now,df_cell, K_bar)
@@ -376,6 +384,8 @@ while not terminate_cond:
         h = np.array(df_cell.h)
         # print(h)
         recalc_h = True
+        _start_par = time.time()
+        
         if O1Flag:
             print("\tO1Flag: Passed ", len(K_bar), "/", newCell+1)
             partitionCounter = 1
@@ -384,7 +394,36 @@ while not terminate_cond:
             # print("myCounter ", myCounter)
             
             # print("LB = ", h)
-
+            last_seen_x = -1 #rows.at[0,'lastIterSeen']
+            print("df_xTrack")
+            print(df_xTrack)
+            
+            
+            new_row = {
+                    'x': [set(x_index)],
+                    'lastIterSeen': [iter]
+                }
+            if len(rows) > 0:
+                row_index = rows[0]
+                last_seen_x = df_xTrack.loc[row_index,'lastIterSeen']
+                df_xTrack.at[row_index, 'lastIterSeen'] = iter
+                # print("last_seen_x = ", last_seen_x)
+            else:
+                
+                dtypes = {
+                    'x': object,
+                    'lastIterSeen': int
+                }
+                df_addNewRow = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
+                df_xTrack = pd.concat([df_xTrack,df_addNewRow], axis=0, ignore_index=True)
+            print("!!!")
+            print("last_seen_x ", last_seen_x)
+            # print("df_kpartition ")
+            # print(df_kpartition)
+            # if lastiter >= 0: 
+                # 
+            # print(df_xTrack)
+            
             df_temp = df_cell#[df_cell.g > df_cell.h-1e-6]
             # gx - hx <= delta2*gx
             df_temp['weight'] = (df_temp.g - df_temp.h)*df_temp.PROB #gx - hx <= delta2*gx
@@ -422,9 +461,37 @@ while not terminate_cond:
                     if recalc_h == True:
                     # if not np.array_equal(last_x, x_now):
                         # print("0.")
-                        y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+                        last_k_part_iter = 1e6
+                        # last_k_part_iter = df_kpartition.at[k,'lastPartition']
+                        
+                        # print("last_seen_x ", last_seen_x)
+                        # print("len(df_kpartition) ", len(df_kpartition))
+                        # print(df_kpartition)
+                        
+                        if len(df_kpartition)>0:
+                            last_k_part_iter = df_kpartition.at[k,'lastPartition']
+                            # print(k, "last_k_part_iter ", last_k_part_iter)
+                            if last_k_part_iter <= last_seen_x:
+                                hx = df_cell.at[k,'h']
+                                # print("\t No recalc")
+                            else:
+                                # print("\t Recalc XXXXX")
+                                y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+                        else:
+                            print("\t Recalc because empty df")
+                            y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+                            new_row = {'k': [k],
+                                        'lastPartition': [iter]}
+                            dtypes = {'k': int,
+                                        'lastPartition': int}
+                            df_addNewRow = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
+                            df_kpartition = pd.concat([df_kpartition,df_addNewRow], axis=0, ignore_index=True)
+                        # print("df_kpartition ")
+                        # print(df_kpartition)
                         # print("y_h = ", y_h)
+                        
                         # print("hx = ", hx)
+                        
                         # h[k] = hx
 
                         # print("Before update hx")
@@ -450,6 +517,7 @@ while not terminate_cond:
                                 myCounter = partitionCounter
                             # print("A. myCounter ", myCounter, " partitionCounter ", partitionCounter)
                         else:
+                            # print("Partition!")
                             sum_weight = sum_weight+(gx-hx)*p_k
                             # if iter >= 30:
                             # print("k ", k, ", sum_weight ", sum_weight, ", gap_to_close ", gap_to_close)
@@ -464,7 +532,20 @@ while not terminate_cond:
             
                             ynewCell, hnewCell = calcHBoundAfterPartition(newCell, x_now, d, df_cell,edge,origin,destination)
                             df_cell.at[newCell,'h'] = hnewCell
-    
+
+
+                            
+                            df_kpartition.at[k, 'lastPartition'] = iter
+                            new_row = {'k': [newCell],
+                                        'lastPartition': [iter]}
+                            dtypes = {'k': int,
+                                        'lastPartition': int}
+                            df_addNewRow = pd.DataFrame(new_row, columns=dtypes.keys()).astype(dtypes)
+                            df_kpartition = pd.concat([df_kpartition,df_addNewRow], axis=0, ignore_index=True)
+                            # print("df_kpartition after partition")
+                            # print(df_kpartition)
+                            
+                            
                             # df_parent columns: 'CELL','Y','Parent'
                             # This takes the original parent - not just one level up
                             newCell_parent = df_parent.loc[k,'Parent']
@@ -494,6 +575,7 @@ while not terminate_cond:
                     myCounter = partitionCounter+1
                 # print("k ", k, " K_bar[-1] ", K_bar[-1])
                 ##########    
+                _start_cons = time.time()
                 coef_x = [0]*Len
                 constant_SP = 0
                 p = df_cell['PROB']
@@ -514,7 +596,9 @@ while not terminate_cond:
                 
                 # m.setObjective(sum(p[i] * z[i] for i in range(1, len(p) + 1)), sense=GRB.MAXIMIZE)
                 # m.setObjective(z,sense=GRB.MAXIMIZE)
+                
                 m.update()
+                _dur_cons = _dur_cons + time.time() - _start_cons
                 # print("K_removed ", K_removed)
                 # print("K_bar ", K_bar)
                 
@@ -536,7 +620,7 @@ while not terminate_cond:
                 #     # if (isWarmStart == False) & (newPath_Flag == True):
                 #     if newPath_Flag == True:
                 #         myCounter = partitionCounter+1
-                
+        _end_par =  time.time() - _start_par
         total_time = time.time() - start
         h_val = df_cell['h']
         
@@ -579,6 +663,10 @@ while not terminate_cond:
             terminate_cond = True
             K_bar = []
         last_x = x_now
+        if runningTest == False:
+                if printIters == True:
+                    with open(directory+'Dec2024_Output/Times/main_singleCut_combinedStratV1_threshold_p_adaptivegap_noSA_CellControl_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                        the_file.write("I;"+str(iter)+";"+str(_end_opt)+";"+str(_end_par)+";"+str(_dur_cons)+";"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
         # print("terminate_cond ", terminate_cond)
         # print("UB ", MP_obj, "; LB ", LB)
         # print("h_val ", h_val)
@@ -598,11 +686,11 @@ if runningTest == True:
     # with open(directory+'./Dec2024_Output/test_main_d20_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(cur_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
 else:
-    with open(directory+'./Dec2024_Output/'+'main_singleCut_combinedStratV1_threshold_p_adaptivegap_noSA_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+    # with open(directory+'./Dec2024_Output/'+'main_singleCut_combinedStratV1_threshold_p_adaptivegap_noSA_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
         # the_file.write("-1;"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(x_index)+";"+str(newCell+1)+"\n")
-        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
-    with open(directory+'Dec2024_Output/Iter/main_singleCut_combinedStratV1_threshold_p_adaptivegap_noSA_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
-                        the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
+        # the_file.write("C;"+str(iter)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
+    with open(directory+'Dec2024_Output/Times/main_singleCut_combinedStratV1_threshold_p_adaptivegap_noSA_CellControl_'+density+'_'+testSet+'_'+sys.argv[2]+'.txt','a') as the_file:
+                        the_file.write("C;"+str(iter)+";"+str(_end_opt)+";"+str(_end_par)+";"+str(_dur_cons)+";"+str(total_time)+';'+str(b)+";"+str(MP_obj)+";"+str(LB_global)+";"+str(x_index)+";"+str(len(K_bar))+";"+str(newCell+1)+";"+str(calls_SASplit)+";"+str(actual_SASplit)+";"+str(SA_time)+"\n")
 # print("UB ", sum(df_cell.at[i,'g']*df_cell.at[i,'PROB'] for i in range(newCell+1)), "; LB ", sum(df_cell.at[i, 'h']*df_cell.at[i, 'PROB'] for i in range(newCell+1)))
 
 # for i in range(newCell+1):
