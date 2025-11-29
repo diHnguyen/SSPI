@@ -356,7 +356,7 @@ while not terminate_cond:
             
                 if z_now > sum(coef_x[i]*x_now[i] for i in range(Len))+ constant_SP + 10**(-4):
                     m.addConstr(z <= sum(coef_x[i]*x[i] for i in range(Len)) + constant_SP)
-                _dur_cons = _dur_cons + time.time() - _start_cons
+                
                 # p = df_cell['PROB'].tolist()
                 
                 # @objective(m, Max, sum(p[i] * z[i] for i in range(1, len(p) + 1)))
@@ -364,6 +364,7 @@ while not terminate_cond:
                 # m.setObjective(sum(p[i] * z[i] for i in range(1, len(p) + 1)), sense=GRB.MAXIMIZE)
                 # m.setObjective(z,sense=GRB.MAXIMIZE)
                 m.update()
+                _dur_cons = _dur_cons + time.time() - _start_cons
                 # print("K_removed ", K_removed)
                 # print("K_bar ", K_bar)
                 K_bar = list(set(K_bar) - set(K_removed))
