@@ -503,8 +503,10 @@ while not terminate_cond:
                 # @objective(m, Max, sum(p[i] * z[i] for i in range(1, len(p) + 1)))
                 
                 # m.setObjective(sum(p[i] * z[i] for i in range(1, len(p) + 1)), sense=GRB.MAXIMIZE)
+                _start_cons = time.time()
                 m.setObjective(sum(p[i] * z[i] for i in range(newCell+1)),sense=GRB.MAXIMIZE)
                 m.update()
+                _dur_cons = _dur_cons + time.time() - _start_cons
                 
                 K_bar = list(set(K_bar) - set(K_removed))
                 K_bar.extend(K_newly_added)
