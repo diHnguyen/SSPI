@@ -477,6 +477,7 @@ while not terminate_cond:
                             else:
                                 # print("\t Recalc XXXXX")
                                 y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
+                                df_kpartition.at[k,'lastPartition'] = iter
                         else:
                             print("\t Recalc because empty df")
                             y_h, hx = hx_bound(c_L, c_U, d, x_now,edge,origin,destination)
