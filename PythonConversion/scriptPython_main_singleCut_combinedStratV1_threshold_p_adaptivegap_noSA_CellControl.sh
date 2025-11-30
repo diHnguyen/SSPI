@@ -38,7 +38,7 @@ do
     done
     for N in 50;
     do
-        for i in 9 ;
+        for i in 9;
         do
             echo "Running N=$N density=$density i=$i "
             gtimeout -k 5 3600 python main_singleCut_combinedStratV1_threshold_p_adaptivegap_noSA_CellControl.py $N $i $density
