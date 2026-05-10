@@ -35,33 +35,13 @@ do
     do
         for i in 1;
         do
-            for num_cases in 1000 10000;
+            for num_cases in 1000 10000 100000;
             do
                 echo "Running N=$N density=$density i=$i "
                 gtimeout -k 5 3600 python SAA.py $N $i $density $num_cases
                 # gtimeout -k 5 2s sleep $((i*10)) && echo "Hello"
                 echo "End of 3600 seconds"
             done
-        done
-    done
-    for N in 40;
-    do
-        for i in ;
-        do
-            echo "Running N=$N density=$density i=$i "
-            gtimeout -k 5 3600 python SAA.py $N $i $density
-            # gtimeout -k 5 2s sleep $((i*10)) && echo "Hello"
-            echo "End of 3600 seconds"
-        done
-    done
-    for N in 50;
-    do
-        for i in 9;
-        do
-            echo "Running N=$N density=$density i=$i "
-            gtimeout -k 5 3600 python SAA.py $N $i $density
-            # gtimeout -k 5 2s sleep $((i*10)) && echo "Hello"
-            echo "End of 3600 seconds"
         done
     done
 done
