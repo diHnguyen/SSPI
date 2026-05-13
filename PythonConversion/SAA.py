@@ -8,6 +8,11 @@ import pandas as pd
 import networkx as nx;
 import pandas as pd;
 import gurobipy as gp;
+options = {
+"WLSACCESSID":"a96dc558-310a-4610-92c3-ec8081776782",
+"WLSSECRET":"7278b0d5-d07f-4a01-92bf-ab59fb8e284d",
+"LICENSEID":2820704,
+} 
 from gurobipy import GRB;
 import csv;
 import sys;
@@ -129,7 +134,11 @@ def lazy(model, where):
 
 total_time = 0.0
 start = time.time()
-master = gp.Model()
+
+
+env=gp.Env(params=options)
+master = gp.Model(env=env)
+#master = gp.Model()
 master.setParam(GRB.Param.OutputFlag, 0)
 # Create variables
 x = {};
