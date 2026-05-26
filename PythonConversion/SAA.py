@@ -185,5 +185,5 @@ for e in G.edges:
 # print(edge)
 total_time = time.time() - start
 print(total_time)
-with open(directory+'./Dec2024_Output/SAA_'+testSet+'_'+sys.argv[2]+'_n'+sys.argv[4]+'.txt', 'a') as the_file:
+with open(directory+'./Dec2024_Output/SAA_'+testSet+'_'+sys.argv[2]+'_n'+sys.argv[4]+'_rep2.txt', 'a') as the_file:
     the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+"\n")
