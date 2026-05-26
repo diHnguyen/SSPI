@@ -40,7 +40,7 @@ Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, in
 # networkCSV = './NewCSVFeb24/N10_1.csv'
 num_cases = int(sys.argv[4]) #1000
 b = 10
-np.random.seed(2024)
+np.random.seed(2025)
 
 
 # In[3]:
