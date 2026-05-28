@@ -40,7 +40,8 @@ Len, origin, destination, edge,d,cL_orig, cU_orig = processInputFile(testSet, in
 # networkCSV = './NewCSVFeb24/N10_1.csv'
 num_cases = int(sys.argv[4]) #1000
 b = 10
-np.random.seed(2025)
+seed = int(sys.argv[5])
+np.random.seed(seed)
 
 
 # In[3]:
@@ -185,5 +186,5 @@ for e in G.edges:
 # print(edge)
 total_time = time.time() - start
 print(total_time)
-with open(directory+'./Dec2024_Output/SAA_'+testSet+'_'+sys.argv[2]+'_n'+sys.argv[4]+'_rep2.txt', 'a') as the_file:
+with open(directory+'./Dec2024_Output/SAA_'+testSet+'_'+sys.argv[2]+'_n'+sys.argv[4]+'_seed'+sys.argv[5]+'.txt', 'a') as the_file:
     the_file.write(str(num_cases)+";"+str(total_time)+";"+str(b)+";"+str(master.ObjVal)+";"+str(x_sol)+"\n")
