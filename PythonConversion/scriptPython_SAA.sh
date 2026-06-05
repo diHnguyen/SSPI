@@ -55,23 +55,23 @@ do
             done
         done
     done
-    for density in 15;
-    do
-        for N in 50;
-        do
-            #for i in 2 6 7 10 13 14 15 16 17 21 46 93 122 124 3 12 19;
-            # for i in 1 4 5 8 9 11 18 20 26 73 98 110 113;
-            # 2 6 7 10 13 14 15 16 17 21 18 26 46 73 93 98 110 113 122 124 1 3 4 5 8 9 11 12 19 20;
-            do
-                for num_cases in 100000 ;
-                do
-                    echo $(date '+%Y-%m-%d %H:%M:%S')
-                    echo "Running N=$N density=$density i=$i seed=$seed"
-                    gtimeout -k 5 3600 python SAA.py $N $i $density $num_cases $seed
-                    # gtimeout -k 5 2s sleep $((i*10)) && echo "Hello"
-                    echo "End of 3600 seconds"
-                done
-            done
-        done
-    done
+    # for density in 15;
+    # do
+    #     for N in 50;
+    #     do
+    #         #for i in 2 6 7 10 13 14 15 16 17 21 46 93 122 124 3 12 19;
+    #         for i in 1 4 5 8 9 11 18 20 26 73 98 110 113;
+    #         # 2 6 7 10 13 14 15 16 17 21 18 26 46 73 93 98 110 113 122 124 1 3 4 5 8 9 11 12 19 20;
+    #         do
+    #             for num_cases in 100000 ;
+    #             do
+    #                 echo $(date '+%Y-%m-%d %H:%M:%S')
+    #                 echo "Running N=$N density=$density i=$i seed=$seed"
+    #                 gtimeout -k 5 3600 python SAA.py $N $i $density $num_cases $seed
+    #                 # gtimeout -k 5 2s sleep $((i*10)) && echo "Hello"
+    #                 echo "End of 3600 seconds"
+    #             done
+    #         done
+    #     done
+    # done
 done
